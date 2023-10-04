@@ -1,0 +1,1302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="enrollment">
+
+	<select id="getVcatnKndList" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnKndDTO">
+		/* 휴가 종류 리스트 */
+		SELECT
+			*
+		FROM
+			cust_klti.vcatn_knd
+	</select>
+
+	<select id="getVcatnKndListCount" parameterType="map" resultType="int">
+		/* 휴가 종류 리스트 카운트 */
+		SELECT
+			COUNT(*)
+		FROM
+			cust_klti.vcatn_knd
+	</select>
+
+	<insert id="enrollSave" parameterType="map">
+		/*enrollSave*/
+		INSERT INTO cust_klti.vcatn_knd(
+			VCATN_GBN_NAME,
+			VCATN_GBN_CMMN_CD,
+		    VCATN_KND_NAME,
+		    USE_UNIT,
+		    BSIC_VAL,
+		    USE_YN,
+		    RMK,
+		    CRTR_EMPL_SN,
+		    VCATN_TYPE
+		) VALUES(
+			#{vcatnGbnName},
+		    #{vcatnGbnCmmnCd},
+			#{vcatnKndName},
+		    #{useUnit},
+			#{bsicVal},
+		    #{useYn},
+			#{rmk},
+			#{crtrEmplSn},
+			#{vcatnType}
+		)
+	</insert>
+
+	<select id="enrollList" resultType="map">
+		SELECT * FROM cust_klti.vcatn_knd
+		WHERE USE_YN = 'Y'
+		<if test="vcatnType != null and vcatnType != ''">
+		AND	VCATN_TYPE = #{vcatnType}
+		</if>
+		ORDER BY CREAT_DT DESC
+	</select>
+	
+	<select id="getYrvacSetupList" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.YrvacSetupDTO">
+		/* 연가설정 리스트 */
+		SELECT
+			*
+		FROM
+			cust_klti.yrvac_setup
+		WHERE
+			USE_YN = 'Y'
+		<!-- 
+		AND
+			VCATN_KND_SN = #{vcatnKndSn}
+		-->
+		AND
+			VCATN_TYPE = #{vcatnType}
+		ORDER BY
+			SORT_SN DESC
+	</select>
+
+	<select id="getYrvacSetupListCount" parameterType="map" resultType="int">
+		/* 연가설정 리스트 카운트 */
+		SELECT
+			COUNT(*)
+		FROM
+			cust_klti.yrvac_setup
+		WHERE
+			USE_YN = 'Y'
+		<!-- 
+		AND
+			VCATN_KND_SN = #{vcatnKndSn}
+		-->
+		AND
+			VCATN_TYPE = #{vcatnType}
+	</select>
+	
+	<select id="getYrvacSetupMax" parameterType="map" resultType="int">
+		/* 연가설정 정렬순번 값 가져오기 */
+		SELECT
+			CASE 
+				WHEN MAX(SORT_SN) IS NULL THEN '0'
+				ELSE CONCAT(MAX(SORT_SN)+1)
+            END as sortSn
+		FROM
+			cust_klti.yrvac_setup
+	</select>
+	
+	<insert id="vacationSave" parameterType="com.duzon.custom.egov_cms.dto.YrvacSetupDTO">
+		INSERT INTO
+			cust_klti.yrvac_setup
+		(
+			VCATN_KND_SN
+			, HFFC_PD_STR_YR
+			, HFFC_PD_END_YR
+			, ALWNC_VCATN
+			, ATMC_CREAT_YN
+			, SORT_SN
+			, RMK
+			, USE_YN
+			, CRTR_EMPL_SN
+			, CREAT_DT
+		)VALUES(
+			#{vcatnKndSn}
+			, #{hffcPdStrYr}
+			, #{hffcPdEndYr}
+			, #{alwncVcatn}
+			, #{atmcCreatYn}
+			, #{sortSn}
+			, #{rmk}
+			, #{useYn}
+			, #{crtrEmplSn}
+			, NOW()
+		)
+	</insert>
+
+	<update id="vacationUpdate" parameterType="com.duzon.custom.egov_cms.dto.YrvacSetupDTO">
+		UPDATE
+			cust_klti.yrvac_setup
+		SET
+			HFFC_PD_STR_YR = #{hffcPdStrYr}
+			, HFFC_PD_END_YR = #{hffcPdEndYr}
+			, ALWNC_VCATN = #{alwncVcatn}
+			, ATMC_CREAT_YN = #{atmcCreatYn}
+			, RMK = #{rmk}
+			, UPDUSR_EMPL_SN = #{crtrEmplSn}
+			, UPDT_DT = NOW()
+		WHERE
+			YRVAC_SETUP_SN = #{yrvacSetupSn}
+	</update>
+	
+	<update id="vacationDelete" parameterType="string">
+		UPDATE
+			cust_klti.yrvac_setup
+		SET
+			USE_YN = 'N'
+		WHERE
+			YRVAC_SETUP_SN = #{yrvacSetupSn}
+	</update>
+	
+	<select id="getVacation" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.YrvacSetupDTO">
+		SELECT
+			*
+		FROM
+			cust_klti.yrvac_setup
+		WHERE
+			USE_YN = 'Y'
+		AND
+			VCATN_TYPE = #{vcatnType}
+		<if test="yrvacSetupSn != null and yrvacSetupSn != ''">
+		AND
+			YRVAC_SETUP_SN = #{yrvacSetupSn}
+		</if>
+	</select>
+
+	<select id="enrollSelectRow" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnKndDTO">
+		SELECT * FROM cust_klti.vcatn_knd
+		WHERE VCATN_KND_SN = #{vcatnKndSn}
+	</select>
+
+	<update id="enrollMod" parameterType="map">
+		UPDATE cust_klti.vcatn_knd
+		SET
+			VCATN_GBN_NAME = #{vcatnGbnName},
+		    VCATN_GBN_CMMN_CD = #{vcatnGbnCmmnCd},
+		    VCATN_KND_NAME = #{vcatnKndName},
+		    USE_UNIT = #{useUnit},
+		    BSIC_VAL = #{bsicVal},
+		    RMK = #{rmk},
+		    UPDUSR_EMPL_SN = #{updusrEmplSn},
+		    UPDT_DT = now(),
+		    VCATN_TYPE = #{vcatnType}
+		WHERE
+			VCATN_KND_SN = #{vcatnKndSn}
+	</update>
+
+	<update id="enrollDel" parameterType="map">
+		UPDATE cust_klti.vcatn_knd
+		SET
+			USE_YN = 'N'
+		WHERE
+			VCATN_KND_SN = #{vcatnKndSn}
+	</update>
+
+	<select id="enrollGetCode" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnKndDTO">
+		SELECT *
+		FROM cust_klti.vcatn_knd
+		WHERE USE_YN = "Y"
+		<if test="false">
+			AND VCATN_GBN_CMMN_CD = #{vcatnGbnCmmnCd}
+		</if>
+		<if test="vcatnType != null and vcatnType != ''">
+		AND VCATN_TYPE = #{vcatnType}
+		</if>
+	</select>
+
+	<select id="enrollDocSel" parameterType="map" resultType="map">
+		SELECT * FROM neos.a_templateinfo
+		WHERE FORM_D_TP= #{formDTp}
+	</select>
+
+	<insert id="specialVacSetIns" parameterType="map">
+		INSERT INTO cust_klti.specl_vcatn_setup (
+			VCATN_KND_SN,
+			PAY_YN,
+			APPLY_W,
+			APPLY_M,
+			APPLY_C,
+			ALWNC_VCATN,
+			ALWNC_VCATN_UNIT,
+			ALWNC_VCATN_BASE,
+			CN_INDICT_YN,
+			CN,
+			AFTFAT_MNT_YN,
+			AFTFAT_MNT_MTH,
+			AFTFAT_MNT_MTH_CMMN_CD,
+			AFTFAT_MNT_FRMT_NAME,
+			C_TIKEYCODE,
+			VALID_PD_YN,
+			VALID_PD,
+			VALID_PD_UNIT,
+			VALID_PD_CMMN_CD,
+			USE_YN,
+			CRTR_EMPL_SN
+		) VALUES (
+			#{vcatnKndSn},
+			#{payYn},
+		    #{applyW},
+			#{applyM},
+		    #{applyC},
+			#{alwncVcatn},
+		    #{alwncVcatnUnit},
+			#{alwncVcatnBase},
+		    #{cnIndictYn},
+		    #{cn},
+		    #{aftfatMntYn},
+		    #{aftfatMntMth},
+		    #{aftfatMntMthCmmnCd},
+		    #{aftfatMntFrmtName},
+		    #{cTikeycode},
+		    #{validPdYn},
+		    #{validPd},
+		    #{validPdUnit},
+		    #{validPdCmmnCd},
+		    "Y",
+		    #{crtrEmplSn}
+		)
+	</insert>
+
+	<select id="specialVacSetList" resultType="map">
+		SELECT
+			a.*
+		    ,b.VCATN_KND_NAME
+		FROM
+			cust_klti.specl_vcatn_setup a
+		LEFT JOIN
+			cust_klti.vcatn_knd b
+		ON
+			a.VCATN_KND_SN = b.VCATN_KND_SN
+		WHERE
+			a.USE_YN = 'Y'
+		AND
+			b.VCATN_TYPE = 'V004'
+		<if test="vcatnType != null and vcatnType != ''">
+		AND 
+			b.VCATN_TYPE = #{vcatnType}
+		</if>
+		ORDER BY
+			a.CREAT_DT DESC
+	/*
+		SELECT * FROM cust_klti.specl_vcatn_setup
+		WHERE USE_YN = 'Y'
+		ORDER BY
+			CREAT_DT DESC
+	*/
+	</select>
+
+	<update id="spVacationDel" parameterType="map">
+		UPDATE cust_klti.specl_vcatn_setup
+		SET
+			USE_YN = "N",
+		    UPDUSR_EMPL_SN = #{updusrEmplSn},
+		    UPDT_DT = now()
+		WHERE
+		    SPECL_VCATN_SETUP_SN = #{speclVcatnSetupSn}
+	</update>
+
+	<select id="specialSelectRow" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.SpeclVcatnSetupDTO">
+		SELECT * FROM cust_klti.specl_vcatn_setup
+		WHERE SPECL_VCATN_SETUP_SN = #{speclVcatnSetupSn}
+	</select>
+
+	<update id="specialUpd" parameterType="map">
+		UPDATE cust_klti.specl_vcatn_setup
+		SET
+			VCATN_KND_SN = #{vcatnKndSn},
+			PAY_YN = #{payYn},
+			APPLY_W = #{applyW},
+			APPLY_M = #{applyM},
+			APPLY_C = #{applyC},
+			ALWNC_VCATN = #{alwncVcatn},
+			ALWNC_VCATN_UNIT = #{alwncVcatnUnit},
+			ALWNC_VCATN_BASE = #{alwncVcatnBase},
+			CN_INDICT_YN = #{cnIndictYn},
+			CN = #{cn},
+			AFTFAT_MNT_YN = #{aftfatMntYn},
+			AFTFAT_MNT_MTH = #{aftfatMntMth},
+			AFTFAT_MNT_MTH_CMMN_CD = #{aftfatMntMthCmmnCd},
+			AFTFAT_MNT_FRMT_NAME = #{aftfatMntFrmtName},
+			C_TIKEYCODE = #{cTikeycode},
+			VALID_PD_YN = #{validPdYn},
+			VALID_PD = #{validPd},
+			VALID_PD_UNIT = #{validPdUnit},
+			VALID_PD_CMMN_CD = #{validPdCmmnCd},
+			UPDUSR_EMPL_SN = #{updusrEmplSn},
+		    UPDT_DT = now()
+		WHERE
+			SPECL_VCATN_SETUP_SN = #{speclVcatnSetupSn}
+	</update>
+
+	<insert id="insDocCert" parameterType="map">
+		INSERT INTO cust_klti.v_doc_cert(
+		    doc_title
+		) VALUES(
+		    #{title}
+		)
+	</insert>
+
+	<select id="getDocInfo" resultType="map">
+		SELECT * FROM cust_klti.v_doc_cert
+		ORDER BY doc_id DESC LIMIT 1;
+	</select>
+
+	<insert id="insOutProcess" parameterType="map">
+		INSERT INTO v_doc_state_tmp (
+			doc_state
+		) values (
+			 "200"
+		)
+	</insert>
+
+	<insert id="vacHistIns" parameterType="com.duzon.custom.egov_cms.dto.VcatnUseHistDTO">
+		INSERT INTO v_vcatn_use_hist(
+		    VCATN_SN,
+			SPECL_SN,
+			VCATN_KND_SN,
+			VCATN_USE_STDT,
+			VCATN_USE_ENDT,
+			USE_DAY,
+		    ATT_TIME,
+			APPRO_KEY,
+			SORT_SN,
+			RMK,
+			USE_YN,
+			CRTR_EMPL_SN,
+		    CREAT_DT,
+		    TARGET_EMP_SEQ
+		) VALUES(
+			#{vcatnSn},
+			#{speclSn},
+			#{vcatnKndSn},
+			#{vcatnUseStdt},
+			#{vcatnUseEndt},
+			#{useDay},
+		    #{attTime},
+			#{approKey},
+			#{sortSn},
+			#{rmk},
+			"N",
+			#{crtrEmplSn},
+			NOW(),
+			#{targetEmpSeq}
+		)
+	</insert>
+
+	<update id="vacHistUpd" parameterType="map">
+		UPDATE v_vcatn_use_hist
+		SET
+			USE_YN = "Y",
+			UPDUSR_EMPL_SN = #{dfEmpSeq},
+			UPDT_DT = NOW(),
+			END_ST = "Y"
+		WHERE
+			APPRO_KEY = #{approKey}
+
+	</update>
+
+	<select id="getvacation" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnKndDTO">
+		SELECT
+			*
+		FROM 
+			cust_klti.vcatn_knd
+		WHERE
+			USE_YN = 'Y'
+		AND
+			VCATN_TYPE = 'V001'
+		<if test="yrvacSetupSn != null and yrvacSetupSn != ''">
+		AND
+			YRVAC_SETUP_SN = #{yrvacSetupSn}
+		</if>
+	</select>
+	
+	<select id="getvacationTwo" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnKndDTO">
+		SELECT
+			*
+		FROM 
+			cust_klti.vcatn_knd
+		WHERE
+			USE_YN = 'Y'
+		AND
+			VCATN_TYPE = 'V004'
+	</select>
+
+	<select id="getUseVacListAll" resultType="map" parameterType="map">
+		/* getUseVacListAll */
+		SELECT
+			*,
+			(SELECT SUM(sB.USE_DAY) FROM cust_klti.v_vcatn sA
+			LEFT JOIN cust_klti.v_vcatn_use_hist sB ON sA.VCATN_SN = sB.VCATN_SN
+			WHERE sA.emp_seq = AA.emp_seq AND sA.VCATN_SN = BB.VCATN_SN AND sB.USE_YN = 'Y')as useDay
+		FROM
+			(SELECT
+				u.dept_seq as deptSeq,
+				u.dept_name as deptName,
+				em.emp_name as empName,
+				p.dp_name,
+			    d.parent_dept_seq,
+				a.*
+			FROM
+				neos.v_user_info a
+			LEFT JOIN
+				neos.t_co_emp_multi em
+			ON (a.emp_seq = em.emp_seq AND em.lang_code = "kr")
+			LEFT JOIN
+				neos.t_co_comp_duty_position_multi p
+			ON a.duty_code = p.dp_seq
+			LEFT JOIN
+				neos.t_co_emp_dept b
+			ON a.emp_seq = b.emp_seq
+			LEFT JOIN
+				neos.t_co_dept d
+			ON b.dept_seq = d.dept_seq
+			LEFT JOIN
+				neos.t_co_dept_multi c
+			ON d.dept_seq = c.dept_seq
+			LEFT JOIN
+				neos.v_user_info u
+			ON (u.main_dept_yn = "Y" AND a.emp_seq = u.emp_seq)
+			WHERE
+				a.use_yn = "Y"
+			GROUP BY a.emp_seq) AA
+		LEFT JOIN
+			cust_klti.v_vcatn BB
+		ON AA.emp_seq = BB.emp_seq AND DATE_FORMAT(creat_dt, '%Y') = #{year} AND BB.USE_YN = 'Y'
+		WHERE 1 = 1
+		<if test="parentDeptSeq != null and parentDeptSeq != ''">
+		AND
+			AA.parent_dept_seq = #{parentDeptSeq}
+		</if>
+		<!-- <if test='parentDeptSeq == "10055202"'>
+		OR
+		    AA.parent_dept_seq = 0
+		</if> -->
+		<if test="deptName != null and deptName != ''">
+			AND
+			AA.dept_name = #{deptName}
+		</if>
+		<if test="srchEmpSeq != null and srchEmpSeq != ''">
+			AND
+			AA.emp_seq = #{srchEmpSeq}
+		</if>
+	</select>
+
+	<select id="getUseDeptList" resultType="map">
+		SELECT
+			count(*) AS grp_cnt,
+		    A.*
+		FROM (
+			SELECT
+				IF(d.dept_name is null, "원장", d.dept_name) as dept_name,
+				a.emp_seq,
+				c.parent_dept_seq
+			FROM
+				neos.t_co_emp a
+			LEFT JOIN
+				neos.t_co_emp_dept b
+			ON
+				a.emp_seq = b.emp_seq
+			LEFT JOIN
+				neos.t_co_dept c
+			ON
+				b.dept_seq = c.dept_seq
+			LEFT JOIN
+				neos.t_co_dept_multi d
+			ON
+				c.parent_dept_seq = d.dept_seq
+			WHERE
+				a.use_yn = "Y"
+			GROUP BY a.emp_seq) A
+		GROUP BY A.dept_name ORDER BY A.parent_dept_seq * 1 ASC
+	</select>
+
+	<select id="getUseSpcVacListAll" parameterType="map" resultType="map">
+		SELECT IF(count(*) = 1, 0, count(*)) as spc_cnt,
+			   sum(BB.ALWNC_DAYCNT) as spc_sum,
+			   AA.*,
+			   BB.*,
+			   
+			    (SELECT
+					COUNT(*)
+				FROM
+					cust_klti.v_specl sA
+				LEFT JOIN
+					(SELECT
+						ssa.*
+						,ssb.VCATN_KND_NAME
+					FROM 
+						cust_klti.specl_vcatn_setup ssa
+					LEFT JOIN
+						cust_klti.vcatn_knd ssb
+					ON
+						ssa.VCATN_KND_SN = ssb.VCATN_KND_SN
+					)as BB
+					ON
+						sA.SPECL_VCATN_SETUP_SN = BB.SPECL_VCATN_SETUP_SN
+					LEFT JOIN
+						cust_klti.v_vcatn_use_hist CC
+					ON
+						sA.SPECL_SN = CC.SPECL_SN
+					LEFT JOIN
+						cust_klti.v_evidence_file DD
+					ON
+						CC.VCATN_USE_HIST_SN = DD.VCATN_USE_HIST_SN
+						
+					WHERE
+						sA.USE_YN = 'Y'
+					AND
+						CC.USE_YN = 'Y'
+					AND
+						BB.AFTFAT_MNT_YN = 'Y'
+					AND
+						sA.EMP_SEQ = AA.emp_seq
+					AND
+						CC.VCATN_USE_STDT > '2000-01-01'
+					AND
+						DD.EVIDENCE_FILE_SN IS NULL
+					
+                )as uploadCount
+			   
+		FROM
+			(SELECT
+				 b.dept_seq,
+				 c.dept_name,
+				 em.emp_name,
+				 p.dp_name,
+			     d.parent_dept_seq,
+				 a.*
+			 FROM
+				 neos.t_co_emp a
+			 LEFT JOIN
+				 neos.t_co_emp_multi em
+			 ON (a.emp_seq = em.emp_seq AND em.lang_code = "kr")
+			 LEFT JOIN
+				 neos.t_co_comp_duty_position_multi p
+			 ON a.position_code = p.dp_seq
+			 LEFT JOIN
+				 neos.t_co_emp_dept b
+			 ON a.emp_seq = b.emp_seq
+			 LEFT JOIN
+				 neos.t_co_dept_multi c
+			 ON b.dept_seq = c.dept_seq
+			 LEFT JOIN
+				 neos.t_co_dept d
+			 ON c.dept_seq = d.dept_seq
+			 WHERE
+				 a.use_yn = "Y"
+			 GROUP BY a.emp_seq) AA
+			LEFT JOIN
+				cust_klti.v_specl BB
+			ON AA.emp_seq = BB.emp_seq AND DATE_FORMAT(creat_dt, '%Y') = #{year}
+		WHERE 1=1
+		<if test="parentDeptSeq != null and parentDeptSeq != ''">
+			AND
+			AA.parent_dept_seq = #{parentDeptSeq}
+		</if>
+		<!-- <if test='parentDeptSeq == "10055202"'>
+			OR
+			AA.parent_dept_seq = 0
+		</if> -->
+		<if test="deptName != null and deptName != ''">
+			AND
+			AA.dept_name = #{deptName}
+		</if>
+		<if test="srchEmpSeq != null and srchEmpSeq != ''">
+			AND
+			AA.emp_seq = #{srchEmpSeq}
+		</if>
+		GROUP BY AA.emp_seq
+		ORDER BY AA.parent_dept_seq * 1, AA.dept_seq * 1
+	</select>
+
+	<select id="getSpcVacList" parameterType="map" resultType="map" >
+		SELECT
+		    d.vcatn_knd_name
+			, sum(b.use_day) as use_day
+			, (alwnc_daycnt - sum(b.USE_DAY)) as remaining_day
+		    , e.*
+			, a.*
+			, (CASE
+			  	WHEN (
+				 SELECT
+					 DD.VALID_PD_YN
+				 FROM
+					 cust_klti.specl_vcatn_setup DD
+				 WHERE
+					 DD.SPECL_VCATN_SETUP_SN = a.SPECL_VCATN_SETUP_SN) = 'Y'
+				 THEN (
+					 SELECT
+						 CASE
+							WHEN (DD.VALID_PD_UNIT) = 'DAY'
+								THEN DATE_ADD(a.CREAT_DT, INTERVAL DD.VALID_PD DAY)
+							WHEN (DD.VALID_PD_UNIT) = 'MONTH'
+								THEN DATE_ADD(a.CREAT_DT, INTERVAL DD.VALID_PD MONTH)
+							WHEN (DD.VALID_PD_UNIT) = 'TIME'
+								THEN DATE_ADD(a.CREAT_DT, INTERVAL DD.VALID_PD HOUR)
+							END
+					 FROM
+						cust_klti.specl_vcatn_setup DD
+					 WHERE
+						DD.SPECL_VCATN_SETUP_SN = a.SPECL_VCATN_SETUP_SN
+					)
+			     ELSE '-'
+			END
+			) as max_day
+			,f.c_dikeycode
+            ,f.doc_title
+            ,c.AFTFAT_MNT_YN
+			,c.AFTFAT_MNT_MTH
+		FROM
+			cust_klti.v_specl a
+		LEFT JOIN
+			cust_klti.v_vcatn_use_hist b
+		ON a.specl_sn = b.specl_sn
+		LEFT JOIN
+			cust_klti.specl_vcatn_setup c
+		ON a.specl_vcatn_setup_sn = c.SPECL_VCATN_SETUP_SN
+		LEFT JOIN
+			cust_klti.vcatn_knd d
+		ON c.VCATN_KND_SN = d.VCATN_KND_SN
+		LEFT JOIN
+			cust_klti.v_evidence_file e
+		ON b.VCATN_USE_HIST_SN = e.VCATN_USE_HIST_SN
+		LEFT JOIN
+			neos.a_docinterlock f
+		ON
+			b.APPRO_KEY = f.approkey
+		WHERE
+			a.emp_seq = #{empSeq} AND a.use_yn = "Y"
+		GROUP BY a.specl_sn
+	</select>
+	
+	<select id="vacationInfo" resultType="map" parameterType="map">
+		<if test="searchType.toString() == 'V001'">
+			SELECT
+				a.*
+			    ,(SELECT IFNULL(SUM(BB.USE_DAY),0)
+					FROM cust_klti.v_vcatn_use_hist BB
+					WHERE BB.USE_YN = 'Y'
+					AND BB.VCATN_SN = a.VCATN_SN)as useDay
+				,CONCAT(
+					a.YRVAC_FRST_ALWNC_DAYCNT - (SELECT IFNULL(SUM(BB.USE_DAY),0)
+					FROM cust_klti.v_vcatn_use_hist BB
+					WHERE BB.USE_YN = 'Y'
+					AND BB.VCATN_SN = a.VCATN_SN)
+				)as remainingDays
+			,CONCAT(a.YRVAC_FRST_ALWNC_DAYCNT + a.YRVAC_MDTN_ALWNC_DAYCNT)as totalDay
+			FROM
+				cust_klti.v_vcatn a
+			WHERE
+				a.EMP_SEQ = #{empSeq}
+			AND
+				a.USE_YN = 'Y'
+		</if>
+		<if test="searchType.toString() == 'V004'">
+			SELECT
+				*
+			    ,(SELECT IFNULL(SUM(BB.USE_DAY),0)
+				FROM cust_klti.v_vcatn_use_hist BB
+				WHERE BB.USE_YN = 'Y'
+				AND BB.SPECL_SN = a.SPECL_SN)as useDay
+			    ,CONCAT(
+					a.ALWNC_DAYCNT - (SELECT IFNULL(SUM(BB.USE_DAY),0)
+					FROM cust_klti.v_vcatn_use_hist BB
+					WHERE BB.USE_YN = 'Y'
+					AND BB.SPECL_SN = a.SPECL_SN)
+				)as remainingDays
+				,CONCAT(a.ALWNC_DAYCNT)as totalDay
+			FROM
+				cust_klti.v_specl a
+			WHERE
+				a.EMP_SEQ = #{empSeq}
+			AND
+				a.USE_YN = 'Y'
+			AND
+				a.SPECL_SN = #{searchKey}
+		</if>
+		<if test="searchType.toString() == 'V006'">
+			SELECT
+				a.*
+			    ,(SELECT IFNULL(SUM(BB.USE_DAY),0)
+					FROM cust_klti.v_vcatn_use_hist BB
+					WHERE BB.USE_YN = 'Y'
+					AND BB.VCATN_SN = a.VCATN_SN
+					AND BB.SPECL_SN = 0 AND BB.VCATN_KND_SN = 0)as useDay
+				,CONCAT(
+					a.LNGLBC_VCATN_FRST_ALWNC_DAYCNT - (SELECT IFNULL(SUM(BB.USE_DAY),0)
+					FROM cust_klti.v_vcatn_use_hist BB
+					WHERE BB.USE_YN = 'Y'
+					AND BB.VCATN_SN = a.VCATN_SN
+                    AND BB.SPECL_SN = 0 AND BB.VCATN_KND_SN = 0)
+				)as remainingDays
+			,CONCAT(a.LNGLBC_VCATN_FRST_ALWNC_DAYCNT + a.LNGLBC_VCATN_MDTN_ALWNC_DAYCNT)as totalDay
+			FROM
+				cust_klti.v_vcatn a
+			WHERE
+				a.EMP_SEQ = #{empSeq}
+			AND
+				a.USE_YN = 'Y'
+		</if>
+	</select>
+	
+	<!-- 외출/복귀  -->
+	<insert id="UpdOutReturnTimeInfo" parameterType="map">
+	/* outInfoInsert */
+		UPDATE
+			cust_klti.v_vcatn_use_hist
+		SET
+			VCATN_RET_TIME = #{returnTime},
+			STATUS = #{status},
+			UPDT_DT = NOW(),
+			UPDUSR_EMPL_SN = #{modEmpSeq}
+		WHERE
+			VCATN_USE_HIST_SN = #{oriId}
+	</insert>
+	
+	<update id="returnInfoInsert" parameterType="map">
+	/* returnInfoInsert */
+		UPDATE
+			cust_klti.dj_out_return_info
+		SET
+			ORI_RETURN_TIME = #{returnTime},
+			MOD_DATE = NOW(),
+			MOD_EMP_SEQ = #{empSeq}
+		WHERE
+			ORI_TARGET_DATE = #{targetDate}
+		AND 
+			REG_EMP_SEQ = #{empSeq}
+	
+	</update>
+
+	<!--<select id="outReturnList" parameterType="map" resultType="map">
+	/* outReturnList (Old) */
+	    <![CDATA[
+		SELECT
+		    ORI_ID,
+		    REG_EMP_SEQ,
+            ORI_TARGET_DATE,
+            DATE_FORMAT(ORI_OUT_TIME,'%H:%i') as ORI_OUT_TIME,
+            DATE_FORMAT(ORI_RETURN_TIME,'%H:%i') as ORI_RETURN_TIME,
+            ORI_UPDT_DGRE,
+            B.EMP_NAME as EMP_NAME,
+            DATE_FORMAT(SEC_TO_TIME(TIMESTAMPDIFF(second, ORI_OUT_TIME, ORI_RETURN_TIME)), '%H시간 %i분') AS OUT_TIME
+		FROM
+			CUST_KLTI.DJ_OUT_RETURN_INFO A
+        LEFT JOIN
+			CUST_KLTI.V_EMP_INFO B
+        ON A.REG_EMP_SEQ = B.EMP_SEQ
+		WHERE
+			ACTIVE = 'Y'
+		AND
+			REG_EMP_SEQ = #{empSeq}
+        AND
+            DATE_FORMAT(ORI_OUT_TIME, '%Y-%m-%d') >= #{to} AND
+            DATE_FORMAT(ORI_OUT_TIME, '%Y-%m-%d') <= #{from}
+		ORDER BY
+			ORI_TARGET_DATE DESC,
+			ORI_OUT_TIME DESC
+        ]]>
+	</select>-->
+
+	<select id="outReturnList" parameterType="map" resultType="map">
+		/* outReturnList (New) */
+	    <![CDATA[
+		SELECT
+			VCATN_USE_HIST_SN AS ORI_ID,
+			DATE_FORMAT(VCATN_USE_STDT, '%Y-%m-%d') as ORI_TARGET_DATE,
+			DATE_FORMAT(VCATN_USE_STDT,'%H:%i') as ORI_OUT_TIME,
+			DATE_FORMAT(VCATN_USE_ENDT,'%H:%i') as ORI_RETURN_TIME,
+			B.EMP_NAME AS EMP_NAME,
+			DATE_FORMAT(SEC_TO_TIME(TIMESTAMPDIFF(second, VCATN_USE_STDT, VCATN_USE_ENDT)), '%H시간 %i분') AS OUT_TIME,
+			DATE_FORMAT(VCATN_RET_TIME,'%Y-%m-%d %H:%i') as VCATN_RET_TIME,
+			APPRO_KEY,
+			USE_DAY,
+			TARGET_EMP_SEQ,
+			B.dept_name AS DEPT_NAME,
+			B.position AS POSITION_NAME,
+			B.duty AS DUTY_NAME,
+			A.STATUS
+		FROM
+			cust_klti.v_vcatn_use_hist A
+		  LEFT JOIN
+			CUST_KLTI.V_EMP_INFO B
+		  ON A.TARGET_EMP_SEQ = B.EMP_SEQ
+		WHERE
+			A.USE_DAY < 0.5
+		  AND
+			A.USE_YN = 'Y'
+		  AND
+			A.TARGET_EMP_SEQ = #{empSeq}
+		  AND
+		    A.END_ST = "Y"
+		  AND
+			DATE_FORMAT(VCATN_USE_STDT, '%Y-%m-%d') >= #{to} AND
+			DATE_FORMAT(VCATN_USE_STDT, '%Y-%m-%d') <= #{from}
+		ORDER BY
+			ORI_TARGET_DATE DESC,
+			ORI_OUT_TIME DESC
+		]]>
+	</select>
+
+   <!-- <update id="setReturnTime" parameterType="map">
+   		/* setReturnTime (Old) */
+        UPDATE
+            CUST_KLTI.DJ_OUT_RETURN_INFO
+        SET
+            ORI_RETURN_TIME = now(),
+            ORI_UPDT_DGRE = ORI_UPDT_DGRE + 1
+        WHERE
+            ORI_ID = #{key}
+    </update>-->
+
+	<update id="setReturnTime" parameterType="map">
+		/* setReturnTime (New) */
+		UPDATE
+			CUST_KLTI.V_VCATN_USE_HIST
+		SET
+			VCATN_RET_TIME = now(),
+			STATUS = #{status}
+		WHERE
+			VCATN_USE_HIST_SN = #{key}
+	</update>
+    
+   <select id="returnTimeCheck" parameterType="map" resultType="int">
+   
+		SELECT IFNULL (
+			(SELECT 
+	   			count(*)
+	   		FROM 
+	   			cust_klti.dj_out_return_info 
+	   		WHERE 
+	   			REG_EMP_SEQ = #{empSeq} 
+	   		AND 
+	   			ORI_TARGET_DATE = #{targetDate}
+	   		AND 
+	   			ACTIVE = 'Y'
+   			AND 
+   				ORI_RETURN_TIME IS NULL)
+			, 0
+		)
+   
+   		
+    </select>
+
+
+
+	<!--<insert id="insertAnnvUseHistCustom" parameterType="com.duzon.custom.egov_cms.dto.VcatnUseHistDTO">
+		INSERT INTO neos.t_at_annv_use_history (
+			 COMP_SEQ
+		   , ANNV_YEAR
+		   , USE_SQNO
+		   , modify_dt
+		   , GROUP_SEQ
+		   , DEPT_SEQ
+		   , EMP_SEQ
+		   , ATT_ITEM_CODE
+		   , ATT_DIV_CODE
+		   , START_DT
+		   , END_DT
+		   , ANNV_USE_DAY_CNT
+		   , REQ_DATE
+		   , REQ_SQNO
+		   , APPROVE_YN
+		) VALUE (
+            '10163'
+          , #{annvYear}
+          , #{useSqno}
+          , DATE_FORMAT(SYSDATE(6),'%Y-%m-%d %H:%i:%s.%f')
+          , 'klti'
+          , (select dept_Seq from v_emp_info where emp_seq=#{targetEmpSeq})
+          , #{targetEmpSeq}
+          , '1'
+          , '5034'
+		  , #{vcatnUseStdt}
+		  , #{vcatnUseEndt}
+          , #{useDay}
+          , DATE_FORMAT(NOW(), '%Y%m%d')
+          , (SELECT IFNULL(CAST(DATE_FORMAT(CURRENT_TIMESTAMP(3), '%H%i%s%f') / 1000 AS INT), MAX(req_sqno) + 1) AS req_sqno
+			FROM neos.t_at_att_req a
+			WHERE
+			a.comp_seq = '10163'
+			LIMIT 1)
+          , 'S'
+        )
+	</insert>-->
+
+	<!-- 연차사용정보 연차순번 -->
+	<select id="getAnnvUseSqnoCustom" parameterType="map" resultType="map">
+		SELECT IFNULL( MAX(use_sqno), 0 ) + 1 AS useSqno
+		FROM neos.t_at_annv_use
+		WHERE comp_seq = '10163'
+		AND   annv_year = #{annvYear}
+	</select>
+
+	<select id="vacationPopInfo" resultType="map" parameterType="map">
+		<if test="searchType.toString() == 'V001'">
+			SELECT
+			a.*
+			,(SELECT IFNULL(SUM(BB.annv_use_day_cnt),0)
+			FROM neos.t_at_annv_use BB
+			WHERE BB.USE_YN = 'Y'
+			AND BB.annv_year = a.annv_year
+			AND a.annv_year = #{annvYear}
+			AND BB.emp_seq = #{empSeq}
+			AND BB.approve_yn != 'R') as useDay
+			,CONCAT(
+			  CONCAT(a.basic_annv_day_cnt + a.add_annv_day_cnt + a.annv_abjust_day_cnt) - (SELECT IFNULL(SUM(BB.annv_use_day_cnt),0)
+			FROM neos.t_at_annv_use BB
+			WHERE BB.USE_YN = 'Y'
+			AND BB.annv_year = a.annv_year
+			AND a.annv_year = #{annvYear} AND BB.emp_seq = #{empSeq}
+			AND BB.approve_yn != 'R'))as remainingDays
+			,CONCAT(a.basic_annv_day_cnt + a.add_annv_day_cnt + a.annv_abjust_day_cnt) as totalDay
+			FROM
+			neos.t_at_annv_mst a
+			WHERE
+			a.EMP_SEQ = #{empSeq}
+			AND
+			a.USE_YN = 'Y'
+			AND
+			a.annv_year = #{annvYear}
+		</if>
+	</select>
+
+	<select id="getUseOutReturnInfo" resultType="map" parameterType="map">
+		SELECT
+			*
+		FROM
+			CUST_KLTI.V_VCATN_USE_HIST a
+		LEFT JOIN cust_klti.v_emp_info b
+		ON a.TARGET_EMP_SEQ = b.emp_seq
+		WHERE
+			APPRO_KEY = #{approKey}
+	</select>
+
+	<select id="getUseOutReturnInfoList" resultType="map" parameterType="map">
+		SELECT
+			*
+		FROM
+			CUST_KLTI.V_VCATN_USE_HIST a
+		LEFT JOIN cust_klti.v_emp_info b
+		ON a.TARGET_EMP_SEQ = b.emp_seq
+		WHERE
+			APPRO_KEY = #{approKey}
+	</select>
+
+	<insert id="insOutAndReturn" parameterType="map">
+		INSERT INTO neos.t_at_annv_use(COMP_SEQ,
+									   ANNV_YEAR,
+									   USE_SQNO,
+									   GROUP_SEQ,
+									   DEPT_SEQ,
+									   EMP_SEQ,
+									   ATT_ITEM_CODE,
+									   ATT_DIV_CODE,
+									   ATT_DIV_TYPE,
+									   START_DT,
+									   END_DT,
+									   ANNV_USE_DAY_CNT,
+									   REQ_DATE,
+									   REQ_SQNO,
+									   DETAIL_SQNO,
+									   APPROVE_YN,
+									   USE_YN,
+									   ABJUST_TURN,
+									   CREATE_SEQ,
+									   CREATE_DT)
+				   SELECT
+					   '10163' COMP_SEQ,
+					   DATE_FORMAT(VCATN_USE_STDT, '%Y') AS ANNV_YEAR,
+					   (SELECT IFNULL( MAX(use_sqno), 0 ) + 1 AS useSqno
+						FROM neos.t_at_annv_use
+						WHERE comp_seq = '10163'
+						  AND   annv_year = DATE_FORMAT(VCATN_USE_STDT, '%Y')) AS USE_SQNO,
+					   'klti' GROUP_SEQ,
+					   (select dept_Seq from CUST_KLTI.v_emp_info where emp_seq=TARGET_EMP_SEQ) DEPT_SEQ,
+					   TARGET_EMP_SEQ EMP_SEQ,
+					   '1' AS ATT_ITEM_CODE,
+					   '5034' AS ATT_DIV_CODE,
+					   '0' AS ATT_DIV_TYPE,
+					   DATE_FORMAT(VCATN_USE_STDT, '%Y%m%d') AS START_DT,
+					   DATE_FORMAT(VCATN_USE_ENDT, '%Y%m%d') AS END_DT,
+					   USE_DAY AS ANNV_USE_DAY_CNT,
+					   #{reqDate},
+					   #{reqSqno},
+					   '1' AS DETAIL_SQNO,
+					   'O' AS APPROVE_YN,
+					   'Y' AS USE_YN,
+					   '0' AS ABJUST_TURN,
+					   #{crtrEmplSn} AS CREATE_SEQ,
+					   NOW() as CREATE_DT
+				   FROM
+						CUST_KLTI.V_VCATN_USE_HIST
+				   WHERE
+				   		VCATN_USE_HIST_SN = #{VCATN_USE_HIST_SN}
+
+	</insert>
+	
+	<select id="getReqSqno" resultType="map">
+		SELECT
+			IFNULL(CAST(DATE_FORMAT(CURRENT_TIMESTAMP(3), '%H%i%s%f') / 1000 AS INT), MAX(req_sqno) + 1) AS req_sqno,
+			DATE_FORMAT(NOW(), '%Y%m%d') AS req_date
+		FROM neos.t_at_att_req a
+		WHERE
+			a.comp_seq = '10163'
+
+			LIMIT 1
+	</select>
+
+	<insert id="setOutAndReturnTAA" parameterType="map">
+		/* 시간차제도 t_at_att insert */
+		INSERT INTO neos.t_at_att (
+			comp_seq,
+			att_date,
+			att_sqno,
+			group_seq,
+			dept_seq,
+			emp_seq,
+			att_item_code,
+			att_div_code,
+			login_id,
+			come_dt,
+			leave_dt,
+			come_check_ip,
+			leave_check_ip,
+			link_elct_appv_doc,
+			approve_yn,
+			close_yn,
+			remark,
+			erp_send_yn,
+			erp_send_dt,
+			req_date,
+			req_sqno,
+			detail_sqno,
+			use_yn,
+			create_seq,
+			create_dt,
+			come_check_route,
+			leave_check_route
+		)
+		VALUES (
+				   '10163',
+				   DATE_FORMAT(#{startDt}, '%Y%m%d'),
+				   (SELECT neos.nextval('attSqno')),
+				   'klti',
+				   #{VCATN_DEPT_SEQ},
+				   #{VCATN_EMP_SEQ},
+				   '1',
+				   '5034',
+				   #{VCATN_USER_ID},
+				   NULL,
+				   NULL,
+				   '미등록',
+				   '미등록',
+				   '',
+				   'O',
+				   'N',
+				   '',
+				   'N',
+				   '',
+				   #{reqDate},
+				   #{reqSqno},
+				   '1',
+				   'Y',
+				   #{empSeq},
+				   SYSDATE(),
+				   'ABSENCE',
+				   'ABSENCE'
+			   )
+	</insert>
+
+	<insert id="setOutAndReturnTAAR" parameterType="map">
+		/* 시간차제도 t_at_att_req insert */
+		INSERT INTO neos.t_at_att_req (
+			comp_seq,
+			req_date,
+			req_sqno,
+			group_seq,
+			dept_seq,
+			emp_seq,
+			att_item_code,
+			att_div_code,
+			att_div_type,
+			start_dt,
+			end_dt,
+			req_time,
+			att_req_title,
+			elet_appv_process_id,
+			elet_appv_interface_key,
+			elct_appv_doc_id,
+			elct_appv_doc_status,
+			elet_appv_link_yn,
+			use_yn,
+			ver_sp,
+			create_seq,
+			create_dt,
+			mcal_seq,
+			gbn_code
+		)
+		VALUES (
+				   '10163',
+				   #{reqDate},
+				   #{reqSqno},
+				   'klti',
+				   #{VCATN_DEPT_SEQ},
+				   #{VCATN_EMP_SEQ},
+				   '1',
+				   '5034',
+				   '0',
+				   '',
+				   '',
+				   '0.0',
+				   #{docTitle},
+				   #{processId},
+				   #{approKey},
+		           #{docId},
+				   #{docSts},
+				   'Y',
+				   'Y',
+				   '2016.06.03-1s',
+				   #{empSeq},
+				   NOW(),
+				   '1548',
+				   'M'
+			   )
+	</insert>
+
+	<insert id="setOutAndReturnTAARD" parameterType="map">
+		/* 시간차제도 t_at_att_req_detail insert */
+		INSERT INTO neos.t_at_att_req_detail (
+			comp_seq,
+			req_date,
+			req_sqno,
+			detail_sqno,
+			group_seq,
+			dept_seq,
+			emp_seq,
+			att_item_code,
+			att_div_code,
+			att_div_type,
+			start_dt,
+			end_dt,
+			day_cnt,
+			req_time,
+			approve_yn,
+			annv_cancel_yn,
+			close_yn,
+			use_yn,
+			ver_sp,
+			annv_exhaust_yn,
+			annv_exhaust_day_cnt,
+			annv_use_day_cnt,
+			create_seq,
+			create_dt,
+			schm_seq,
+			start_time,
+			end_time,
+			att_time
+		)
+		VALUES (
+				   '10163',
+				   #{reqDate},
+				   #{reqSqno},
+				   '1',
+				   'klti',
+				   #{VCATN_DEPT_SEQ},
+				   #{VCATN_EMP_SEQ},
+				   '1',
+				   '5034',
+				   '0',
+				   DATE_FORMAT(#{startDt}, '%Y%m%d'),
+				   DATE_FORMAT(#{endDt}, '%Y%m%d'),
+				   '1.0',
+				   '0.0',
+				   'O',
+				   'N',
+				   'N',
+				   'Y',
+				   '2019.12.19-1t',
+				   'Y',
+				   #{annvUseDayCnt},
+				   #{annvUseDayCnt},
+				   #{empSeq},
+				   NOW(),
+				   '',
+				   DATE_FORMAT(#{startDt}, '%H%i'),
+				   DATE_FORMAT(#{endDt}, '%H%i'),
+				   #{attTime}
+			   )
+	</insert>
+
+	<select id="getOutReturnInfoPop" parameterType="map" resultType="map">
+		SELECT
+			VCATN_USE_HIST_SN AS ORI_ID,
+			DATE_FORMAT(VCATN_USE_STDT, '%Y-%m-%d') as ORI_TARGET_DATE,
+			DATE_FORMAT(VCATN_USE_STDT,'%H:%i') as ORI_OUT_TIME,
+			DATE_FORMAT(VCATN_USE_ENDT,'%H:%i') as ORI_RETURN_TIME,
+			B.EMP_NAME AS EMP_NAME,
+			DATE_FORMAT(SEC_TO_TIME(TIMESTAMPDIFF(second, VCATN_USE_STDT, VCATN_USE_ENDT)), '%H시간 %i분') AS OUT_TIME,
+			DATE_FORMAT(VCATN_RET_TIME,'%Y-%m-%d') as VCATN_RET_DATE,
+			DATE_FORMAT(VCATN_RET_TIME,'%H:%i') as VCATN_RET_TIME,
+			APPRO_KEY,
+			USE_DAY,
+			TARGET_EMP_SEQ,
+			B.dept_name AS DEPT_NAME,
+			B.position AS POSITION_NAME,
+			B.duty AS DUTY_NAME,
+			A.STATUS
+		FROM
+			cust_klti.v_vcatn_use_hist A
+		LEFT JOIN
+			CUST_KLTI.V_EMP_INFO B
+		ON A.TARGET_EMP_SEQ = B.EMP_SEQ
+		WHERE
+			A.VCATN_USE_HIST_SN = #{oriId}
+	</select>
+
+	<select id="outReturnListAdmin" parameterType="map" resultType="map">
+		/* outReturnListAdmin */
+		SELECT
+			VCATN_USE_HIST_SN AS ORI_ID,
+			DATE_FORMAT(VCATN_USE_STDT, '%Y-%m-%d') as ORI_TARGET_DATE,
+			DATE_FORMAT(VCATN_USE_STDT,'%H:%i') as ORI_OUT_TIME,
+			DATE_FORMAT(VCATN_USE_ENDT,'%H:%i') as ORI_RETURN_TIME,
+			B.EMP_NAME AS EMP_NAME,
+			DATE_FORMAT(SEC_TO_TIME(TIMESTAMPDIFF(second, VCATN_USE_STDT, VCATN_USE_ENDT)), '%H시간 %i분') AS OUT_TIME,
+			DATE_FORMAT(VCATN_RET_TIME,'%Y-%m-%d  %H:%i') as VCATN_RET_TIME,
+			APPRO_KEY,
+			USE_DAY,
+			TARGET_EMP_SEQ,
+			B.dept_name AS DEPT_NAME,
+			B.position AS POSITION_NAME,
+			B.duty AS DUTY_NAME,
+			A.STATUS
+		FROM
+			cust_klti.v_vcatn_use_hist A
+		LEFT JOIN
+			CUST_KLTI.V_EMP_INFO B
+		ON A.TARGET_EMP_SEQ = B.EMP_SEQ
+		WHERE
+			A.USE_DAY <![CDATA[<]]> 0.5
+		  AND
+			A.USE_YN = 'Y'
+		  <if test="empSeq != null and empSeq != ''">
+			AND
+				A.TARGET_EMP_SEQ = #{empSeq}
+		  </if>
+		  <if test="deptName != null and deptName != ''">
+		  	AND
+				B.dept_name = #{deptName}
+		  </if>
+		  AND
+			A.END_ST = "Y"
+		  AND
+			DATE_FORMAT(VCATN_USE_STDT, '%Y-%m-%d') <![CDATA[>=]]> #{to} AND
+			DATE_FORMAT(VCATN_USE_STDT, '%Y-%m-%d') <![CDATA[<=]]> #{from}
+		ORDER BY
+			ORI_TARGET_DATE DESC,
+			ORI_OUT_TIME DESC
+	</select>
+
+</mapper>

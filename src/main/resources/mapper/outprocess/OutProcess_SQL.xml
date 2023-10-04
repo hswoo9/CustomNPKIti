@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="OutProcess">
+
+	<insert id="OutProcess.outProcessTempInsert" parameterType="map">
+    	INSERT INTO DJ_OUT_PROCESS_TEMP
+    	(
+    		PROCESS_ID
+    		, APPRO_KEY
+    		, TITLE
+    		, CONTENT
+    	)
+    	VALUES
+    	(
+    		#{processId}
+    		, #{approKey}
+    		, #{title}
+    		, #{content}
+    	)
+    	ON DUPLICATE KEY UPDATE
+    		TITLE = #{title}
+    		, CONTENT = #{content}
+	</insert>
+
+	<insert id="OutProcess.outProcessApp" parameterType="map">
+    	INSERT INTO DJ_OUT_PROCESS
+    	(
+    		PROCESS_ID
+    		, APPRO_KEY
+    		, DOC_ID
+    		, DOC_STS
+    		, USER_ID
+    	)
+    	VALUES
+    	(
+    		#{processId}
+    		, #{approKey}
+    		, #{docId}
+    		, #{docSts}
+    		, #{userId}
+    	)
+    	ON DUPLICATE KEY UPDATE
+    		DOC_ID = #{docId}
+    		, DOC_STS = #{docSts}
+	</insert>
+	
+	<select id="OutProcess.outProcessDocSts" parameterType="map" resultType="egovMap">
+		SELECT DOC_ID, DOC_STS FROM DJ_OUT_PROCESS
+		WHERE PROCESS_ID = #{processId}
+		AND APPRO_KEY = #{approKey}
+	</select>
+	
+	<select id="OutProcess.outProcessSel" parameterType="map" resultType="egovMap">
+		SELECT TITLE, CONTENT
+		FROM DJ_OUT_PROCESS_TEMP 
+		WHERE PROCESS_ID = #{processId}
+		AND APPRO_KEY = #{approKey} 
+	</select>
+	
+	
+	<insert id="OutProcess.outProcessDocInterlockInsert" parameterType="map">
+		/*OutProcess.outProcessDocInterlockInsert*/
+		INSERT INTO neos.a_docinterlock
+		(
+			approkey
+			, doc_title
+			, doc_contents
+			, created_by
+			, created_dt
+			, refdoclist
+		)
+		VALUES
+		(
+			#{approkey}
+			, #{doc_title}
+			, #{doc_contents}
+			, #{created_by}
+			, now()
+			, #{refDocList}
+		)
+		ON DUPLICATE KEY UPDATE
+			 doc_title      = #{doc_title}
+			 , doc_contents = #{doc_contents}
+			 , refdoclist   = #{refDocList}
+			 , modify_by    = #{modify_by}
+			 , modify_dt    = now()
+	</insert>
+</mapper>

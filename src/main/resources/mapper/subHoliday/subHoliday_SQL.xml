@@ -1,0 +1,3117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC 
+		"-//mybatis.org//DTD Mapper 3.0//EN" 
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="subHoliday">
+	<sql id="mysqlPaging">
+		LIMIT ${skip}, ${pageSize}
+	</sql>
+	<select id="overHoliWorkSelect" resultType="map">
+		SELECT * FROM dj_ot_master
+	</select>
+	<update id="overHoliWorkUpdate" parameterType="map">
+		UPDATE dj_ot_master
+		<set>
+			<if test="day_admit_min != null and day_admit_min != ''">day_admit_min = #{day_admit_min},</if>
+			<if test="week_law_work_min != null and week_law_work_min != ''">week_law_work_min = #{week_law_work_min},</if>
+			<if test="week_ot_work_min != null and week_ot_work_min != ''">week_ot_work_min = #{week_ot_work_min},</if>
+			<if test="week_holiday_min != null and week_holiday_min != ''">week_holiday_min = #{week_holiday_min},</if>
+			<if test="holiday_valid_min != null and holiday_valid_min != ''">holiday_valid_min = #{holiday_valid_min},</if>
+			<if test="ot_valid_min != null and ot_valid_min != ''">ot_valid_min = #{ot_valid_min},</if>
+			<if test="flex_3m_week_min != null and flex_3m_week_min != ''">flex_3m_week_min = #{flex_3m_week_min},</if>
+			<if test="flex_2w_week_min != null and flex_2w_week_min != ''">flex_2w_week_min = #{flex_2w_week_min},</if>
+			<if test="remark != null and remark != ''">remark = #{remark},</if>
+			<if test="update_emp_seq != null and update_emp_seq != ''">update_emp_seq = #{update_emp_seq},</if>
+			<if test="night_work_reward != null and night_work_reward != ''">night_work_reward = #{night_work_reward},</if>
+			update_date = now()
+		</set>
+		WHERE ot_master_id = #{ot_master_id}
+	</update>
+	<select id="empInformationAdmitList" parameterType="map"
+		resultType="map">
+		SELECT
+		t.*,
+			(
+			SELECT
+				pm.dp_name
+			FROM
+				neos.t_co_comp_duty_position dp	
+				INNER JOIN 
+				neos.t_co_comp_duty_position_multi pm
+			WHERE
+				pm.lang_code = 'kr'
+				AND pm.dp_seq = dp.dp_seq
+				AND pm.dp_type = dp.dp_type
+				AND pm.group_seq = dp.group_seq
+				AND pm.comp_seq = dp.comp_seq
+				AND dp.use_yn = 'Y'
+				AND pm.use_yn = 'Y'
+				AND pm.dp_type = 'POSITION'
+				AND dp.group_seq = t.group_seq
+				AND dp.dp_seq = t.position_code
+			) AS position,
+			(
+			SELECT
+				pm.dp_name
+			FROM
+				neos.t_co_comp_duty_position dp
+				INNER JOIN
+				neos.t_co_comp_duty_position_multi pm
+			WHERE
+				pm.lang_code = 'kr'
+				AND pm.dp_seq = dp.dp_seq
+				AND pm.dp_type = dp.dp_type
+				AND pm.group_seq = dp.group_seq
+				AND pm.comp_seq = dp.comp_seq
+				AND dp.use_yn = 'Y'
+				AND pm.use_yn = 'Y'
+				AND pm.dp_type = 'DUTY'
+				AND dp.group_seq = t.group_seq
+				AND dp.dp_seq = t.duty_code
+			) AS duty
+		FROM
+			(
+			SELECT
+				tce.emp_seq,
+				tcem.emp_name,
+				tcec.comp_seq,
+				tcec.group_seq,
+				tced.position_code,
+				tced.duty_code,
+				tcdm.dept_name,
+				tced.dept_seq,
+				CONCAT(tcem.addr,' ',tcem.detail_addr) AS addr,
+				tce.erp_emp_num,
+				tce.join_day,
+				tce.mobile_tel_num AS phone
+			FROM
+				neos.t_co_emp tce INNER JOIN neos.t_co_emp_multi tcem 
+					ON tce.emp_seq = tcem.emp_seq
+					AND tce.use_yn = 'Y'
+					AND tcem.use_yn = 'Y'
+					AND tcem.lang_code = 'kr'
+				INNER JOIN neos.t_co_emp_comp tcec 
+					ON tce.emp_seq = tcec.emp_seq
+					AND tcec.use_yn = 'Y' 
+				INNER JOIN neos.t_co_emp_dept tced 
+					ON tce.emp_seq = tced.emp_seq
+					AND tced.use_yn = 'Y'
+				INNER JOIN neos.t_co_dept_multi tcdm 
+					ON tced.dept_seq = tcdm.dept_seq 
+					AND tcdm.lang_code = 'kr'
+			WHERE tced.main_dept_yn = 'Y' 
+			) t
+		<where>
+			NOT EXISTS
+			(
+				SELECT *
+                FROM dj_ot_emp_set oes
+                WHERE t.emp_seq = oes.ot_emp_seq
+                	AND oes.active = 'Y'
+            )
+			<if test="empSeq != null and empSeq != ''">
+				AND t.emp_seq not in (${empSeq})
+			</if>
+			<if test="deptSeq != null and deptSeq != ''">
+				AND t.dept_seq = #{deptSeq}
+			</if>
+			<if test="emp_name != null and emp_name != ''">
+				AND t.emp_name LIKE CONCAT ('%',#{emp_name},'%')
+			</if>
+			<if test="dept_name != null and dept_name != ''">
+				AND t.dept_name LIKE CONCAT ('%',#{dept_name},'%')
+			</if>
+			<if test="positionKey != null and positionKey != ''">
+				AND t.position_code = #{positionKey}
+			</if>
+			<if test="dutyKey != null and dutyKey != ''">
+				AND t.duty_code = #{dutyKey}
+			</if>
+		</where>
+		<include refid="mysqlPaging"/>
+	</select>
+	<select id="empInformationAdmitTotal" parameterType="map"
+		resultType="int">
+		SELECT COUNT(1) FROM (
+		SELECT
+		t.*,
+		(SELECT
+		pm.dp_name
+		FROM
+		neos.t_co_comp_duty_position dp
+		INNER JOIN
+		neos.t_co_comp_duty_position_multi pm
+		WHERE
+		pm.lang_code = 'kr'
+		AND pm.dp_seq = dp.dp_seq
+		AND pm.dp_type = dp.dp_type
+		AND pm.group_seq = dp.group_seq
+		AND pm.comp_seq = dp.comp_seq
+		AND dp.use_yn = 'Y'
+		AND pm.use_yn = 'Y'
+		AND pm.dp_type = 'POSITION'
+		AND dp.group_seq = t.group_seq
+		AND dp.dp_seq = t.position_code) AS position,
+		(SELECT
+		pm.dp_name
+		FROM
+		neos.t_co_comp_duty_position dp
+		INNER JOIN
+		neos.t_co_comp_duty_position_multi pm
+		WHERE
+		pm.lang_code = 'kr'
+		AND pm.dp_seq = dp.dp_seq
+		AND pm.dp_type = dp.dp_type
+		AND pm.group_seq = dp.group_seq
+		AND pm.comp_seq = dp.comp_seq
+		AND dp.use_yn = 'Y'
+		AND pm.use_yn = 'Y'
+		AND pm.dp_type = 'DUTY'
+		AND dp.group_seq = t.group_seq
+		AND dp.dp_seq = t.duty_code) AS duty
+		FROM
+		(SELECT
+		tce.emp_seq,
+		tcem.emp_name,
+		tcec.comp_seq,
+		tcec.group_seq,
+		tced.position_code,
+		tced.duty_code,
+		tcdm.dept_name,
+		tced.dept_seq,
+		CONCAT(tcem.addr,' ',tcem.detail_addr) AS addr,
+		tce.erp_emp_num,
+		tce.join_day,
+		tce.mobile_tel_num AS phone
+		FROM
+		neos.t_co_emp tce
+		INNER JOIN neos.t_co_emp_multi tcem ON tce.emp_seq = tcem.emp_seq
+		AND tce.use_yn = 'Y'
+		AND tcem.use_yn = 'Y'
+		AND tcem.lang_code = 'kr'
+		INNER JOIN neos.t_co_emp_comp tcec ON tce.emp_seq = tcec.emp_seq
+		AND tcec.use_yn = 'Y'
+		INNER JOIN neos.t_co_emp_dept tced ON tce.emp_seq = tced.emp_seq
+		AND tced.use_yn = 'Y'
+		INNER JOIN neos.t_co_dept_multi tcdm ON tced.dept_seq = tcdm.dept_seq AND tcdm.lang_code = 'kr'
+		WHERE tced.main_dept_yn = 'Y'
+		) t
+		<where>
+			NOT EXISTS
+			(
+				SELECT *
+                FROM dj_ot_emp_set oes
+                WHERE t.emp_seq=oes.ot_emp_seq
+                	AND oes.active = 'Y'
+            )
+			<if test="empSeq != null and empSeq != ''">
+				AND t.emp_seq not in (${empSeq})
+			</if>
+			<if test="deptSeq != null and deptSeq != ''">
+				AND t.dept_seq = #{deptSeq}
+			</if>
+			<if test="emp_name != null and emp_name != ''">
+				AND t.emp_name LIKE CONCAT ('%',#{emp_name},'%')
+			</if>
+			<if test="dept_name != null and dept_name != ''">
+				AND t.dept_name LIKE CONCAT ('%',#{dept_name},'%')
+			</if>
+			<if test="positionKey != null and positionKey != ''">
+				AND t.position_code = #{positionKey}
+			</if>
+			<if test="dutyKey != null and dutyKey != ''">
+				AND t.duty_code = #{dutyKey}
+			</if>
+		</where>
+		) tt
+	</select>
+	<insert id="empSetAdmitInsert" parameterType="list">
+		INSERT INTO dj_ot_emp_set (
+						ot_emp_seq
+					  , ot_dept_seq
+					  , ot_dept_name
+					  , work_type_code
+					  , time_differ_min
+					  , remark
+					  , active
+					  , create_emp_seq
+					  , create_date
+					) VALUES
+				<foreach collection="list" item="item" index="index" separator=",">
+					(
+						"${item.emp_seq}"
+					  , "${item.dept_seq}"
+					  , "${item.dept_name}"
+					  , "${item.work_type_code}"
+					  , "${item.time_differ_min}"
+					  , "${item.remark}"
+					  , 'Y'
+					  , "${item.create_emp_seq}"
+					  , NOW()
+					)
+				</foreach>
+				ON DUPLICATE KEY UPDATE
+						work_type_code = VALUES(work_type_code)
+					  , time_differ_min = VALUES(time_differ_min)
+					  , remark = VALUES(remark)
+					  , active = 'Y'
+					  , update_emp_seq = VALUES(create_emp_seq)
+					  , update_date = NOW()
+					
+	</insert>
+	<update id="empSetAdminDeactivate" parameterType="list">
+		<foreach collection="list" item="item" index="index" separator=";">
+			UPDATE dj_ot_emp_set 
+			SET active = 'N'
+			  , update_emp_seq = #{item.update_emp_seq}
+			  , update_date = NOW()
+			WHERE ot_emp_seq = #{item.emp_seq}
+		</foreach>
+	</update>
+	<select id="gridOverWkEmpSetList" resultType="map" parameterType="map">
+		SELECT cem.emp_seq
+			 , cem.emp_name
+		     , cedm.dept_seq
+		     , cdm.dept_name
+		     , oes.admit_time_min
+		     , oes.work_type_code
+		     , oes.time_differ_min
+		     , oes.remark
+		     , 
+		     (
+		     SELECT	cdpm.dp_name
+			 FROM neos.t_co_comp_duty_position_multi cdpm
+			 WHERE cdpm.dp_seq = ced.position_code
+				AND cdpm.dp_type = 'POSITION'
+		     ) position
+		     ,
+		     (
+			 SELECT cdpm.dp_name
+		     FROM neos.t_co_comp_duty_position_multi cdpm
+		     WHERE cdpm.dp_seq = ced.duty_code
+				AND cdpm.dp_type = 'DUTY'
+		     ) duty
+		FROM 
+			neos.t_co_emp_multi cem INNER JOIN neos.t_co_emp_dept_multi cedm
+				ON	cem.emp_seq = cedm.emp_seq
+				AND cem.lang_code = 'kr'
+				AND cedm.lang_code = 'kr'
+		    INNER JOIN neos.t_co_dept_multi cdm 
+				ON cedm.dept_seq = cdm.dept_seq
+				AND cdm.lang_code = 'kr'
+		    INNER JOIN dj_ot_emp_set oes
+				ON oes.ot_emp_seq = cem.emp_seq
+				AND oes.active = 'Y'
+			INNER JOIN neos.t_co_emp_dept ced
+				ON ced.emp_seq = cem.emp_seq
+		        AND cedm.dept_seq = ced.dept_seq
+		        AND ced.main_dept_yn = 'Y'
+		<include refid="mysqlPaging"/>
+	</select>
+	<select id="gridOverWkEmpSetListTotal" resultType="int" parameterType="map">
+		SELECT IFNULL(COUNT(1),0) 
+		FROM
+			(
+			SELECT cem.emp_seq
+				 , cem.emp_name
+			     , cedm.dept_seq
+			     , cdm.dept_name
+			     , oes.admit_time_min
+			     , oes.work_type_code
+			     , oes.remark
+			     , 
+			     (
+			     SELECT	cdpm.dp_name
+				 FROM neos.t_co_comp_duty_position_multi cdpm
+				 WHERE cdpm.dp_seq = ced.position_code
+					AND cdpm.dp_type = 'POSITION'
+			     ) position
+			     ,
+			     (
+				 SELECT cdpm.dp_name
+			     FROM neos.t_co_comp_duty_position_multi cdpm
+			     WHERE cdpm.dp_seq = ced.duty_code
+					AND cdpm.dp_type = 'DUTY'
+			     ) duty
+			FROM 
+				neos.t_co_emp_multi cem INNER JOIN neos.t_co_emp_dept_multi cedm
+					ON	cem.emp_seq = cedm.emp_seq
+					AND cem.lang_code = 'kr'
+					AND cedm.lang_code = 'kr'
+			    INNER JOIN neos.t_co_dept_multi cdm 
+					ON cedm.dept_seq = cdm.dept_seq
+					AND cdm.lang_code = 'kr'
+			    INNER JOIN dj_ot_emp_set oes
+					ON oes.ot_emp_seq = cem.emp_seq
+					AND oes.active = 'Y'
+				INNER JOIN neos.t_co_emp_dept ced
+					ON ced.emp_seq = cem.emp_seq
+			        AND cedm.dept_seq = ced.dept_seq
+			        AND ced.main_dept_yn = 'Y'
+			) CNT
+	</select>
+	<insert id="holidaySet" parameterType="map">
+		INSERT INTO dj_holiday_set (
+						work_type
+					  , attend_time
+					  , leave_time
+					  , admit_time_min
+					  , remark
+					  , active
+					  , create_emp_seq
+					  , create_date
+					) VALUES
+					(
+						#{work_type}
+					  , #{attend_time}
+					  , #{leave_time}
+					  , #{admit_time_min}
+					  , #{remark}
+					  , 'Y'
+					  , #{create_emp_seq}
+					  , NOW()
+					)
+					ON DUPLICATE KEY UPDATE
+						attend_time = VALUES(attend_time)
+					  , leave_time = VALUES(leave_time)
+					  , admit_time_min = VALUES(admit_time_min)
+					  , remark = VALUES(remark)
+					  , active = 'Y'
+					  , update_emp_seq = VALUES(create_emp_seq)
+					  , update_date = NOW()
+	</insert>
+	<update id="holidaySetDeactivate" parameterType="list">
+		<foreach collection="list" item="item" index="index" separator=";">
+			UPDATE dj_holiday_set 
+			SET active = 'N'
+			  , update_emp_seq = #{item.update_emp_seq}
+			  , update_date = NOW()
+			WHERE work_type = #{item.work_type}
+		</foreach>
+	</update>
+	<select id="gridHoliTypeList" resultType="map" parameterType="map">
+		SELECT * FROM dj_holiday_set
+		WHERE active = 'Y'
+		<if test="skip != null and skip != ''">
+			<include refid="mysqlPaging"/>
+		</if>
+	</select>
+	<select id="gridHoliTypeListTotal" resultType="int" parameterType="map">
+		SELECT IFNULL(COUNT(1),0)
+		FROM
+		(
+			SELECT * FROM dj_holiday_set
+			WHERE active = 'Y'
+		) CNT
+	</select>
+	
+	<select id="getWeekAgreeMin" resultType="map" parameterType="map">
+		SELECT IFNULL(SUM(apply_min), 0) AS weekAgreeMin
+		FROM dj_ot_work_apply
+		WHERE active = 'Y'
+			AND approval_status IN ('1', '2')
+			AND apply_emp_seq = #{apply_emp_seq}
+			AND DATE_FORMAT(apply_start_date, '%Y') = DATE_FORMAT(#{apply_start_date}, '%Y')
+			AND WEEK(DATE_FORMAT(#{apply_start_date}, '%Y%m%d'), 1) = WEEK(DATE_FORMAT(apply_start_date, '%Y%m%d'), 1)
+	</select>
+	<select id="getTypeCode" resultType="int" parameterType="map">
+		SELECT common_code_id
+		FROM dj_common_code
+		WHERE group_code = #{group_code} AND code = #{code}
+	</select>
+	<select id="getWeekHoliday" resultType="map" parameterType="map">
+		SELECT 
+			(WEEKDAY(#{work_date})) AS week 
+		  , (SELECT COUNT(*) FROM NEOS.T_CO_HOLIDAY WHERE H_DAY = #{work_date}) AS holiday
+		  , IFNULL((SELECT work_type_id FROM dj_work_plan_detail WHERE emp_seq = #{emp_seq} AND work_date = #{work_date} AND status = '2'), '0') AS workType
+	</select>
+	<select id="getWorkTime" resultType="map" parameterType="map">
+		SELECT wpd.work_plan_detail_id
+			 , wpd.work_plan_id
+		     , wpd.work_type_id
+		     , wpd.attend_time
+		     , wpd.leave_time
+		FROM
+			dj_work_plan_detail wpd INNER JOIN dj_work_type wt
+				ON wpd.work_type_id = wt.work_type_id
+		        AND wpd.active = 'Y'
+		        AND wpd.work_date = #{work_date}
+		        AND wpd.emp_seq = #{emp_seq}
+		        AND wt.active = 'Y'
+	</select>
+	<select id="getBasicTimeId" resultType="int">
+		SELECT work_type_id
+		FROM dj_work_type
+		WHERE attend_time = '09:00' AND leave_time = '18:00'
+	</select>
+	<select id="getBasicTimeIdHalf" resultType="int">
+		SELECT work_type_id
+		FROM dj_work_type
+		WHERE attend_time = '09:00' AND leave_time = '14:00'
+	</select>
+	<select id="getFullHalf" resultType="string" parameterType="map">
+		SELECT code_val
+		FROM dj_common_code
+		WHERE common_code_id = 	(
+								SELECT work_type_code
+								FROM dj_ot_emp_set
+								WHERE ot_emp_seq = #{emp_seq}
+								)
+	</select>
+	<select id="fn_chkOverHoliApply" resultType="string" parameterType="map">
+		SELECT fn_chkOverHoliApply(
+			#{apply_start_time}
+		  , #{apply_end_time}
+		  , #{apply_emp_seq}
+		  , #{apply_start_date}
+		)
+	</select>	
+	<insert id="overWkReqInsert" parameterType="map" useGeneratedKeys="true" keyProperty="ot_work_apply_id">
+		INSERT INTO dj_ot_work_apply (
+				apply_emp_seq
+			  , apply_dept_name
+              , apply_position
+              , apply_duty
+              , ot_type_code_id
+              , work_type_id
+              , am_pm_type
+              , work_place
+              , apply_start_date
+              , apply_start_time
+              , apply_end_date
+              , apply_end_time
+              , apply_min
+              , break_min
+              , work_dscr
+              , approval_status
+              , approval_emp_seq
+              , approval_emp_name
+              , remark
+              , create_emp_seq
+              , reward_type
+			) VALUES
+			(
+				#{apply_emp_seq}
+			  , #{apply_dept_name}
+			  , #{apply_position}
+			  , #{apply_duty}
+			  , #{ot_type_code_id}
+			  , #{work_type_id}
+			  , #{am_pm_type}
+			  , #{work_place}
+			  , #{apply_start_date}
+			  , #{apply_start_time}
+			  , #{apply_end_date}
+			  , #{apply_end_time}
+			  , #{apply_min}
+			  , #{break_min}
+			  , #{work_dscr}
+			  , '1'
+			  , #{approval_emp_seq}
+			  , #{approval_emp_name}
+			  , #{remark}
+			  , #{create_emp_seq}
+			  , #{reward_type}
+			)
+	</insert>
+	<select id="getApplyMinMonthSum" resultType="map" parameterType="map">
+		SELECT 
+			   IFNULL(SUM(a.apply_min), 0) AS apply_min_sum
+			 , IFNULL(SUM(a.occur_min), 0) AS occur_min_sum
+			 , IFNULL(SUM(a.agree_min), 0) AS agree_min_sum
+		FROM
+		(
+			SELECT owa.ot_work_apply_id
+				 , STR_TO_DATE(owa.apply_start_date, '%Y%m%d') AS str_to_date
+				 , owa.apply_min
+		         , owr.occur_min
+		         , owr.agree_min
+			FROM dj_ot_work_apply owa
+				INNER JOIN dj_ot_work_result owr
+				ON owa.ot_work_apply_id = owr.ot_work_apply_id
+				AND owa.active = 'Y'
+        		AND owr.active = 'Y'
+			WHERE owa.approval_status != '4' 
+				AND owa.apply_emp_seq = #{apply_emp_seq}
+		        AND owa.ot_type_code_id = 	(
+											SELECT common_code_id
+		                                    FROM dj_common_code
+		                                    WHERE group_code = 'OVERWK_TYPE' AND code = '01'
+											)
+		) a
+		<choose>
+			<when test="month != null and month != ''">
+			WHERE DATE_FORMAT(a.str_to_date, '%Y%m') = #{month}
+			</when>
+			<otherwise>
+			<![CDATA[
+			WHERE a.str_to_date > LAST_DAY(NOW() - interval 1 month) AND a.str_to_date <= LAST_DAY(NOW())
+			]]>
+			</otherwise>
+		</choose>
+	</select>
+	<select id="gridOverWkMonthList" resultType="map" parameterType="map">
+		SELECT a.ot_work_apply_id
+			 , a.apply_emp_seq
+		     , a.apply_dept_name
+		     , a.apply_position
+		     , a.apply_duty	     
+		     , a.ot_type_code_id
+		     , a.work_start_time
+		     , a.work_end_time
+		     , a.am_pm_type
+		     , a.work_place
+		     , a.after_action_report_id
+		     , a.apply_start_date
+		     , a.str_to_date
+		     , a.apply_start_time
+		     , a.apply_end_time
+		     , a.apply_min
+		     , a.break_min
+		     , a.approval_status
+		     , a.approval_emp_seq
+		     , a.approval_emp_name
+		     , a.weekday
+		     , a.work_dscr
+		     , a.remark
+		     , wt.work_type
+		     , wt.attend_time
+		     , wt.leave_time
+		     ,
+		     (
+				SELECT DATE_FORMAT(leave_dt, '%H:%i')
+		        FROM neos.t_at_att
+		        WHERE DATE_FORMAT(att_date, '%Y%m%d') = a.apply_start_date
+					AND emp_seq = #{apply_emp_seq}
+		            AND att_item_code = '10'
+		     ) AS leave_dt
+		     , IFNULL(SUM(owr.occur_min), 0) occur_min_sum
+     		 , IFNULL(SUM(owr.agree_min), 0) agree_min_sum
+		FROM
+		(
+			SELECT *
+				 , STR_TO_DATE(apply_start_date, '%Y%m%d') AS str_to_date
+				 , CASE
+					WHEN WEEKDAY(apply_start_date) = '0' THEN '월'
+		            WHEN WEEKDAY(apply_start_date) = '1' THEN '화'
+		            WHEN WEEKDAY(apply_start_date) = '2' THEN '수'
+		            WHEN WEEKDAY(apply_start_date) = '3' THEN '목'
+		            WHEN WEEKDAY(apply_start_date) = '4' THEN '금'
+		            WHEN WEEKDAY(apply_start_date) = '5' THEN '토'
+		            WHEN WEEKDAY(apply_start_date) = '6' THEN '일'
+				  END AS weekday
+			FROM dj_ot_work_apply
+			WHERE active = 'Y'
+				AND ot_type_code_id = (SELECT common_code_id 
+									   FROM dj_common_code 
+		                               WHERE group_code = #{group_code} AND code = #{code})
+		        AND apply_emp_seq = #{apply_emp_seq}
+		) a 
+			LEFT JOIN dj_ot_work_result owr
+				ON a.ot_work_apply_id = owr.ot_work_apply_id
+				AND owr.active = 'Y'
+		<choose>
+			<when test="code == '01'">
+			LEFT JOIN dj_work_type wt
+				ON a.work_type_id = wt.work_type_id
+				AND wt.active = 'Y'
+			</when>
+			<when test="code == '02'">
+			LEFT JOIN dj_holiday_set wt
+				ON a.work_type_id = wt.holiday_set_id
+				AND wt.active = 'Y'
+			</when>
+		</choose>
+		<choose>
+			<when test="month != null and month != ''">
+			WHERE DATE_FORMAT(a.str_to_date, '%Y%m') = #{month}
+			</when>
+			<otherwise>
+			<![CDATA[
+			WHERE a.str_to_date > LAST_DAY(NOW() - interval 1 month) AND a.str_to_date <= LAST_DAY(NOW())
+			]]>
+			</otherwise>
+		</choose>		    
+		
+		GROUP BY a.ot_work_apply_id
+		<include refid="mysqlPaging"/>
+	</select>
+	<select id="gridOverWkMonthListTotal" resultType="int" parameterType="map">
+		SELECT IFNULL(COUNT(1),0)
+		FROM
+		(
+			SELECT a.ot_work_apply_id
+				 , IFNULL(SUM(owr.occur_min), 0) occur_min_sum
+			FROM
+			(
+				SELECT *
+					 , STR_TO_DATE(apply_start_date, '%Y%m%d') AS str_to_date
+					 , CASE
+						WHEN WEEKDAY(apply_start_date) = '0' THEN '월'
+			            WHEN WEEKDAY(apply_start_date) = '1' THEN '화'
+			            WHEN WEEKDAY(apply_start_date) = '2' THEN '수'
+			            WHEN WEEKDAY(apply_start_date) = '3' THEN '목'
+			            WHEN WEEKDAY(apply_start_date) = '4' THEN '금'
+			            WHEN WEEKDAY(apply_start_date) = '5' THEN '토'
+			            WHEN WEEKDAY(apply_start_date) = '6' THEN '일'
+					  END AS weekday
+				FROM dj_ot_work_apply
+				WHERE active = 'Y'
+				AND ot_type_code_id = (SELECT common_code_id 
+									   FROM dj_common_code 
+		                               WHERE group_code = #{group_code} AND code = #{code})
+		        AND apply_emp_seq = #{apply_emp_seq}
+			) a 
+				LEFT JOIN dj_ot_work_result owr
+					ON a.ot_work_apply_id = owr.ot_work_apply_id
+					AND owr.active = 'Y'
+			<choose>
+				<when test="code == '01'">
+				LEFT JOIN dj_work_type wt
+					ON a.work_type_id = wt.work_type_id
+					AND wt.active = 'Y'
+				</when>
+				<when test="code == '02'">
+				LEFT JOIN dj_holiday_set wt
+					ON a.work_type_id = wt.holiday_set_id
+					AND wt.active = 'Y'
+				</when>
+			</choose>	
+			<choose>
+				<when test="month != null and month != ''">
+				WHERE DATE_FORMAT(a.str_to_date, '%Y%m') = #{month}
+				</when>
+				<otherwise>
+				<![CDATA[
+				WHERE a.str_to_date > LAST_DAY(NOW() - interval 1 month) AND a.str_to_date <= LAST_DAY(NOW())
+				]]>
+				</otherwise>
+			</choose>
+			GROUP BY a.ot_work_apply_id
+		) CNT
+	</select>
+	<select id="getCommCodeList" resultType="map" parameterType="map">
+		SELECT common_code_id
+			 , group_code
+			 , group_code_kr
+			 , code
+			 , code_kr
+			 , group_code_desc
+			 , code_desc
+		FROM dj_common_code
+		WHERE group_code = #{group_code}
+			AND code_kr != ''
+	</select>
+	<select id="gridOverWkReqList" resultType="map" parameterType="map">
+		SELECT a.ot_work_apply_id
+			 , a.reward_type
+			 , a.apply_emp_seq
+		     ,
+		     (
+				SELECT emp_name
+		        FROM neos.t_co_emp_multi
+		        WHERE emp_seq = a.apply_emp_seq
+					AND lang_code = 'kr'
+		     ) AS apply_emp_name
+		     , a.apply_dept_name
+		     , a.apply_position
+		     , a.apply_duty
+		     , a.ot_type_code_id
+		     , 
+		     (
+				SELECT code_kr
+		        FROM dj_common_code
+		        WHERE common_code_id = a.ot_type_code_id
+		     ) AS ot_type_code_kr
+		     , a.work_start_time
+		     , a.work_end_time
+		     , a.am_pm_type
+		     , a.work_place
+		     , a.after_action_report_id
+		     , a.str_to_date
+		     , a.apply_start_date
+		     , a.apply_start_time
+		     , a.apply_end_time
+		     , a.apply_min
+		     , a.approval_status
+		     , a.approval_emp_seq
+		     , a.approval_emp_name
+		     , a.weekday
+		     , a.work_dscr
+		     , wt.work_type
+		     , wt.attend_time
+		     , wt.leave_time
+		     <if test="reward_code != null and reward_code != ''">
+		     ,CASE
+		       WHEN a.occurMin IS NULL THEN '0시간 0분'
+		       ELSE CONCAT(TRUNCATE(a.occurMin/60 ,0),'시간 ',TRUNCATE(a.occurMin%60 ,0),'분')
+		     END AS occurHour
+		     ,CASE
+		       WHEN a.breakMin IS NULL THEN '0시간 0분'
+		       ELSE CONCAT(TRUNCATE(a.breakMin/60 ,0),'시간 ',TRUNCATE(a.breakMin%60 ,0),'분')
+		     END AS breakHour
+		     ,CASE
+		       WHEN a.agreeMin IS NULL THEN '0시간 0분'
+		       ELSE CONCAT(TRUNCATE(a.agreeMin/60 ,0),'시간 ',TRUNCATE(a.agreeMin%60 ,0),'분')
+		     END AS agreeHour
+		     , a.occurMin
+		     , a.breakMin
+		     , a.agreeMin
+		     </if>
+		FROM
+		(
+			SELECT AA.*
+				 , STR_TO_DATE(AA.apply_start_date, '%Y%m%d') AS str_to_date
+		         , CASE
+					WHEN WEEKDAY(AA.apply_start_date) = '0' THEN '월'
+		            WHEN WEEKDAY(AA.apply_start_date) = '1' THEN '화'
+		            WHEN WEEKDAY(AA.apply_start_date) = '2' THEN '수'
+		            WHEN WEEKDAY(AA.apply_start_date) = '3' THEN '목'
+		            WHEN WEEKDAY(AA.apply_start_date) = '4' THEN '금'
+		            WHEN WEEKDAY(AA.apply_start_date) = '5' THEN '토'
+		            WHEN WEEKDAY(AA.apply_start_date) = '6' THEN '일'
+				 END AS weekday
+				 <if test="reward_code != null and reward_code != ''">
+				 , IFNULL(SUM(BB.occur_min), 0) AS occurMin
+				 , IFNULL(SUM(BB.break_min), 0) AS breakMin
+				 , IFNULL(SUM(BB.agree_min), 0) AS agreeMin
+				 </if>
+			FROM 
+				dj_ot_work_apply AA
+				<if test="reward_code != null and reward_code != ''">
+				LEFT JOIN
+				dj_ot_work_result BB
+					ON AA.ot_work_apply_id = BB.ot_work_apply_id
+					AND BB.active = 'Y'
+				</if>
+		    WHERE AA.active = 'Y'
+		    	AND (
+		    		(AA.work_place = 'outdoor' AND AA.after_action_report_id IS NOT NULL)
+		    		OR	
+		    		(AA.work_place = 'indoor')
+		    	)
+		   		<if test="code != null and code != ''">
+				AND AA.ot_type_code_id = (SELECT common_code_id 
+									   FROM dj_common_code 
+		                               WHERE group_code = #{group_code} AND code = #{code})
+		   	 	</if>
+		   	 	<if test="approval_status != null and approval_status != ''">
+				AND AA.approval_status = #{approval_status}
+				</if>
+				<if test="apply_emp_seq != null and apply_emp_seq != ''">
+				AND AA.apply_emp_seq = #{apply_emp_seq}
+				</if>
+				<if test="approval_emp_seq != null and approval_emp_seq != ''">
+				AND AA.approval_emp_seq = #{approval_emp_seq}
+				</if>
+			<if test="reward_code != null and reward_code != ''">
+			GROUP BY AA.ot_work_apply_id
+			</if>
+		) a 
+		<choose>
+			<when test="code == '01'">
+			LEFT JOIN dj_work_type wt
+				ON a.work_type_id = wt.work_type_id
+				AND wt.active = 'Y'
+			</when>
+			<when test="code == '02'">
+			LEFT JOIN dj_holiday_set wt
+				ON a.work_type_id = wt.holiday_set_id
+				AND wt.active = 'Y'
+			</when>
+		</choose>
+		<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+		WHERE a.str_to_date BETWEEN #{startDt} AND #{endDt}
+		</if>
+		ORDER BY a.apply_start_date DESC
+		<if test="skip != null and skip != ''">
+			<include refid="mysqlPaging"/>
+		</if>
+	</select>
+	<select id="gridOverWkReqListTotal" resultType="int" parameterType="map">
+		SELECT IFNULL(COUNT(1),0)
+		FROM
+		(
+			SELECT a.ot_work_apply_id
+				 , a.apply_emp_seq
+			     ,
+			     (
+					SELECT emp_name
+			        FROM neos.t_co_emp_multi
+			        WHERE emp_seq = a.apply_emp_seq
+						AND lang_code = 'kr'
+			     ) AS apply_emp_name
+			     , a.apply_dept_name
+			     , a.apply_position
+			     , a.apply_duty
+			     , a.ot_type_code_id
+			     , 
+			     (
+					SELECT code_kr
+			        FROM dj_common_code
+			        WHERE common_code_id = a.ot_type_code_id
+			     ) AS ot_type_code_kr
+			     , a.work_start_time
+			     , a.work_end_time
+			     , a.am_pm_type
+			     , a.work_place
+			     , a.after_action_report_id
+			     , a.str_to_date
+			     , a.apply_start_date
+			     , a.apply_start_time
+			     , a.apply_end_time
+			     , a.apply_min
+			     , a.approval_status
+			     , a.approval_emp_seq
+			     , a.approval_emp_name
+			     , a.weekday
+			     , a.work_dscr
+			     , wt.work_type
+			     , wt.attend_time
+			     , wt.leave_time
+			     <if test="reward_code != null and reward_code != ''">
+			     ,CASE
+			       WHEN a.occurMin IS NULL THEN '0시간 0분'
+			       ELSE CONCAT(TRUNCATE(a.occurMin/60 ,0),'시간 ',TRUNCATE(a.occurMin%60 ,0),'분')
+			     END AS occurHour
+			     ,CASE
+			       WHEN a.breakMin IS NULL THEN '0시간 0분'
+			       ELSE CONCAT(TRUNCATE(a.breakMin/60 ,0),'시간 ',TRUNCATE(a.breakMin%60 ,0),'분')
+			     END AS breakHour
+			     ,CASE
+			       WHEN a.agreeMin IS NULL THEN '0시간 0분'
+			       ELSE CONCAT(TRUNCATE(a.agreeMin/60 ,0),'시간 ',TRUNCATE(a.agreeMin%60 ,0),'분')
+			     END AS agreeHour
+			     , a.occurMin
+			     , a.breakMin
+			     , a.agreeMin
+			     </if>
+			FROM
+			(
+				SELECT AA.*
+					 , STR_TO_DATE(AA.apply_start_date, '%Y%m%d') AS str_to_date
+			         , CASE
+						WHEN WEEKDAY(AA.apply_start_date) = '0' THEN '월'
+			            WHEN WEEKDAY(AA.apply_start_date) = '1' THEN '화'
+			            WHEN WEEKDAY(AA.apply_start_date) = '2' THEN '수'
+			            WHEN WEEKDAY(AA.apply_start_date) = '3' THEN '목'
+			            WHEN WEEKDAY(AA.apply_start_date) = '4' THEN '금'
+			            WHEN WEEKDAY(AA.apply_start_date) = '5' THEN '토'
+			            WHEN WEEKDAY(AA.apply_start_date) = '6' THEN '일'
+					 END AS weekday
+					 <if test="reward_code != null and reward_code != ''">
+					 , IFNULL(SUM(BB.occur_min), 0) AS occurMin
+					 , IFNULL(SUM(BB.break_min), 0) AS breakMin
+					 , IFNULL(SUM(BB.agree_min), 0) AS agreeMin
+					 </if>
+				FROM 
+					dj_ot_work_apply AA
+					<if test="reward_code != null and reward_code != ''">
+					LEFT JOIN
+					dj_ot_work_result BB
+						ON AA.ot_work_apply_id = BB.ot_work_apply_id
+						AND BB.active = 'Y'
+					</if>
+			    WHERE AA.active = 'Y'
+			    	AND (
+			    		(AA.work_place = 'outdoor' AND AA.after_action_report_id IS NOT NULL)
+			    		OR	
+			    		(AA.work_place = 'indoor')
+			    	)
+			   		<if test="code != null and code != ''">
+					AND AA.ot_type_code_id = (SELECT common_code_id 
+										   FROM dj_common_code 
+			                               WHERE group_code = #{group_code} AND code = #{code})
+			   	 	</if>
+			   	 	<if test="approval_status != null and approval_status != ''">
+					AND AA.approval_status = #{approval_status}
+					</if>
+					<if test="apply_emp_seq != null and apply_emp_seq != ''">
+					AND AA.apply_emp_seq = #{apply_emp_seq}
+					</if>
+					<if test="approval_emp_seq != null and approval_emp_seq != ''">
+					AND AA.approval_emp_seq = #{approval_emp_seq}
+					</if>
+				<if test="reward_code != null and reward_code != ''">
+				GROUP BY AA.ot_work_apply_id
+				</if>
+			) a 
+			<choose>
+				<when test="code == '01'">
+				LEFT JOIN dj_work_type wt
+					ON a.work_type_id = wt.work_type_id
+					AND wt.active = 'Y'
+				</when>
+				<when test="code == '02'">
+				LEFT JOIN dj_holiday_set wt
+					ON a.work_type_id = wt.holiday_set_id
+					AND wt.active = 'Y'
+				</when>
+			</choose>
+			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			WHERE a.str_to_date BETWEEN #{startDt} AND #{endDt}
+			</if>
+		) CNT
+	</select>
+	<update id="overWkApprovalUpdate" parameterType="list">
+		<foreach collection="list" item="item" index="index" separator=";">
+			UPDATE dj_ot_work_apply
+			SET approval_status = #{item.approval_status}
+			  , update_emp_seq = #{item.update_emp_seq}
+			  , update_date = NOW()
+			<if test="item.approval_status == 1 and item.after_action_report_id != null and item.after_action_report_id != ''">
+			  , after_action_report_id = NULL
+			</if>
+			<if test="item.remark != null and item.remark != ''">
+			  , remark = #{item.remark}
+			</if>
+			WHERE ot_work_apply_id = #{item.ot_work_apply_id}
+		</foreach>
+	</update>
+	<update id="holiWkCancle" parameterType="map">
+		UPDATE dj_attach_file
+		SET
+			active = 'N'
+		WHERE target_id = #{ot_work_apply_id}
+	</update>
+	
+	<update id="schmSeqUpdate" parameterType="map">
+		UPDATE dj_ot_work_apply
+		SET
+			sch_seq = #{schmSeq}
+		WHERE ot_work_apply_id = #{ot_work_apply_id}
+	</update>
+	
+	<update id="schmSeqUpdate2" parameterType="map">
+		UPDATE dj_replace_holiday_apply
+		SET
+			sch_seq = #{schmSeq}
+		WHERE replace_day_off_use_id = #{replace_day_off_use_id}
+	</update>
+	
+	<insert id="holidayWkApproval" parameterType="map">
+		INSERT INTO DJ_OT_WORK_RESULT (
+			OT_WORK_APPLY_ID
+		  , AGREE_MIN
+		  , REST_MIN
+		  , WORK_REWARD_CODE_ID
+		  , DISAPPEAR_PLAN_DATE
+		  , CREATE_DATE
+		  , UPDATE_EMP_SEQ
+		) VALUES
+		(
+			#{ot_work_apply_id}
+		  , (truncate(#{agree_min}*1.5,0)) - ((truncate(#{agree_min}*1.5,0))%30)
+		  , (truncate(#{agree_min}*1.5,0)) - ((truncate(#{agree_min}*1.5,0))%30)
+		  ,
+		  	CASE WHEN ((select reward_type from dj_ot_work_apply where ot_work_apply_id = #{ot_work_apply_id})=1) THEN
+            (
+				SELECT common_code_id 
+			   FROM dj_common_code 
+		      WHERE group_code = 'OT_REWARD_TYPE' and code = 'P'
+		    )
+            when ((select reward_type from dj_ot_work_apply where ot_work_apply_id = #{ot_work_apply_id})=2) then
+            (
+				SELECT common_code_id 
+		        FROM dj_common_code 
+		        WHERE group_code = 'OT_REWARD_TYPE' and code = 'H'
+		    )
+            else
+            (
+				SELECT common_code_id 
+		        FROM dj_common_code 
+		        WHERE group_code = 'OT_REWARD_TYPE' and code = 'P'
+		    )
+            end
+		  , 
+		  case
+	          when (SELECT holiday_valid_min FROM dj_ot_master) = 1772640
+	          then (select DATE_FORMAT(concat(year(now()),'-12-31'),'%Y%m%d'))
+          else
+          	DATE_FORMAT(DATE_ADD(#{apply_start_date}, INTERVAL 	(
+		  														SELECT holiday_valid_min FROM dj_ot_master
+		  														) MINUTE), '%Y%m%d')
+          End
+		  , NOW()
+		  , #{update_emp_seq}
+		)
+	</insert>
+	<insert id="inputAgreeMin" parameterType="map">
+		INSERT INTO dj_ot_work_result (
+				ot_work_apply_id
+			  , occur_min
+			  , agree_min
+			  , rest_min
+			  , break_min
+			  , work_reward_code_id
+			  , disappear_plan_date
+			  , create_date
+			  , create_emp_seq
+			) VALUES
+			(
+				#{ot_work_apply_id}
+			  , #{agree_min} 
+			  , (truncate(#{agree_min}*1.5,0)) - ((truncate(#{agree_min}*1.5,0))%30)
+			  , (truncate(#{agree_min}*1.5,0)) - ((truncate(#{agree_min}*1.5,0))%30)
+			  , #{break_min}
+			  ,
+			CASE WHEN ((select reward_type from dj_ot_work_apply where ot_work_apply_id = #{ot_work_apply_id})=1) THEN
+            (
+				SELECT common_code_id 
+			   FROM dj_common_code 
+		      WHERE group_code = 'OT_REWARD_TYPE' and code = 'P'
+		    )
+            when ((select reward_type from dj_ot_work_apply where ot_work_apply_id = #{ot_work_apply_id})=2) then
+            (
+				SELECT common_code_id 
+		        FROM dj_common_code 
+		        WHERE group_code = 'OT_REWARD_TYPE' and code = 'H'
+		    )
+            else
+            (
+				SELECT common_code_id 
+		        FROM dj_common_code 
+		        WHERE group_code = 'OT_REWARD_TYPE' and code = 'P'
+		    )
+            end
+			  , 
+		  	  case
+		          when (SELECT holiday_valid_min FROM dj_ot_master) = 1772640
+		          then (select DATE_FORMAT(concat(year(now()),'-12-31'),'%Y%m%d'))
+	          else
+	          	DATE_FORMAT(DATE_ADD(#{apply_start_date}, INTERVAL 	(
+			  														SELECT holiday_valid_min FROM dj_ot_master
+			  														) MINUTE), '%Y%m%d')
+	          End
+			  , NOW()
+			  , #{create_emp_seq}
+			)
+	</insert>
+	<update id="updateAgreeMin" parameterType="map">
+		UPDATE dj_ot_work_result
+		SET occur_min = #{occur_min}
+		  , agree_min = #{agree_min}
+		  , rest_min = #{rest_min}
+		  , update_date = NOW()
+		  , update_emp_seq = #{create_emp_seq}
+		WHERE ot_work_apply_id = #{ot_work_apply_id} 
+	</update>
+	<select id="getAgreeMin" parameterType="map" resultType="map">
+		SELECT IFNULL(MAX(agree_min), '') AS agree_min
+			 , IFNULL(MAX(use_min), 0) AS use_min
+			 , IFNULL(MAX(rest_min), '') AS rest_min
+		FROM dj_ot_work_result
+		WHERE ot_work_apply_id = #{ot_work_apply_id}
+	</select>
+	<update id="updateWorkStartEndTime" parameterType="map">
+		UPDATE dj_ot_work_apply
+		SET work_start_time = #{attend_time}
+		  , work_end_time = #{leave_time}
+		WHERE ot_work_apply_id = #{ot_work_apply_id}
+	</update>
+	<select id="getWorkStartEndTime" parameterType="map" resultType="map">
+		SELECT IFNULL(MAX(work_start_time), '') AS work_start_time
+			 , IFNULL(MAX(work_end_time), '') AS work_end_time
+		FROM dj_ot_work_apply
+		WHERE ot_work_apply_id = #{ot_work_apply_id}
+	</select>
+	<select id="sp_holiday_work_approval" parameterType="map">
+		CALL SP_HOLIDAY_WORK_APPROVAL(
+				${ot_work_apply_id}
+			  , ${apply_min}
+			  , ${apply_start_date}
+			  , ${apply_emp_seq}
+			  , ${update_emp_seq}
+			  , NOW()
+		)
+	</select>
+	<select id="sp_holiday_work_cancle" parameterType="map">
+		CALL SP_HOLIDAY_WORK_CANCLE(
+				${ot_work_apply_id}
+			  , ${apply_min}
+			  , ${apply_start_date}
+			  , ${apply_emp_seq}
+			  , ${update_emp_seq}
+		)
+	</select>
+	<update id="holiWkReqDeactivate" parameterType="map">
+		UPDATE dj_ot_work_result
+		SET active = 'N'
+		  , update_emp_seq = #{update_emp_seq}
+		  , update_date = NOW()
+		WHERE ot_work_apply_id = #{ot_work_apply_id}
+	</update>
+	<update id="holiWkApprovalUpdate" parameterType="map">
+		UPDATE dj_ot_work_apply
+		<set>
+		<if test="approval_status != null and approval_status != ''">
+			approval_status = #{approval_status},
+		</if>
+		<if test="update_emp_seq != null and update_emp_seq != ''">
+		    update_emp_seq = #{update_emp_seq},
+		    update_date = NOW(),
+		</if>
+		<if test="remark != null and remark != ''">
+			remark = #{remark}
+		</if>
+		</set>
+		WHERE ot_work_apply_id = #{target_id}
+	</update>
+	<insert id="fileUploadSave" parameterType="map" useGeneratedKeys="true" keyProperty="attach_file_id">
+		INSERT INTO dj_attach_file (
+				target_table_name
+			  , target_id
+			  , file_seq
+			) VALUES
+			(
+				#{target_table_name}
+			  , #{target_id}
+			  , #{file_seq}
+			)
+	</insert>
+	<update id="fileUpload" parameterType="map">
+		UPDATE dj_attach_file 
+		SET 
+			file_name = #{attach_file_id}
+	      , real_file_name = #{real_file_name}		
+		  , file_extension = #{file_extension}
+		  , file_path = #{file_path}
+		  , file_size = #{file_size}
+		WHERE attach_file_id = #{attach_file_id}
+	</update>
+	<update id="reportUpdate" parameterType="map">
+		UPDATE dj_ot_work_apply
+		SET
+			${report_id_column} = #{report_id}
+		WHERE ot_work_apply_id = #{ot_work_apply_id}
+	</update>
+	<select id="getFileInfo" resultType="map" parameterType="map">
+		SELECT *
+		FROM dj_attach_file
+		WHERE target_table_name = #{target_table_name} 
+			AND target_id = #{target_id}
+			AND active = 'Y'
+	</select>
+	<insert id="subHolidayReqInsert" parameterType="map" useGeneratedKeys="true" keyProperty="replace_day_off_use_id">
+		INSERT INTO dj_replace_holiday_apply (
+				use_emp_seq
+			  , use_dept_name
+			  , use_position
+			  , use_duty
+			  , use_min
+			  , approval_status
+			  , approval_emp_seq
+			  , approval_emp_name
+			  , apply_start_date
+			  , apply_start_time
+			  , apply_end_date
+			  , apply_end_time
+			  , remark
+			  , active
+			  , create_emp_seq
+			  , create_date
+			) VALUES
+			(
+				#{use_emp_seq}
+			  , #{use_dept_name}
+			  , #{use_position}
+			  , #{use_duty}
+			  , #{use_min}
+			  , #{approval_status}
+			  , #{approval_emp_seq}
+			  , #{approval_emp_name}
+			  , #{apply_start_date}
+			  , #{apply_start_time}
+			  , #{apply_end_date}
+			  , #{apply_end_time}
+			  , #{remark}
+			  , 'Y'
+			  , #{create_emp_seq}
+			  , NOW()
+			)
+	</insert>
+	<select id="sp_subHoliday_req" parameterType="map">
+		CALL SP_SUBHOLIDAY_REQ(
+				#{use_emp_seq}
+			  , ${replace_day_off_use_id}
+			  , ${use_min}
+		)
+	</select>
+	<select id="sp_subHoliday_req_select" parameterType="map">
+		CALL SP_SUBHOLIDAY_REQ_SELECT(
+				#{use_emp_seq}
+			  , ${replace_day_off_use_id}
+			  , ${use_min}
+		)
+	</select>
+	<select id="sp_subHoliday_cancle" parameterType="map">
+		CALL SP_SUBHOLIDAY_CANCEL(
+			    #{replace_day_off_use_id}
+			  , #{use_emp_seq}
+		)
+	</select>
+	<select id="gridSubHolidayReqList" resultType="map" parameterType="map">
+		SELECT a.replace_day_off_use_id
+			 , a.use_emp_seq
+			 ,
+		     (
+				SELECT emp_name
+		        FROM neos.t_co_emp_multi
+		        WHERE emp_seq = a.use_emp_seq
+					AND lang_code = 'kr'
+		     ) AS apply_emp_name
+			 , a.use_dept_name
+			 , a.use_position
+			 , a.use_duty
+			 , a.use_min
+		     , a.approval_status
+			 , a.approval_emp_seq
+			 , a.approval_emp_name
+			 , a.apply_start_date
+			 , a.str_to_start_date
+			 , a.apply_start_time
+		     , a.apply_end_date
+		     , a.str_to_end_date
+			 , a.apply_end_time
+			 , a.weekday
+			 , a.remark
+		     , a.create_date
+		     , a.date_format_create_date
+		FROM
+		(
+			SELECT *
+				 , DATE_FORMAT(create_date, '%Y-%m-%d') AS date_format_create_date
+				 , STR_TO_DATE(apply_start_date, '%Y%m%d') AS str_to_start_date
+		         , STR_TO_DATE(apply_end_date, '%Y%m%d') AS str_to_end_date
+				 , CASE
+					WHEN WEEKDAY(apply_start_date) = '0' THEN '월'
+					WHEN WEEKDAY(apply_start_date) = '1' THEN '화'
+					WHEN WEEKDAY(apply_start_date) = '2' THEN '수'
+					WHEN WEEKDAY(apply_start_date) = '3' THEN '목'
+					WHEN WEEKDAY(apply_start_date) = '4' THEN '금'
+					WHEN WEEKDAY(apply_start_date) = '5' THEN '토'
+					WHEN WEEKDAY(apply_start_date) = '6' THEN '일'
+				  END AS weekday
+			FROM dj_replace_holiday_apply
+			WHERE active = 'Y'
+				<if test="approval_status != null and approval_status != ''">
+				AND approval_status = #{approval_status}
+				</if>
+				<if test="use_emp_seq != null and use_emp_seq != ''">
+				AND use_emp_seq = #{use_emp_seq}
+				</if>
+		) a
+			WHERE
+        		a.apply_start_date LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
+			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			AND a.str_to_start_date BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31')
+			</if>
+		ORDER BY a.apply_start_date DESC
+		<if test="skip != null and skip != ''">
+			<include refid="mysqlPaging"/>
+		</if>
+	</select>
+	<select id="gridSubHolidayReqListTotal" resultType="int" parameterType="map">
+		SELECT IFNULL(COUNT(1),0)
+		FROM
+		(
+			SELECT a.replace_day_off_use_id
+				 , a.use_emp_seq
+				 ,
+			     (
+					SELECT emp_name
+			        FROM neos.t_co_emp_multi
+			        WHERE emp_seq = a.use_emp_seq
+						AND lang_code = 'kr'
+			     ) AS apply_emp_name
+				 , a.use_dept_name
+				 , a.use_position
+				 , a.use_duty
+				 , a.use_min
+			     , a.approval_status
+				 , a.approval_emp_seq
+				 , a.approval_emp_name
+				 , a.apply_start_date
+				 , a.str_to_start_date
+				 , a.apply_start_time
+			     , a.apply_end_date
+			     , a.str_to_end_date
+				 , a.apply_end_time
+				 , a.weekday
+				 , a.remark
+			     , a.create_date
+			     , a.date_format_create_date
+			FROM
+			(
+				SELECT *
+					 , DATE_FORMAT(create_date, '%Y-%m-%d') AS date_format_create_date
+					 , STR_TO_DATE(apply_start_date, '%Y%m%d') AS str_to_start_date
+			         , STR_TO_DATE(apply_end_date, '%Y%m%d') AS str_to_end_date
+					 , CASE
+						WHEN WEEKDAY(apply_start_date) = '0' THEN '월'
+						WHEN WEEKDAY(apply_start_date) = '1' THEN '화'
+						WHEN WEEKDAY(apply_start_date) = '2' THEN '수'
+						WHEN WEEKDAY(apply_start_date) = '3' THEN '목'
+						WHEN WEEKDAY(apply_start_date) = '4' THEN '금'
+						WHEN WEEKDAY(apply_start_date) = '5' THEN '토'
+						WHEN WEEKDAY(apply_start_date) = '6' THEN '일'
+					  END AS weekday
+				FROM dj_replace_holiday_apply
+				WHERE active = 'Y'
+					<if test="approval_status != null and approval_status != ''">
+					AND approval_status = #{approval_status}
+					</if>
+					<if test="use_emp_seq != null and use_emp_seq != ''">
+					AND use_emp_seq = #{use_emp_seq}
+					</if>
+			) a
+			WHERE
+        		a.apply_start_date LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
+			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			AND a.str_to_start_date BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31')
+			</if>
+		) CNT
+	</select>
+	<update id="subHolidayReqDeactivate" parameterType="map">
+		UPDATE dj_replace_holiday_apply
+		SET active = 'N'
+		  , update_emp_seq = #{update_emp_seq}
+		  , update_date = NOW()
+		WHERE replace_day_off_use_id = #{replace_day_off_use_id}
+	</update>
+	<update id="subHolidayReqDeactivateReject" parameterType="map">
+		UPDATE dj_replace_holiday_apply
+		SET approval_status = '4' 
+		  , update_emp_seq = #{update_emp_seq}
+		  , update_date = NOW()
+		WHERE replace_day_off_use_id = #{replace_day_off_use_id}
+	</update>
+	<update id="replace_holiday_update" parameterType="map">
+		UPDATE dj_replace_holiday_apply
+		SET approval_status = #{approval_status}
+		  , update_emp_seq = #{update_emp_seq}
+		  , update_date = NOW()
+		WHERE replace_day_off_use_id = #{target_id}
+	</update>
+	<update id="replace_holiday_cancle" parameterType="map">
+		UPDATE dj_replace_holiday_apply
+		SET active = 'N'
+		  , update_emp_seq = #{update_emp_seq}
+		  , update_date = NOW()
+		WHERE replace_day_off_use_id = #{target_id}
+	</update>
+	<select id="getWeekendHolidayCnt" resultType="int" parameterType="map">
+		SELECT COUNT(*)
+			 +
+			 (
+		     SELECT COUNT(*)
+			 FROM NEOS.t_co_holiday 
+			 WHERE (h_day BETWEEN #{apply_start_date} AND #{apply_end_date}) AND WEEKDAY(h_day) NOT IN ('5','6')
+		     ) 
+		     AS weekendHolidayCnt
+		FROM
+			(
+			SELECT date
+			FROM dates
+			WHERE date BETWEEN STR_TO_DATE(#{apply_start_date}, '%Y%m%d') AND STR_TO_DATE(#{apply_end_date}, '%Y%m%d')
+			) a
+		WHERE WEEKDAY(a.date) IN('5','6')
+	</select>
+	<select id="getAgreeUseRestMinSum" resultType="map" parameterType="map">
+		SELECT (
+			   SELECT SUM(owr.agree_min)
+			   FROM dj_ot_work_result owr
+			   INNER JOIN dj_ot_work_apply owa
+			   ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			   WHERE owa.ot_type_code_id = (SELECT common_code_id 
+											FROM dj_common_code 
+											WHERE group_code = 'OVERWK_TYPE' AND code = '01')
+			   AND owa.apply_emp_seq = #{empSeq}
+		       AND owr.work_reward_code_id = 	(
+												SELECT common_code_id
+		                                        FROM dj_common_code
+		                                        WHERE group_code = 'OT_REWARD_TYPE' AND code ='H'
+												)
+			   AND owr.disappear_yn != 'Y'
+			   AND owr.active = 'Y'
+			   AND owa.active = 'Y'
+			   <if test="year != null and year != ''">
+			   AND owa.apply_start_date like CONCAT ('%',#{year},'%')
+			   </if>
+			 ) AS overwk_agree_min_sum
+			 , (
+			   SELECT SUM(owr.agree_min)
+			   FROM dj_ot_work_result owr
+			   INNER JOIN dj_ot_work_apply owa
+			   ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			   AND owa.ot_type_code_id = (SELECT common_code_id 
+										  FROM dj_common_code 
+										  WHERE group_code = 'OVERWK_TYPE' AND code = '02')
+			   AND owa.apply_emp_seq = #{empSeq}
+		       AND owr.work_reward_code_id = 	(
+												SELECT common_code_id
+		                                        FROM dj_common_code
+		                                        WHERE group_code = 'OT_REWARD_TYPE' AND code ='H'
+												)
+			   AND owr.disappear_yn != 'Y'
+			   AND owr.active = 'Y'
+			   AND owa.active = 'Y'
+			   <if test="year != null and year != ''">
+			   AND owa.apply_start_date like CONCAT ('%',#{year},'%')
+			   </if>
+			 ) AS holiwk_agree_min_sum
+			 , (
+			   SELECT SUM(owr.use_min)
+			   FROM dj_ot_work_result owr
+			   INNER JOIN dj_ot_work_apply owa
+			   ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			   AND owa.ot_type_code_id = (SELECT common_code_id 
+										  FROM dj_common_code 
+										  WHERE group_code = 'OVERWK_TYPE' AND code = '01')
+			   AND owa.apply_emp_seq = #{empSeq}
+		       AND owr.work_reward_code_id = 	(
+												SELECT common_code_id
+		                                        FROM dj_common_code
+		                                        WHERE group_code = 'OT_REWARD_TYPE' AND code ='H'
+												)
+			   AND owr.disappear_yn != 'Y'
+			   AND owr.active = 'Y'
+			   AND owa.active = 'Y'
+			   <if test="year != null and year != ''">
+			   AND owa.apply_start_date like CONCAT ('%',#{year},'%')
+			   </if>
+			 ) AS overwk_use_min_sum
+			 , (
+			   SELECT SUM(owr.use_min)
+			   FROM dj_ot_work_result owr
+			   INNER JOIN dj_ot_work_apply owa
+			   ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			   AND owa.ot_type_code_id = (SELECT common_code_id 
+										  FROM dj_common_code 
+										  WHERE group_code = 'OVERWK_TYPE' AND code = '02')
+			   AND owa.apply_emp_seq = #{empSeq}
+		       AND owr.work_reward_code_id = 	(
+												SELECT common_code_id
+		                                        FROM dj_common_code
+		                                        WHERE group_code = 'OT_REWARD_TYPE' AND code ='H'
+												)
+			   AND owr.disappear_yn != 'Y'
+			   AND owa.active = 'Y'
+			   AND owr.active = 'Y'
+			   <if test="year != null and year != ''">
+			   AND owa.apply_start_date like CONCAT ('%',#{year},'%')
+			   </if>	
+			 ) AS holiwk_use_min_sum
+			 , (
+			   SELECT SUM(owr.rest_min)
+			   FROM dj_ot_work_result owr
+			   INNER JOIN dj_ot_work_apply owa
+			   ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			   AND owa.ot_type_code_id = (SELECT common_code_id 
+										  FROM dj_common_code 
+										  WHERE group_code = 'OVERWK_TYPE' AND code = '01')
+			   AND owa.apply_emp_seq = #{empSeq}
+		       AND owr.work_reward_code_id = 	(
+												SELECT common_code_id
+		                                        FROM dj_common_code
+		                                        WHERE group_code = 'OT_REWARD_TYPE' AND code ='H'
+												)
+			   AND owr.disappear_yn != 'Y'
+			   AND owr.active = 'Y'
+			   AND owa.active = 'Y'
+			   <if test="year != null and year != ''">
+			   AND owa.apply_start_date like CONCAT ('%',#{year},'%')
+			   </if>	
+			 ) AS overwk_rest_min_sum
+			 , (
+			   SELECT SUM(owr.rest_min)
+			   FROM dj_ot_work_result owr
+			   INNER JOIN dj_ot_work_apply owa
+			   ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			   AND owa.ot_type_code_id = (SELECT common_code_id 
+										  FROM dj_common_code 
+										  WHERE group_code = 'OVERWK_TYPE' AND code = '02')
+			   AND owa.apply_emp_seq = #{empSeq}
+		       AND owr.work_reward_code_id = 	(
+												SELECT common_code_id
+		                                        FROM dj_common_code
+		                                        WHERE group_code = 'OT_REWARD_TYPE' AND code ='H'
+												)
+			   AND owr.disappear_yn != 'Y'
+			   AND owr.active = 'Y'
+			   AND owa.active = 'Y'
+			   <if test="year != null and year != ''">
+			   AND owa.apply_start_date like CONCAT ('%',#{year},'%')
+			   </if>			  
+			 ) AS holiwk_rest_min_sum
+	</select>
+	<select id="gridSubHolidayOccurList" resultType="map" parameterType="map">
+	SELECT
+	    A.*,
+		(SELECT STR_TO_DATE(rha.apply_start_date, '%Y%m%d') FROM dj_replace_holiday_apply rha WHERE rha.replace_day_off_use_id = MAX(rhad.replace_day_off_use_id) ) AS holi_start,
+		IFNULL((select rha.use_min FROM dj_replace_holiday_apply rha WHERE rha.replace_day_off_use_id = MAX(rhad.replace_day_off_use_id)) ,0) AS real_use_min,
+		IFNULL((select rha.approval_status FROM dj_replace_holiday_apply rha WHERE rha.replace_day_off_use_id = MAX(rhad.replace_day_off_use_id)), 0) AS approval_status
+	FROM
+	(
+		SELECT owr.ot_work_result_id
+			 , owr.ot_work_apply_id
+			 , owa.apply_dept_name
+		     , 
+		     (
+				SELECT emp_name
+		        FROM neos.t_co_emp_multi
+		        WHERE emp_seq = owa.apply_emp_seq
+					AND lang_code = 'kr'
+		     ) AS apply_emp_name
+		     , owa.apply_position
+		     , owa.apply_duty
+		     , owa.work_start_time
+		     , owa.work_end_time
+		     , IFNULL(owr.occur_min, 0) AS occur_min
+		     , IFNULL(owr.agree_min, 0) AS agree_min
+		     , IFNULL(owr.use_min, 0) AS use_min
+		     , IFNULL(owr.rest_min, 0) AS rest_min
+		     , owa.apply_start_date
+		     , owa.apply_start_time
+		     , owa.apply_end_time
+		     , STR_TO_DATE(owa.apply_start_date, '%Y%m%d') AS str_to_applyDate
+		     , CASE
+				WHEN WEEKDAY(owa.apply_start_date) = '0' THEN '월'
+				WHEN WEEKDAY(owa.apply_start_date) = '1' THEN '화'
+				WHEN WEEKDAY(owa.apply_start_date) = '2' THEN '수'
+				WHEN WEEKDAY(owa.apply_start_date) = '3' THEN '목'
+				WHEN WEEKDAY(owa.apply_start_date) = '4' THEN '금'
+				WHEN WEEKDAY(owa.apply_start_date) = '5' THEN '토'
+				WHEN WEEKDAY(owa.apply_start_date) = '6' THEN '일'
+			   END AS weekday
+			 ,
+		     (
+		     SELECT CASE 
+					WHEN code_kr = '평일' THEN '시간외근무'
+		            WHEN code_kr = '휴일' THEN '휴일근무'
+		            END
+		     FROM dj_common_code
+		     WHERE common_code_id = owa.ot_type_code_id
+		     ) AS ot_type_code_kr
+		     , owr.disappear_plan_date
+		     , STR_TO_DATE(owr.disappear_plan_date, '%Y%m%d') AS str_to_disDate
+		FROM dj_ot_work_result owr
+			INNER JOIN dj_ot_work_apply owa
+		    ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			AND owa.apply_emp_seq = #{apply_emp_seq}
+			AND owa.active = 'Y'
+		    AND owr.active = 'Y'
+		    <if test="admin != 1">
+		    AND owr.disappear_yn != 'Y'
+		    </if>
+		    AND owr.work_reward_code_id = 	(
+											SELECT common_code_id 
+		                                    FROM dj_common_code 
+		                                    WHERE group_code = 'OT_REWARD_TYPE' and code = 'H'
+		                                    )                            
+		<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+		WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31')
+		</if>
+		<if test="startDt != null and startDt != '' and (endDt == null or endDt == '')">
+		WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') >= CONCAT(#{startDt}, '-01')
+		</if>
+		) A
+        LEFT OUTER JOIN dj_replace_holiday_apply_detail rhad
+            ON A.ot_work_result_id = rhad.ot_work_result_id
+        LEFT OUTER JOIN dj_replace_holiday_apply rha
+			ON rhad.replace_day_off_use_id = rha.replace_day_off_use_id and rha.active = 'Y'
+		WHERE		                                    
+		STR_TO_DATE(A.apply_start_date, '%Y') LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
+		group by ot_work_result_id
+		order by A.rest_min desc, apply_start_date desc
+		<if test="skip != null and skip != ''">
+			<include refid="mysqlPaging"/>
+		</if>
+	</select>
+	<select id="gridSubHolidayOccurListTotal" resultType="int" parameterType="map">
+		SELECT IFNULL(COUNT(1),0)
+		FROM
+		(
+			SELECT owr.ot_work_result_id
+				 , owr.ot_work_apply_id
+				 , owa.apply_dept_name
+			     , 
+			     (
+					SELECT emp_name
+			        FROM neos.t_co_emp_multi
+			        WHERE emp_seq = owa.apply_emp_seq
+						AND lang_code = 'kr'
+			     ) AS apply_emp_name
+			     , owa.apply_position
+			     , owa.apply_duty
+			     , owa.work_start_time
+			     , owa.work_end_time
+			     , owr.occur_min
+			     , owr.agree_min
+			     , owr.use_min
+			     , owr.rest_min
+			     , owa.apply_start_date
+			     , owa.apply_start_time
+			     , owa.apply_end_time
+			     , STR_TO_DATE(owa.apply_start_date, '%Y%m%d') AS str_to_applyDate
+			     , CASE
+					WHEN WEEKDAY(owa.apply_start_date) = '0' THEN '월'
+					WHEN WEEKDAY(owa.apply_start_date) = '1' THEN '화'
+					WHEN WEEKDAY(owa.apply_start_date) = '2' THEN '수'
+					WHEN WEEKDAY(owa.apply_start_date) = '3' THEN '목'
+					WHEN WEEKDAY(owa.apply_start_date) = '4' THEN '금'
+					WHEN WEEKDAY(owa.apply_start_date) = '5' THEN '토'
+					WHEN WEEKDAY(owa.apply_start_date) = '6' THEN '일'
+				   END AS weekday
+				 ,
+			     (
+			     SELECT CASE 
+						WHEN code_kr = '평일' THEN '시간외근무'
+			            WHEN code_kr = '휴일' THEN '휴일근무'
+			            END
+			     FROM dj_common_code
+			     WHERE common_code_id = owa.ot_type_code_id
+			     ) AS ot_type_code_kr
+			     , owr.disappear_plan_date
+			     , STR_TO_DATE(owr.disappear_plan_date, '%Y%m%d') AS str_to_disDate
+			FROM dj_ot_work_result owr
+				INNER JOIN dj_ot_work_apply owa
+			    ON owr.ot_work_apply_id = owa.ot_work_apply_id
+				AND owa.apply_emp_seq = #{apply_emp_seq}
+				AND owa.active = 'Y'
+			    AND owr.active = 'Y'
+			    <if test="admin != 1">
+			    AND owr.disappear_yn != 'Y'
+			    </if>
+			    AND owr.work_reward_code_id = 	(
+												SELECT common_code_id 
+			                                    FROM dj_common_code 
+			                                    WHERE group_code = 'OT_REWARD_TYPE' and code = 'H'
+			                                    )
+			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31')
+			</if>
+			<if test="startDt != null and startDt != '' and (endDt == null or endDt == '')">
+			WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') >= CONCAT(#{startDt}, '-01')
+			</if>
+		) CNT
+	</select>
+	<update id="subHoliApprovalUpdate" parameterType="list">
+		<foreach collection="list" item="item" index="index" separator=";">
+			UPDATE dj_replace_holiday_apply
+			SET approval_status = #{item.approval_status}
+			  , update_emp_seq = #{item.update_emp_seq}
+			  , update_date = NOW()
+			<if test="item.remark != null and item.remark != ''">
+			  , remark = #{item.remark}
+			</if>
+			WHERE replace_day_off_use_id = #{item.replace_day_off_use_id}
+		</foreach>
+	</update>
+	<select id="getOverHoliRestMin" resultType="map" parameterType="map">
+		SELECT
+			IFNULL((
+			SELECT SUM(rest_min)
+			FROM dj_ot_work_result owr
+				INNER JOIN dj_ot_work_apply owa
+				ON owr.ot_work_apply_id = owa.ot_work_apply_id
+				AND owa.apply_emp_seq = #{apply_emp_seq}
+				AND owa.ot_type_code_id = (SELECT common_code_id 
+										   FROM dj_common_code 
+										   WHERE group_code = 'OVERWK_TYPE' AND code = '02')
+				AND owr.work_reward_code_id =	(
+												SELECT common_code_id
+		                                        FROM dj_common_code
+		                                        WHERE group_code = 'OT_REWARD_TYPE' AND code = 'H'
+		                                        )										
+				AND owr.disappear_yn != 'Y' 
+				AND owr.active = 'Y'
+				AND owa.active = 'Y'
+			), 0) AS holiwk_rest_min_sum
+			            ,
+            IFNULL((
+			SELECT SUM(owr.agree_min)
+			FROM dj_ot_work_result owr
+				INNER JOIN dj_ot_work_apply owa
+				ON owr.ot_work_apply_id = owa.ot_work_apply_id
+				AND owa.apply_emp_seq = #{apply_emp_seq}
+				AND owa.ot_type_code_id = (SELECT common_code_id 
+										   FROM dj_common_code 
+										   WHERE group_code = 'OVERWK_TYPE' AND code = '02')
+				AND owr.work_reward_code_id =	(
+												SELECT common_code_id
+		                                        FROM dj_common_code
+		                                        WHERE group_code = 'OT_REWARD_TYPE' AND code = 'H'
+		                                        )		
+				AND owr.disappear_yn != 'Y' 
+				AND owr.active = 'Y'
+				AND owa.active = 'Y'
+			), 0) AS holiwk_agree_min_sum
+			,
+		    IFNULL((
+		    SELECT SUM(rest_min)
+			FROM dj_ot_work_result owr
+				INNER JOIN dj_ot_work_apply owa
+				ON owr.ot_work_apply_id = owa.ot_work_apply_id
+				AND owa.apply_emp_seq = #{apply_emp_seq}
+				AND owa.ot_type_code_id = (SELECT common_code_id 
+										   FROM dj_common_code 
+										   WHERE group_code = 'OVERWK_TYPE' AND code = '01')
+				AND owr.work_reward_code_id =	(
+												SELECT common_code_id
+		                                        FROM dj_common_code
+		                                        WHERE group_code = 'OT_REWARD_TYPE' AND code = 'H'
+		                                        )										   
+				AND owr.disappear_yn != 'Y'
+				AND owr.active = 'Y'
+				AND owa.active = 'Y'
+		    ), 0) AS overwk_rest_min_sum
+		    ,
+			IFNULL((
+		    SELECT SUM(owr.agree_min)
+			FROM dj_ot_work_result owr
+				INNER JOIN dj_ot_work_apply owa
+				ON owr.ot_work_apply_id = owa.ot_work_apply_id
+				AND owa.apply_emp_seq = #{apply_emp_seq}
+				AND owa.ot_type_code_id = (SELECT common_code_id 
+										   FROM dj_common_code 
+										   WHERE group_code = 'OVERWK_TYPE' AND code = '01')
+				AND owr.work_reward_code_id =	(
+												SELECT common_code_id
+		                                        FROM dj_common_code
+		                                        WHERE group_code = 'OT_REWARD_TYPE' AND code = 'H'
+		                                        )			
+				AND owr.disappear_yn != 'Y'
+				AND owr.active = 'Y'
+				AND owa.active = 'Y'
+		    ), 0) AS overwk_agree_min_sum
+	</select>
+	<select id="gridSubHolidayUseRestList" resultType="map" parameterType="map">
+		SELECT ei.dept_name AS apply_dept_name
+			 , ei.emp_seq AS apply_emp_seq
+			 , ei.emp_name AS apply_emp_name
+			 , ei.position AS apply_position
+			 , ei.duty AS apply_duty
+			 , SUM(owr.use_min) AS use_min_sum
+			 , SUM(owr.rest_min) AS rest_min_sum
+		FROM v_emp_info ei
+			LEFT JOIN dj_ot_work_apply owa
+		    ON ei.emp_seq = owa.apply_emp_seq AND apply_start_date LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
+		    AND owa.active = 'Y'
+			LEFT JOIN dj_ot_work_result owr
+			ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			AND owr.active = 'Y'
+			AND owr.work_reward_code_id = 	(
+											SELECT common_code_id 
+		                                    FROM dj_common_code 
+		                                    WHERE group_code = 'OT_REWARD_TYPE' and code = 'H'
+		                                    )
+		<where>
+			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			AND (STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31'))
+			</if>
+			<if test="apply_emp_seq != null and apply_emp_seq != ''">
+			AND ei.emp_seq = #{apply_emp_seq}
+			</if>
+			<if test="apply_dept_name != null and apply_dept_name != '' and apply_dept_name != '전체'">
+			AND ei.dept_name = #{apply_dept_name}
+			</if>
+		</where>
+		GROUP BY ei.emp_seq
+		<if test="skip != null and skip != ''">
+			<include refid="mysqlPaging"/>
+		</if>
+	</select>
+	<select id="upExcelDown" fetchSize="1000" resultType="java.util.LinkedHashMap" parameterType="map">
+		SELECT ei.dept_name AS 부서
+			 , ei.emp_name AS 신청자
+			 , ei.position AS 직급
+			 , ei.duty AS 직책
+			 , IFNULL(CONCAT(TRUNCATE(SUM(owr.use_min)/60 ,0),'시간 ',TRUNCATE(SUM(owr.use_min)%60 ,0),'분'),'0시간 0분') AS 사용시간
+			 , IFNULL(CONCAT(TRUNCATE(SUM(owr.rest_min)/60 ,0),'시간 ',TRUNCATE(SUM(owr.rest_min)%60 ,0),'분'),'0시간 0분') AS 잔여시간
+		FROM v_emp_info ei
+			LEFT JOIN dj_ot_work_apply owa
+		    ON ei.emp_seq = owa.apply_emp_seq
+		    AND owa.active = 'Y'
+			LEFT JOIN dj_ot_work_result owr
+			ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			AND owr.active = 'Y'
+			AND owr.work_reward_code_id = 	(
+											SELECT common_code_id 
+		                                    FROM dj_common_code 
+		                                    WHERE group_code = 'OT_REWARD_TYPE' and code = 'H'
+		                                    )
+		<where>
+			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			AND (STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31'))
+			</if>
+			<if test="apply_dept_name != null and apply_dept_name != '' and apply_dept_name != '전체'">
+			AND ei.dept_name = #{apply_dept_name}
+			</if>
+		</where>
+		GROUP BY ei.emp_seq
+		<if test="skip != null and skip != ''">
+			<include refid="mysqlPaging"/>
+		</if>
+	</select>
+	<select id="gridSubHolidayUseRestListTotal" resultType="int" parameterType="map">
+		SELECT IFNULL(COUNT(1),0)
+		FROM
+		(
+			SELECT ei.dept_name AS apply_dept_name
+			 , ei.emp_seq AS apply_emp_seq
+			 , ei.emp_name AS apply_emp_name
+			 , ei.position AS apply_position
+			 , ei.duty AS apply_duty
+			 , SUM(owr.use_min) AS use_min_sum
+			 , SUM(owr.rest_min) AS rest_min_sum
+		FROM v_emp_info ei
+			LEFT JOIN dj_ot_work_apply owa
+		    ON ei.emp_seq = owa.apply_emp_seq AND apply_start_date LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
+		    AND owa.active = 'Y'
+			LEFT JOIN dj_ot_work_result owr
+			ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			AND owr.active = 'Y'
+		<where>
+			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			AND (STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31'))
+			</if>
+			<if test="apply_emp_seq != null and apply_emp_seq != ''">
+			AND ei.emp_seq = #{apply_emp_seq}
+			</if>
+			<if test="apply_dept_name != null and apply_dept_name != '' and apply_dept_name != '전체'">
+			AND ei.dept_name = #{apply_dept_name}
+			</if>
+		</where>
+		GROUP BY ei.emp_seq 
+		) CNT
+	</select>
+	<select id="getWorkTypeCode" parameterType="map" resultType="map">
+		SELECT work_type_code
+		FROM dj_ot_emp_set
+		WHERE active = 'Y'
+			AND ot_emp_seq = #{empSeq}
+	</select>
+	
+	<select id="overWkTimeList" resultType="map" parameterType="map">
+		SELECT CASE
+				WHEN SUM(AA.APPLY_MIN) IS NULL THEN '0시간 0분'
+				ELSE CONCAT(TRUNCATE(SUM(AA.APPLY_MIN)/60 ,0),'시간 ',TRUNCATE(SUM(AA.APPLY_MIN)%60 ,0),'분')
+			END  AS APPLY_HOUR
+			,CASE
+				WHEN SUM(AA.OCCUR_MIN) IS NULL THEN '0시간 0분'
+				ELSE CONCAT(TRUNCATE(SUM(AA.OCCUR_MIN)/60 ,0),'시간 ',TRUNCATE(SUM(AA.OCCUR_MIN)%60 ,0),'분')
+			END AS OCCUR_HOUR
+			,CASE
+				WHEN SUM(AA.AGREE_MIN) IS NULL THEN '0시간 0분'
+				ELSE CONCAT(TRUNCATE(SUM(AA.AGREE_MIN)/60 ,0),'시간 ',TRUNCATE(SUM(AA.AGREE_MIN)%60 ,0),'분')
+			END AS AGREE_HOUR
+		FROM
+		(SELECT A.apply_min AS APPLY_MIN
+			,SUM(B.occur_min) AS OCCUR_MIN
+			,SUM(B.agree_min) AS AGREE_MIN
+		FROM
+			dj_ot_work_apply A 
+			LEFT JOIN
+			dj_ot_work_result B
+				ON A.ot_work_apply_id = B.ot_work_apply_id
+		        AND B.active = 'Y'
+		WHERE
+			A.active = 'Y' 
+			AND A.ot_type_code_id = 572
+			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			AND A.apply_start_date BETWEEN #{startDt} AND #{endDt}
+			</if> 
+			<if test="userSeq != null and userSeq != ''">
+			AND A.apply_emp_seq = #{userSeq}
+			</if>
+			<if test="apply_dept_name != null and apply_dept_name != '' and apply_dept_name != '전체'">
+			AND A.apply_dept_name = #{apply_dept_name}
+			</if>
+		GROUP BY A.ot_work_apply_id
+		) AA		
+	</select>
+	
+	<select id="overWkExcelList" fetchSize="1000" resultType="java.util.LinkedHashMap" parameterType="map">
+		SELECT CC.부서
+			 , CC.성명
+			 , CC.신청일자
+			 , CC.요일
+			 , CC.평일휴일
+			 , CC.근무지
+			 , CC.근무유형
+			 , CC.신청시작시간
+			 , CC.신청종료시간
+			 , CC.실제출근시간
+			 , CC.실제퇴근시간
+			 , CC.진행단계
+			 , CC.신청시간
+			 , CC.발생시간
+			 , CC.휴게시간
+			 , CC.인정시간
+			 , CASE
+		    	WHEN CC.night_min IS NULL THEN '00:00'
+		    	ELSE CONCAT(LPAD(TRUNCATE(CC.night_min/60, 0), 2, 0), ':', LPAD(TRUNCATE(CC.night_min%60 ,0), 2, 0))
+		     END AS 야간근무시간
+			  , CASE
+			 	WHEN CC.보상선택 IS NULL THEN ''
+			 	WHEN CC.보상선택 = '1' THEN '수당'
+			 	WHEN CC.보상선택 = '2' THEN '보상휴가'
+			 	ELSE ''
+			 	END AS 보상선택
+			 , CC.apply_min
+			 , CC.occur_min
+			 , CC.agree_min
+			 , CC.break_min
+			 , CC.night_min
+		FROM (
+			SELECT BB.*
+				 , IFNULL(BB.night_work_min, 0) + IFNULL(BB.dawn_work_min, 0) AS night_min
+			FROM (
+				SELECT AA.*
+					 <![CDATA[
+					 , CASE 
+						WHEN ( ( AA.실제출근시간 < AA.night_start_time) AND (AA.실제퇴근시간 > AA.night_end_time) ) 
+							THEN 480
+						WHEN ( (AA.실제출근시간 <= AA.night_start_time) AND ( AA.실제퇴근시간 >= AA.night_start_time AND AA.실제퇴근시간 <= AA.night_end_time) ) 
+							THEN FLOOR(( TIME_TO_SEC(AA.실제퇴근시간) - TIME_TO_SEC(AA.night_start_time) ) / 60)
+						WHEN ( (AA.실제출근시간 >= AA.night_start_time AND AA.실제출근시간 <= AA.night_end_time) AND (AA.실제퇴근시간 >= AA.night_end_time) )
+							THEN FLOOR(( TIME_TO_SEC(AA.night_end_time) - TIME_TO_SEC(AA.실제출근시간) ) / 60)
+						WHEN ( (AA.실제출근시간 >= AA.night_start_time AND AA.실제출근시간 <= AA.night_end_time) AND (AA.실제퇴근시간 >= AA.night_start_time AND AA.실제퇴근시간 <= AA.night_end_time) )
+							THEN FLOOR(( TIME_TO_SEC(AA.실제퇴근시간) - TIME_TO_SEC(AA.실제출근시간) ) / 60)
+					END AS night_work_min
+					, CASE 
+						WHEN ( ( AA.실제출근시간 < AA.dawn_start_time) AND (AA.실제퇴근시간 > AA.dawn_end_time) ) 
+							THEN 360
+						WHEN ( (AA.실제출근시간 <= AA.dawn_start_time) AND ( AA.실제퇴근시간 >= AA.dawn_start_time AND AA.실제퇴근시간 <= AA.dawn_end_time) ) 
+							THEN FLOOR(( TIME_TO_SEC(AA.실제퇴근시간) - TIME_TO_SEC(AA.dawn_start_time) ) / 60)
+						WHEN ( (AA.실제출근시간 >= AA.dawn_start_time AND AA.실제출근시간 <= AA.dawn_end_time) AND (AA.실제퇴근시간 >= AA.dawn_end_time) )
+							THEN FLOOR(( TIME_TO_SEC(AA.dawn_end_time) - TIME_TO_SEC(AA.실제출근시간) ) / 60)
+						WHEN ( (AA.실제출근시간 >= AA.dawn_start_time AND AA.실제출근시간 <= AA.dawn_end_time) AND (AA.실제퇴근시간 >= AA.dawn_start_time AND AA.실제퇴근시간 <= AA.dawn_end_time) )
+							THEN FLOOR(( TIME_TO_SEC(AA.실제퇴근시간) - TIME_TO_SEC(AA.실제출근시간) ) / 60)
+					END AS dawn_work_min
+					]]>
+				FROM (
+					SELECT 
+					    (A.apply_dept_name) AS 부서
+					    ,(SELECT IFNULL(MAX(emp_name), '') FROM v_emp_info WHERE emp_seq = A.apply_emp_seq AND use_yn = 'Y') AS 성명
+					    ,DATE_FORMAT(A.apply_start_date, '%Y-%m-%d') AS 신청일자
+						,CASE WEEKDAY(A.apply_start_date)
+						  WHEN 0 THEN '월'
+						  WHEN 1 THEN '화'
+						  WHEN 2 THEN '수'
+						  WHEN 3 THEN '목'
+						  WHEN 4 THEN '금'
+						  WHEN 5 THEN '토'
+						  WHEN 6 THEN '일'
+						END AS 요일
+						,CASE A.ot_type_code_id
+							WHEN (SELECT common_code_id FROM dj_common_code WHERE group_code = 'OVERWK_TYPE' AND code = '01') 
+								THEN '평일'
+							WHEN (SELECT common_code_id FROM dj_common_code WHERE group_code = 'OVERWK_TYPE' AND code = '02') 
+								THEN '휴일'
+							ELSE ''
+						END AS 평일휴일
+					    ,CASE A.work_place
+					    	WHEN 'outdoor' THEN '외근'
+					    	WHEN 'indoor' THEN '내근'
+					    	ELSE ''
+					    END AS 근무지
+					    ,
+					    (
+					    SELECT work_type FROM dj_work_type WHERE work_type_id = A.work_type_id
+					    UNION ALL
+						SELECT '' FROM DUAL 
+						WHERE NOT EXISTS 	(
+											SELECT work_type 
+											FROM dj_work_type 
+											WHERE work_type_id = A.work_type_id)
+					    ) AS 근무유형
+					    ,IFNULL(A.apply_start_time, '') AS 신청시작시간
+					    ,IFNULL(A.apply_end_time, '') AS 신청종료시간
+					    ,CASE A.work_place
+							WHEN 'outdoor' THEN IFNULL(A.work_start_time, '')
+							ELSE (
+								    SELECT IFNULL(MAX(DATE_FORMAT(
+								     		#come_dt
+								     		DATE_ADD(	
+							    				 come_dt
+							     			   , INTERVAL
+							     			   (
+							     			   	SELECT time_differ_min
+							     			   	FROM dj_ot_emp_set
+							     			   	WHERE ot_emp_seq = A.apply_emp_seq
+							     			   )
+							     			   MINUTE
+								     		)
+								     		, '%H:%i'
+								     )), '')
+									FROM neos.t_at_att
+									WHERE DATE_FORMAT(att_date, '%Y%m%d') = A.apply_start_date
+									AND EMP_SEQ = A.apply_emp_seq
+						                  AND ATT_ITEM_CODE = '10'
+								    )
+							
+						END AS 실제출근시간
+					    ,CASE A.work_place
+							WHEN 'outdoor' THEN	IFNULL(A.work_end_time, '')
+							ELSE (
+								    SELECT IFNULL(MAX(DATE_FORMAT(
+								     		#leave_dt
+								     		DATE_ADD(	
+							    				 leave_dt
+							     			   , INTERVAL
+							     			   (
+							     			   	SELECT time_differ_min
+							     			   	FROM dj_ot_emp_set
+							     			   	WHERE ot_emp_seq = A.apply_emp_seq
+							     			   )
+							     			   MINUTE
+								     		)
+								     		, '%H:%i'
+								     )), '')					
+									FROM neos.t_at_att
+									WHERE DATE_FORMAT(att_date, '%Y%m%d') = A.apply_start_date
+									AND EMP_SEQ = A.apply_emp_seq
+						                  AND ATT_ITEM_CODE = '10'
+								    )
+						END AS 실제퇴근시간
+					    ,CASE
+					    	WHEN A.approval_status = '0' THEN '변경신청'
+					    	WHEN A.approval_status = '1' THEN '신청'
+					    	WHEN A.approval_status = '2' THEN '승인'
+					    	WHEN A.approval_status = '4' THEN '반려'
+					    	WHEN A.approval_status = '5' THEN '승인대기'
+					    	ELSE ''
+					    END AS 진행단계
+					    , IFNULL(A.approval_emp_name, '') AS 승인권자
+					    ,CASE
+					       WHEN A.apply_min IS NULL THEN '00:00'
+					       ELSE CONCAT(LPAD(TRUNCATE(A.apply_min/60 ,0), 2, 0), ':' , LPAD(TRUNCATE(A.apply_min%60 ,0), 2, 0))
+					    END AS 신청시간
+					    ,CASE
+					       WHEN SUM(B.occur_min) IS NULL THEN '00:00'
+					       ELSE CONCAT(LPAD(TRUNCATE(SUM(B.occur_min)/60 ,0), 2, 0), ':', LPAD(TRUNCATE(SUM(B.occur_min)%60 ,0), 2, 0))
+					    END AS 발생시간
+					    ,CASE
+					    	WHEN SUM(B.break_min) IS NULL THEN '00:00'
+					    	ELSE CONCAT(LPAD(TRUNCATE(SUM(B.break_min)/60, 0), 2, 0), ':', LPAD(TRUNCATE(SUM(B.break_min)%60 ,0), 2, 0))
+					    END AS 휴게시간
+				 		,CASE
+					       WHEN SUM(B.agree_min) IS NULL THEN '00:00'
+					       ELSE CONCAT(LPAD(TRUNCATE(SUM(B.agree_min)/60 ,0), 2, 0), ':', LPAD(TRUNCATE(SUM(B.agree_min)%60 ,0), 2, 0))
+					    END AS 인정시간
+					    ,A.apply_min
+					    ,SUM(B.occur_min) occur_min
+					    ,SUM(B.agree_min) agree_min
+					    ,SUM(B.break_min) break_min
+					    ,STR_TO_DATE('22:00', '%H:%i') AS night_start_time
+					    ,DATE_ADD(STR_TO_DATE('06:00', '%H:%i'), INTERVAL 1 DAY) AS night_end_time
+					    ,STR_TO_DATE('00:00', '%H:%i') AS dawn_start_time
+					    ,STR_TO_DATE('06:00', '%H:%i') AS dawn_end_time
+					    ,A.reward_type as 보상선택
+					FROM
+					    dj_ot_work_apply A 
+					    LEFT JOIN
+					    dj_ot_work_result B
+							ON A.ot_work_apply_id = B.ot_work_apply_id 
+							AND B.active = 'Y'
+
+					WHERE
+						A.active = 'Y'
+						AND A.ot_type_code_id = 572
+						<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+						AND A.apply_start_date BETWEEN #{startDt} AND #{endDt}
+						</if> 
+						<if test="userSeq2 != null and userSeq2 != ''">
+						AND A.apply_emp_seq = #{userSeq2}
+						</if>
+						<if test="apply_dept_name2 != null and apply_dept_name2 != '' and apply_dept_name2 != '전체'">
+						AND A.apply_dept_name = #{apply_dept_name2}
+						</if>
+					GROUP BY A.ot_work_apply_id
+					ORDER BY A.apply_dept_name, A.apply_emp_seq, A.apply_start_date ASC
+				) AA
+			) BB
+		) CC
+	</select>
+
+	<select id="overWkList" resultType="map" parameterType="map">
+		SELECT BB.*
+			 , IFNULL(BB.night_work_min, 0) + IFNULL(BB.dawn_work_min, 0) AS nightWorkMin
+		FROM (
+			SELECT AA.*
+				<![CDATA[
+				 , CASE 
+					WHEN ( ( AA.come_dt < AA.night_start_time) AND (AA.leave_dt > AA.night_end_time) ) 
+						THEN 480
+					WHEN ( (AA.come_dt <= AA.night_start_time) AND ( AA.leave_dt >= AA.night_start_time AND AA.leave_dt <= AA.night_end_time) ) 
+						THEN FLOOR(( TIME_TO_SEC(AA.leave_dt) - TIME_TO_SEC(AA.night_start_time) ) / 60)
+					WHEN ( (AA.come_dt >= AA.night_start_time AND AA.come_dt <= AA.night_end_time) AND (AA.leave_dt >= AA.night_end_time) )
+						THEN FLOOR(( TIME_TO_SEC(AA.night_end_time) - TIME_TO_SEC(AA.come_dt) ) / 60)
+					WHEN ( (AA.come_dt >= AA.night_start_time AND AA.come_dt <= AA.night_end_time) AND (AA.leave_dt >= AA.night_start_time AND AA.leave_dt <= AA.night_end_time) )
+						THEN FLOOR(( TIME_TO_SEC(AA.leave_dt) - TIME_TO_SEC(AA.come_dt) ) / 60)
+				END AS night_work_min
+				, CASE 
+					WHEN ( ( AA.come_dt < AA.dawn_start_time) AND (AA.leave_dt > AA.dawn_end_time) ) 
+						THEN 360
+					WHEN ( (AA.come_dt <= AA.dawn_start_time) AND ( AA.leave_dt >= AA.dawn_start_time AND AA.leave_dt <= AA.dawn_end_time) ) 
+						THEN FLOOR(( TIME_TO_SEC(AA.leave_dt) - TIME_TO_SEC(AA.dawn_start_time) ) / 60)
+					WHEN ( (AA.come_dt >= AA.dawn_start_time AND AA.come_dt <= AA.dawn_end_time) AND (AA.leave_dt >= AA.dawn_end_time) )
+						THEN FLOOR(( TIME_TO_SEC(AA.dawn_end_time) - TIME_TO_SEC(AA.come_dt) ) / 60)
+					WHEN ( (AA.come_dt >= AA.dawn_start_time AND AA.come_dt <= AA.dawn_end_time) AND (AA.leave_dt >= AA.dawn_start_time AND AA.leave_dt <= AA.dawn_end_time) )
+						THEN FLOOR(( TIME_TO_SEC(AA.leave_dt) - TIME_TO_SEC(AA.come_dt) ) / 60)
+				END AS dawn_work_min
+				]]>
+			FROM (
+				SELECT 
+					#A.*
+					A.ot_work_apply_id
+					,A.reward_type
+				    ,A.apply_dept_name
+				    ,A.apply_position
+				    ,A.apply_duty
+				    ,STR_TO_DATE('22:00', '%H:%i') AS night_start_time
+				    ,DATE_ADD(STR_TO_DATE('06:00', '%H:%i'), INTERVAL 1 DAY) AS night_end_time
+				    ,STR_TO_DATE('00:00', '%H:%i') AS dawn_start_time
+				    ,STR_TO_DATE('06:00', '%H:%i') AS dawn_end_time
+				    ,A.work_place
+				    ,A.approval_emp_name
+				    ,A.approval_status
+				    ,A.after_action_report_id
+				    ,A.apply_start_time
+				    ,A.apply_end_time
+				    ,DATE_FORMAT(A.apply_start_date, '%Y-%m-%d') AS applyDate
+					,CASE WEEKDAY(A.apply_start_date)
+					  WHEN 0 THEN '월'
+					  WHEN 1 THEN '화'
+					  WHEN 2 THEN '수'
+					  WHEN 3 THEN '목'
+					  WHEN 4 THEN '금'
+					  WHEN 5 THEN '토'
+					  WHEN 6 THEN '일'
+					END AS weekDay
+					,CASE A.ot_type_code_id
+						WHEN (SELECT common_code_id FROM dj_common_code WHERE group_code = 'OVERWK_TYPE' AND code = '01') 
+							THEN '평일'
+						WHEN (SELECT common_code_id FROM dj_common_code WHERE group_code = 'OVERWK_TYPE' AND code = '02') 
+							THEN '휴일'
+					END AS otType
+				    ,(SELECT work_type FROM dj_work_type WHERE work_type_id = A.work_type_id) AS workType
+				    ,(SELECT emp_name FROM v_emp_info WHERE emp_seq = A.apply_emp_seq AND use_yn = 'Y') AS empName
+				    #,B.*
+			 		,
+			 		CASE A.work_place
+						WHEN 'outdoor' THEN A.work_start_time
+						ELSE (
+							    SELECT DATE_FORMAT(
+							     		#come_dt
+							     		DATE_ADD(	
+						    				 come_dt
+						     			   , INTERVAL
+						     			   (
+						     			   	SELECT time_differ_min
+						     			   	FROM dj_ot_emp_set
+						     			   	WHERE ot_emp_seq = A.apply_emp_seq
+						     			   )
+						     			   MINUTE
+							     		)
+							     		, '%H:%i'
+							     )				
+								FROM neos.t_at_att
+								WHERE DATE_FORMAT(att_date, '%Y%m%d') = A.apply_start_date
+								AND EMP_SEQ = A.apply_emp_seq
+					                  AND ATT_ITEM_CODE = '10'
+							    )
+						
+					END AS come_dt
+			        ,
+			        CASE A.work_place
+						WHEN 'outdoor' THEN	A.work_end_time
+						ELSE (
+							    SELECT DATE_FORMAT(
+							     		#leave_dt
+							     		DATE_ADD(	
+						    				 leave_dt
+						     			   , INTERVAL
+						     			   (
+						     			   	SELECT time_differ_min
+						     			   	FROM dj_ot_emp_set
+						     			   	WHERE ot_emp_seq = A.apply_emp_seq
+						     			   )
+						     			   MINUTE
+							     		)
+							     		, '%H:%i'
+							     )						
+								FROM neos.t_at_att
+								WHERE DATE_FORMAT(att_date, '%Y%m%d') = A.apply_start_date
+								AND EMP_SEQ = A.apply_emp_seq
+					                  AND ATT_ITEM_CODE = '10'
+							    )
+					END AS leave_dt
+				    ,CASE WHEN A.apply_min IS NULL THEN 0 ELSE A.apply_min END AS applyMin
+				    ,IFNULL(SUM(B.occur_min), 0) AS occurMin
+				    ,IFNULL(SUM(B.agree_min), 0) AS agreeMin
+				    ,IFNULL(SUM(B.break_min), 0) AS breakMin
+				    ,CASE
+				       WHEN A.apply_min IS NULL THEN '0시간 0분'
+				       ELSE CONCAT(TRUNCATE(A.apply_min/60 ,0),'시간 ',TRUNCATE(A.apply_min%60 ,0),'분')
+				    END AS applyHour
+				    ,CASE
+				       WHEN SUM(B.occur_min) IS NULL THEN '0시간 0분'
+				       ELSE CONCAT(TRUNCATE(SUM(B.occur_min)/60 ,0),'시간 ',TRUNCATE(SUM(B.occur_min)%60 ,0),'분')
+				    END AS occurHour
+				    ,CASE
+				       WHEN SUM(B.agree_min) IS NULL THEN '0시간 0분'
+				       ELSE CONCAT(TRUNCATE(SUM(B.agree_min)/60 ,0),'시간 ',TRUNCATE(SUM(B.agree_min)%60 ,0),'분')
+				    END AS agreeHour
+				FROM
+				    dj_ot_work_apply A 
+				    LEFT JOIN
+				    dj_ot_work_result B
+						ON A.ot_work_apply_id = B.ot_work_apply_id 
+						AND B.active = 'Y'
+				WHERE
+					A.active = 'Y'
+					AND A.ot_type_code_id = 572
+					<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+					AND A.apply_start_date BETWEEN #{startDt} AND #{endDt}
+					</if> 
+					<if test="userSeq != null and userSeq != ''">
+					AND A.apply_emp_seq = #{userSeq}
+					</if>
+					<if test="apply_dept_name != null and apply_dept_name != '' and apply_dept_name != '전체'">
+					AND A.apply_dept_name = #{apply_dept_name}
+					</if>
+				GROUP BY A.ot_work_apply_id
+				ORDER BY A.apply_dept_name, A.apply_emp_seq, A.apply_start_date DESC
+			) AA
+		) BB
+		<if test="paging != null and paging != ''">
+			LIMIT ${skip} , ${pageSize}
+		</if>
+		
+	</select>
+	
+	<select id="overWkListTotal" resultType="int" parameterType="map">
+		SELECT 
+		    COUNT(*)
+		FROM
+		    dj_ot_work_apply A 
+		    LEFT JOIN
+		    dj_ot_work_result B
+				ON A.ot_work_apply_id = B.ot_work_apply_id 
+				AND B.active = 'Y' 
+
+		WHERE
+			A.active = 'Y'
+			AND A.ot_type_code_id = 572 
+			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			AND A.apply_start_date BETWEEN #{startDt} AND #{endDt}
+			</if> 
+			<if test="userSeq != null and userSeq != ''">
+			AND A.apply_emp_seq = #{userSeq}
+			</if>
+			<if test="apply_dept_name != null and apply_dept_name != '' and apply_dept_name != '전체'">
+			AND A.apply_dept_name = #{apply_dept_name}
+			</if>
+	</select>
+	
+	<update id="otApplyCancel" parameterType="map">
+			UPDATE dj_ot_work_apply
+			SET active = 'N'
+			WHERE ot_work_apply_id = #{ot_work_apply_id}
+	</update>
+	
+	<select id="replaceHoliCheck" resultType="map" parameterType="map">
+		SELECT IF(dayofweek(#{applyDate})='1' OR dayofweek(#{applyDate})='7' OR dayofweek(#{applyDate})='6', weekofyear(#{holiDate}) = weekofyear(#{applyDate})+1, weekofyear(#{holiDate}) = weekofyear(#{applyDate})) AS weekCheck
+, IFNULL((SELECT IF(work_type_id='6','N','Y') FROM dj_work_plan_detail WHERE emp_seq = #{empSeq} AND work_date = #{holiDate}),dayofweek(#{holiDate})) AS holiYn
+, (SELECT COUNT(*) FROM neos.t_co_holiday WHERE h_day = #{holiDate}) AS neosHoli
+,(SELECT attend_time FROM dj_work_plan_detail WHERE emp_seq = 1 AND work_date = #{holiDate}) AS attTime
+,(SELECT leave_time FROM dj_work_plan_detail WHERE emp_seq = 1 AND work_date = #{holiDate}) AS leaveTime
+	</select>
+	
+	<select id="getAllAdmin" resultType="int" parameterType="map">
+		SELECT COUNT(1)
+		FROM dj_common_code
+		WHERE active = 'Y'
+			AND group_code = '00_ALL_ADMIN'
+		    AND code = (
+				SELECT login_id
+		        FROM v_emp_info
+		        WHERE emp_seq = #{empSeq}
+		    )	
+	</select>
+	
+	<select id="defaultIframeReqList" parameterType="map" resultType="map">
+		SELECT '유연근무 월별신청' AS category 
+			 , COUNT(1) AS reqCnt
+		     , (
+				SELECT COUNT(1) 
+		        FROM dj_work_plan 
+		        WHERE active = 'Y' 
+					AND status = '2'
+					<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+		            AND request_date BETWEEN #{startDt} AND #{endDt}
+					</if>
+			 ) AS appCnt -- 관리페이지에서 표시
+		     , 0 AS rejectCnt -- 관리페이지에서 표시
+		     , '/workPlan/workPlanReqAdmin' AS url 
+		FROM dj_work_plan
+		WHERE active = 'Y'
+			AND status = '1'
+		    <if test="approval_emp_seq != null and approval_emp_seq != ''">
+		    AND approval_emp_seq = #{approval_emp_seq}
+			</if>
+		    <if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+            AND request_date BETWEEN #{startDt} AND #{endDt}
+			</if>
+		UNION
+		SELECT '유연근무 일별변경신청' AS category -- 관리페이지에서 표시
+			 , COUNT(1) AS reqCnt
+		     , (
+				SELECT COUNT(1)
+		        FROM (
+					SELECT A.work_plan_id
+					FROM dj_work_plan_history A
+						JOIN dj_work_plan_detail B
+							ON A.work_plan_detail_id = B.work_plan_detail_id
+							AND A.active = 'Y' AND B.active = 'Y'
+					WHERE A.active = 'Y'
+						AND A.change_degree <![CDATA[>]]> 0
+						AND A.status = 1
+						<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+		                AND A.create_date BETWEEN #{startDt} AND #{endDt}
+						</if>
+					GROUP BY A.work_plan_id
+		        ) AS CNT
+		     ) AS appCnt
+		     , 0 AS rejectCnt
+		     , '/workPlan/workPlanChangeAdmin' AS url
+		FROM (
+			SELECT A.work_plan_id
+			FROM dj_work_plan_history A
+				JOIN dj_work_plan_detail B
+					ON A.work_plan_detail_id = B.work_plan_detail_id
+					AND A.active = 'Y' AND B.active = 'Y'
+			WHERE A.active = 'Y'
+				AND A.change_degree <![CDATA[>]]> 0
+				AND A.status = 0
+		        <if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+                AND A.create_date BETWEEN #{startDt} AND #{endDt}
+				</if>
+			GROUP BY A.work_plan_id
+		) CNT
+		UNION
+		SELECT '시간외근무 신청' AS category
+			 , COUNT(1) AS reqCnt
+		     , (
+				SELECT COUNT(1)
+		        FROM dj_ot_work_apply
+		        WHERE active = 'Y'
+					AND approval_status = '2'
+		            AND ot_type_code_id = '572'
+		            <if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+					AND apply_start_date BETWEEN #{startDt} AND #{endDt}
+					</if>
+		     ) AS appCnt -- 관리페이지에서 표시
+		     , (
+				SELECT COUNT(1)
+		        FROM dj_ot_work_apply
+		        WHERE active = 'Y'
+					AND approval_status = '4'
+		            AND ot_type_code_id = '572'
+					<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+					AND apply_start_date BETWEEN #{startDt} AND #{endDt}
+					</if>
+		     ) AS rejectCnt -- 관리페이지에서 표시
+		     , '/subHoliday/overWkAdminApp' AS url
+		FROM dj_ot_work_apply
+		WHERE active = 'Y'
+			AND approval_status = '1'
+		    AND ot_type_code_id = '572'
+		    <if test="approval_emp_seq != null and approval_emp_seq != ''">
+		    AND approval_emp_seq = #{approval_emp_seq}
+			</if>
+		    <if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			AND apply_start_date BETWEEN #{startDt} AND #{endDt}
+			</if>
+			AND ( (work_place = 'outdoor' AND after_action_report_id IS NOT NULL) OR
+				  (work_place = 'indoor') )
+		UNION
+		SELECT '휴일근무 신청' AS category
+			 , COUNT(1) AS reqCnt
+		     , (
+				SELECT COUNT(1)
+		        FROM dj_ot_work_apply
+		        WHERE active = 'Y'
+					AND approval_status = '2'
+		            AND ot_type_code_id = '573'
+					<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+					AND apply_start_date BETWEEN #{startDt} AND #{endDt}
+					</if>
+		     ) AS appCnt -- 관리페이지에서 표시
+		     , (
+				SELECT COUNT(1)
+		        FROM dj_ot_work_apply
+		        WHERE active = 'Y'
+					AND approval_status = '4'
+		            AND ot_type_code_id = '573'
+					<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+					AND apply_start_date BETWEEN #{startDt} AND #{endDt}
+					</if>
+		     ) AS rejectCnt -- 관리페이지에서 표시
+		     , '/subHoliday/holidayWkAdminApp' AS url
+		FROM dj_ot_work_apply
+		WHERE active = 'Y'
+			AND approval_status = '1'
+		    AND ot_type_code_id = '573'
+		    AND (
+				(work_place = 'outdoor' AND after_action_report_id IS NOT NULL)
+				OR	
+				(work_place = 'indoor')
+			)
+		    <if test="approval_emp_seq != null and approval_emp_seq != ''">
+		    AND approval_emp_seq = #{approval_emp_seq}
+			</if>
+		    <if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			AND apply_start_date BETWEEN #{startDt} AND #{endDt}
+			</if>
+		UNION
+		SELECT '보상휴가 신청' AS category
+			 , COUNT(1) AS reqCnt
+		     , (
+				SELECT COUNT(1)
+		        FROM dj_replace_holiday_apply
+		        WHERE active = 'Y'
+					AND approval_status = '2'
+		            <if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+					AND apply_start_date BETWEEN #{startDt} AND #{endDt}
+					</if>
+		     ) AS appCnt
+		     , (
+				SELECT COUNT(1)
+		        FROM dj_replace_holiday_apply
+		        WHERE active = 'Y'
+					AND approval_status = '4'
+		            <if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+					AND apply_start_date BETWEEN #{startDt} AND #{endDt}
+					</if>
+		     ) AS rejectCnt
+		     , '/subHoliday/subHoliAdminApp' AS url
+		FROM dj_replace_holiday_apply
+		WHERE active = 'Y'
+			AND approval_status = '1'
+		    <if test="approval_emp_seq != null and approval_emp_seq != ''">
+		    AND approval_emp_seq = #{approval_emp_seq}
+			</if>
+		    <if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			AND apply_start_date BETWEEN #{startDt} AND #{endDt}
+			</if>
+	</select>
+	<update id="otApplyDocStsUpdate" parameterType="map">
+		UPDATE dj_ot_work_apply
+		SET approval_status = #{docSts}
+		  , update_emp_seq = (SELECT emp_seq FROM v_emp_info WHERE login_id = #{update_emp_seq})
+		  , update_date = NOW()
+		<if test="processId != null and processId != ''">
+		  , processId = #{processId}
+		</if>
+		<if test="remark != null and remark != ''">
+		  , remark = #{remark}
+		</if>
+		WHERE ot_work_apply_id = #{target_id}
+	</update>
+	<select id="getSubHoliReqData" parameterType="map" resultType="map">
+		SELECT IFNULL(use_min, '') AS use_min
+			 , use_emp_seq
+		FROM dj_replace_holiday_apply
+		WHERE replace_day_off_use_id = #{target_id}
+	</select>
+	<update id="rehApplyDocStsUpdate" parameterType="map">
+		UPDATE dj_replace_holiday_apply
+		SET update_emp_seq = (SELECT emp_seq FROM v_emp_info WHERE login_id = #{update_emp_seq})
+		  , update_date = NOW()
+		<if test="processId != null and processId != ''">
+		  , processId = #{processId}
+		</if>
+		<if test="remark != null and remark != ''">
+		  , remark = #{remark}
+		</if>
+		WHERE replace_day_off_use_id = #{target_id}
+	</update>
+	<update id="selectCodeUpdate" parameterType="map">
+		UPDATE dj_ot_work_result
+		SET select_code = 'Y'
+		WHERE ot_work_result_id = #{select_result_id}
+	</update>
+	<update id="selectCodeUpdateN" parameterType="map">
+		UPDATE dj_ot_work_result
+		SET select_code = 'N'
+		WHERE select_code = 'Y'
+	</update>
+	<select id="subHolidayReqDaySelect" parameterType="map" resultType="map">
+	 SELECT OWA.apply_start_date
+            FROM dj_replace_holiday_apply HA
+            JOIN dj_replace_holiday_apply_detail HAD
+            ON HA.replace_day_off_use_id = HAD.replace_day_off_use_id
+            JOIN dj_ot_work_result OWR
+            ON HAD.ot_work_result_id = OWR.ot_work_result_id
+            JOIN dj_ot_work_apply OWA
+            ON OWR.ot_work_apply_id = OWA.ot_work_apply_id
+            WHERE HAD.replace_day_off_use_id = #{replace_day_off_use_id}
+	</select>
+	<select id="gridSubHolidayReqListToday" resultType="map" parameterType="map">
+	select rha.use_dept_name, ei.emp_name, rha.apply_start_date, IFNULL(rha.apply_end_date, rha.apply_start_date) as apply_end_date, rha.remark, oes.work_type_code,wp.default_work_type,
+ 	case
+ 	<![CDATA[
+ 		when wp.default_work_type = 1
+		then
+			case 
+				when rha.apply_end_date is not null
+				then '보상휴가 연차'
+				when rha.apply_end_time-rha.apply_start_time=5 && rha.apply_end_time < '14:00'
+				then '보상휴가 오전반차'
+				when rha.apply_end_time-rha.apply_start_time=4 && rha.apply_end_time < '14:00'
+				then '보상휴가 오전반차'
+				when rha.apply_end_time-rha.apply_start_time=4 && rha.apply_end_time > '14:00'
+				then '보상휴가 오후반차'
+				when rha.apply_end_time-rha.apply_start_time=5 && rha.apply_end_time > '14:00'
+				then '보상휴가 오후반차'
+				when (rha.apply_end_time-rha.apply_start_time=2) && (oes.work_type_code=633)
+				then '보상휴가 반차'
+				when (rha.apply_end_time-rha.apply_start_time=2) && (oes.work_type_code=632)
+				then '보상휴가 조퇴'
+				else '보상휴가'
+			end
+		when wp.default_work_type = 2
+        then
+			case 
+				when rha.apply_end_date is not null
+				then '보상휴가 연차'
+				when rha.apply_end_time-rha.apply_start_time=5 && rha.apply_end_time < '15:00'
+				then '보상휴가 오전반차'
+				when rha.apply_end_time-rha.apply_start_time=4 && rha.apply_end_time > '15:00'
+				then '보상휴가 오후반차'
+				when (rha.apply_end_time-rha.apply_start_time=2) && (oes.work_type_code=633)
+				then '보상휴가 반차'
+				when (rha.apply_end_time-rha.apply_start_time=2) && (oes.work_type_code=632)
+				then '보상휴가 조퇴'
+				else '보상휴가'
+			end
+		when wp.default_work_type = 3
+        then
+			case 
+				when rha.apply_end_date is not null
+				then '보상휴가 연차'
+				when rha.apply_end_time-rha.apply_start_time=5 && rha.apply_end_time < '16:00'
+				then '보상휴가 오전반차'
+				when rha.apply_end_time-rha.apply_start_time=4 && rha.apply_end_time > '16:00'
+				then '보상휴가 오후반차'
+				when (rha.apply_end_time-rha.apply_start_time=2) && (oes.work_type_code=633)
+				then '보상휴가 반차'
+				when (rha.apply_end_time-rha.apply_start_time=2) && (oes.work_type_code=632)
+				then '보상휴가 조퇴'
+				else '보상휴가'
+			end
+ 	]]>
+ 	end as reward_type
+	from dj_replace_holiday_apply rha
+	join dj_ot_emp_set oes
+	on oes.ot_emp_seq = rha.use_emp_seq
+	join v_emp_info ei
+    on rha.use_emp_seq = ei.emp_seq
+    join cust_klti.dj_work_plan wp
+    on rha.use_emp_seq = wp.request_emp_seq AND date_format(apply_start_date, "%Y%m") = wp.apply_month and wp.active = 'Y'
+	WHERE (select date_format(curdate(),"%Y%m%d")) BETWEEN rha.apply_start_date and IFNULL(rha.apply_end_date, rha.apply_start_date)
+	AND rha.active = 'Y'
+	AND rha.approval_status = '2'
+	</select>
+	<select id="gridSubHolidayReqListTotalToday" resultType="int" parameterType="map">
+	select ifnull(count(1),0)
+	from dj_replace_holiday_apply rha
+	join dj_ot_emp_set oes
+	on oes.ot_emp_seq = rha.use_emp_seq
+	WHERE (select date_format(curdate(),"%Y%m%d")) BETWEEN rha.apply_start_date and IFNULL(rha.apply_end_date, rha.apply_start_date)
+	AND rha.active = 'Y'
+	AND rha.approval_status = '2'
+	</select>
+	<select id="subHolidayCompare" resultType="int" parameterType="map">
+	SELECT COUNT(*) FROM dj_out_process WHERE appro_key = #{appro_key}
+	</select>
+	<select id="downExcelDown" fetchSize="1000" resultType="java.util.LinkedHashMap" parameterType="map">
+	SELECT A.*, IFNULL(STR_TO_DATE(rha.apply_start_date, '%Y%m%d'),'-') AS '사용(예정)일' FROM
+	(
+		SELECT owa.apply_dept_name as '부서'
+		     , 
+		     (
+				SELECT emp_name
+		        FROM neos.t_co_emp_multi
+		        WHERE emp_seq = owa.apply_emp_seq
+					AND lang_code = 'kr'
+		     ) AS '신청자'
+             , STR_TO_DATE(owa.apply_start_date, '%Y%m%d') as '근무일자'
+             		     , CASE
+				WHEN WEEKDAY(owa.apply_start_date) = '0' THEN '월'
+				WHEN WEEKDAY(owa.apply_start_date) = '1' THEN '화'
+				WHEN WEEKDAY(owa.apply_start_date) = '2' THEN '수'
+				WHEN WEEKDAY(owa.apply_start_date) = '3' THEN '목'
+				WHEN WEEKDAY(owa.apply_start_date) = '4' THEN '금'
+				WHEN WEEKDAY(owa.apply_start_date) = '5' THEN '토'
+				WHEN WEEKDAY(owa.apply_start_date) = '6' THEN '일'
+			   END AS '요일'
+             , owa.apply_start_time as '신청시작시간'
+		     , owa.apply_end_time as '신청종료시간'
+		     , ifnull(owa.work_start_time, '-') as '출근시간'
+		     , ifnull(owa.work_end_time, '-') as '퇴근시간'
+		     , IFNULL(CONCAT(TRUNCATE(owr.agree_min/60 ,0),'시간 ',TRUNCATE(owr.agree_min%60 ,0),'분'),'0시간 0분') AS '인정시간'
+		     , IFNULL(CONCAT(TRUNCATE(owr.use_min/60 ,0),'시간 ',TRUNCATE(owr.use_min%60 ,0),'분'),'0시간 0분') AS '사용시간'
+		     , IFNULL(CONCAT(TRUNCATE(owr.rest_min/60 ,0),'시간 ',TRUNCATE(owr.rest_min%60 ,0),'분'),'0시간 0분') AS '잔여시간'
+		     , STR_TO_DATE(owr.disappear_plan_date, '%Y%m%d') AS '소멸예정일'
+             , owr.ot_work_result_id
+		FROM dj_ot_work_result owr
+			INNER JOIN dj_ot_work_apply owa
+		    ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			AND owa.apply_emp_seq = #{apply_emp_seq}
+			AND owa.active = 'Y'
+		    AND owr.active = 'Y'
+		    AND owr.disappear_yn != 'Y'
+		    AND owr.work_reward_code_id = 	(
+											SELECT common_code_id 
+		                                    FROM dj_common_code 
+		                                    WHERE group_code = 'OT_REWARD_TYPE' and code = 'H'
+		                                    )
+		<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+		WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31')
+		</if>
+		ORDER BY '소멸예정일' ASC) A
+        LEFT OUTER JOIN dj_replace_holiday_apply_detail rhad
+            ON A.ot_work_result_id = rhad.ot_work_result_id
+        LEFT OUTER JOIN dj_replace_holiday_apply rha
+			ON rhad.replace_day_off_use_id = rha.replace_day_off_use_id
+	</select>
+	<select id="allExcelDown" fetchSize="1000" resultType="java.util.LinkedHashMap" parameterType="map">
+	SELECT A.*, IFNULL(STR_TO_DATE(rha.apply_start_date, '%Y%m%d'),'-') AS '사용(예정)일' FROM
+	(
+		SELECT owa.apply_dept_name as '부서'
+		     , 
+		     (
+				SELECT emp_name
+		        FROM neos.t_co_emp_multi
+		        WHERE emp_seq = owa.apply_emp_seq
+					AND lang_code = 'kr'
+		     ) AS '신청자'
+             , STR_TO_DATE(owa.apply_start_date, '%Y%m%d') as '근무일자'
+             		     , CASE
+				WHEN WEEKDAY(owa.apply_start_date) = '0' THEN '월'
+				WHEN WEEKDAY(owa.apply_start_date) = '1' THEN '화'
+				WHEN WEEKDAY(owa.apply_start_date) = '2' THEN '수'
+				WHEN WEEKDAY(owa.apply_start_date) = '3' THEN '목'
+				WHEN WEEKDAY(owa.apply_start_date) = '4' THEN '금'
+				WHEN WEEKDAY(owa.apply_start_date) = '5' THEN '토'
+				WHEN WEEKDAY(owa.apply_start_date) = '6' THEN '일'
+			   END AS '요일'
+             , owa.apply_start_time as '신청시작시간'
+		     , owa.apply_end_time as '신청종료시간'
+		     , ifnull(owa.work_start_time, '-') as '출근시간'
+		     , ifnull(owa.work_end_time, '-') as '퇴근시간'
+		     , IFNULL(CONCAT(TRUNCATE(owr.agree_min/60 ,0),'시간 ',TRUNCATE(owr.agree_min%60 ,0),'분'),'0시간 0분') AS '인정시간'
+		     , IFNULL(CONCAT(TRUNCATE(owr.use_min/60 ,0),'시간 ',TRUNCATE(owr.use_min%60 ,0),'분'),'0시간 0분') AS '사용시간'
+		     , IFNULL(CONCAT(TRUNCATE(owr.rest_min/60 ,0),'시간 ',TRUNCATE(owr.rest_min%60 ,0),'분'),'0시간 0분') AS '잔여시간'
+		     , STR_TO_DATE(owr.disappear_plan_date, '%Y%m%d') AS '소멸예정일'
+             , owr.ot_work_result_id
+		FROM dj_ot_work_result owr
+			INNER JOIN dj_ot_work_apply owa
+		    ON owr.ot_work_apply_id = owa.ot_work_apply_id
+			AND owa.active = 'Y'
+		    AND owr.active = 'Y'
+		    AND owr.disappear_yn != 'Y'
+		    AND owr.work_reward_code_id = 	(
+											SELECT common_code_id 
+		                                    FROM dj_common_code 
+		                                    WHERE group_code = 'OT_REWARD_TYPE' and code = 'H'
+		                                    )
+		<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+		WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31')
+		</if>
+		ORDER BY '소멸예정일' ASC) A
+        LEFT OUTER JOIN dj_replace_holiday_apply_detail rhad
+            ON A.ot_work_result_id = rhad.ot_work_result_id
+        LEFT OUTER JOIN dj_replace_holiday_apply rha
+			ON rhad.replace_day_off_use_id = rha.replace_day_off_use_id
+	</select>
+	
+	<select id="SearchAttReqMainMgrList" resultType="map" parameterType="map">
+	SELECT DISTINCT
+                        taa.comp_seq AS compSeq
+                        , taa.req_date AS reqDate
+                        , taa.req_sqno AS reqSqno
+                        , taa.detail_sqno AS detailSqno
+                        , taa.dept_seq AS deptSeq
+                        , tcdm.dept_name AS deptName
+                        , IFNULL(epm.dp_name, epm_basic.dp_name) AS positionName
+                        , taa.emp_seq AS empSeq
+                        , IFNULL(tcec.erp_emp_seq, '') AS erpEmpNum
+                        , tcem.emp_name AS empName
+                        , taard.att_item_code AS attItemCode
+                        , taaci.att_item_name AS attItemName
+                        , taard.att_div_code AS attDivCode
+                        , taacd.att_div_name_kr AS attDivNameKr
+                        , taard.start_dt AS startDt
+                        , taard.end_dt AS endDt
+                        , taard.start_time AS startTime
+                        , taard.end_time AS endTime
+                        , IF(
+                                taard.att_time != ''
+                                , CONCAT(
+                                        SUBSTRING(taard.att_time, 1, (LENGTH(taard.att_time) - 2))
+                                        , '시간'
+                                        , SUBSTRING( taard.att_time, LENGTH(taard.att_time) - 1, ( LENGTH(taard.att_time) ) )
+                                        , '분'
+                                )
+                                , IF(
+                                        taard.req_time != '' OR taard.req_time != 0
+                                        , CONCAT(SUBSTRING(taard.req_time, 1, (LENGTH(taard.req_time) - 2)), '시간')
+                                        , ''
+                                )
+                        ) AS reqTime
+                        , taard.day_cnt AS dayCnt
+                        , taard.annv_use_day_cnt AS annvUseDayCnt
+                        , taar.att_req_title AS attReqTitle
+                        , taa.approve_yn AS approveYn
+                        , taa.reason
+                        , IFNULL(c21.detail_name, '') AS approveName
+                        , taa.close_yn AS closeYn
+                        , IFNULL(c22.detail_name, '') AS closeName
+                        , taard.remark AS remark
+                        , taard.ver_sp AS verSp
+                        , taard.transfer_dt AS transferDt
+                        , taard.create_dt AS createDt
+                        , IFNULL(DATE_FORMAT((taa.modify_dt),'%Y-%m-%d'), '') AS attModifyDt
+                        , taar.elet_appv_interface_key AS approKey
+
+
+                        , IFNULL(ea_link.appr_dikey, '') AS docId
+                        , IFNULL(ea_record.c_ridocfullnum, '') AS appDocNo
+                        , '' AS formId
+
+                        , IFNULL(taard.field_office, '') AS fieldOffice
+                        , IFNULL(taard.official_trip_purpose, '') AS officialTripPurpose
+                        , IF(taard.att_time != '', CONCAT(SUBSTRING(taard.att_time, 1, (length(taard.att_time)-2)), '시간'), '') AS attTime
+                        , IFNULL(taard.transport, '') AS transport
+
+                FROM neos.t_at_att taa
+                LEFT JOIN neos.t_at_att_req_detail taard ON
+                        taard.req_sqno = taa.req_sqno
+                        AND taard.detail_sqno = taa.detail_sqno
+                        AND taard.req_date = taa.req_date
+                        AND taard.emp_seq = taa.emp_seq
+                        AND taard.comp_seq = taa.comp_seq
+                        AND taard.group_seq = taa.group_seq
+                LEFT JOIN neos.t_at_att_req taar ON
+                        taar.req_date = taard.req_date
+                        AND taar.req_sqno = taard.req_sqno
+                        AND taar.req_date = taard.req_date
+                        AND taar.comp_seq = taard.comp_seq
+                LEFT JOIN neos.t_at_att_code_item taaci ON
+                        taaci.comp_seq = taa.comp_seq
+                        AND taaci.att_item_code = taard.att_item_code
+                LEFT JOIN neos.t_at_att_code_div taacd ON
+                        taacd.comp_seq = taa.comp_seq
+                        AND taacd.att_item_code = taa.att_item_code
+                        AND taacd.att_div_code = taa.att_div_code
+                LEFT JOIN neos.t_co_emp tce ON
+                        tce.emp_seq = taa.emp_seq
+                        AND tce.group_seq = taa.group_seq
+                LEFT JOIN neos.t_co_emp_multi tcem ON
+                        tcem.emp_seq = tce.emp_seq
+                        AND tcem.lang_code = 'kr'
+                LEFT JOIN neos.t_co_emp_comp tcec ON
+                        tcec.emp_seq = tce.emp_seq
+                        AND tcec.comp_seq = taa.comp_seq
+                LEFT JOIN neos.t_co_emp_dept tced ON
+                        tced.emp_seq = tce.emp_seq
+                        AND tced.comp_seq = tcec.comp_seq
+                        AND tced.main_dept_yn = 'Y'
+                LEFT JOIN neos.t_co_dept_multi tcdm ON
+                        tcdm.dept_seq = taa.dept_seq
+                        AND tcdm.lang_code = 'kr'
+                LEFT JOIN neos.t_co_comp_duty_position_multi epm ON
+                        epm.dp_seq = tced.position_code
+                        AND epm.lang_code = 'kr'
+                        AND epm.dp_type = 'POSITION'
+                        AND epm.comp_seq = taa.comp_seq
+                LEFT JOIN neos.t_co_comp_duty_position_multi epm_basic ON
+                        epm_basic.dp_seq = tced.position_code
+                        AND epm_basic.lang_code = 'kr'
+                        AND epm_basic.dp_type = 'POSITION'
+                        AND epm_basic.comp_seq = '0'
+                LEFT JOIN neos.t_co_code_detail_multi c21 ON
+                        c21.detail_code = taa.approve_yn
+                        AND c21.code = 'ATT0021'
+                        AND c21.lang_code = 'kr'
+                LEFT JOIN neos.t_co_code_detail_multi c22 ON
+                        c22.detail_code = taa.close_yn
+                        AND c22.code = 'ATT0022'
+                        AND c22.lang_code = 'kr'
+
+
+                LEFT JOIN neos.erpgwlink ea_link ON
+                        ea_link.docx_numb = taar.elet_appv_interface_key
+                        AND ea_link.docx_gubn IN ('000', '005', '010', '011', '012')
+                LEFT JOIN neos.a_recordinfo ea_record ON
+                        ea_record.c_dikeycode = ea_link.appr_dikey
+                        AND ea_record.c_ridocfullnum IS NOT NULL
+
+                WHERE
+                        taa.comp_seq = '10163'
+                        AND taa.group_seq = 'klti'
+                        AND taa.att_date BETWEEN date_format(now(),'%Y%m%d') AND date_format(now(),'%Y%m%d')
+                        AND taa.att_item_code NOT IN ('10')
+                        AND (
+                                (taa.approve_yn IN ('C', 'D') AND taa.use_yn = 'N')
+                                OR taa.use_yn = 'Y'
+                        )
+                        AND taa.att_div_type != '711'
+                        AND taa.approve_yn NOT IN ('R', 'K', 'S')
+                        AND c21.detail_name = '결재종결'
+
+
+
+
+				group by empName
+                ORDER BY taard.start_dt DESC, tcem.emp_name, taard.end_dt DESC, taar.req_date, tcdm.dept_name, tced.order_text
+	</select>
+	
+	<select id="SearchAttReqMainMgrListTotal" resultType="int" parameterType="map">
+	SELECT COUNT(*) FROM (
+		SELECT DISTINCT
+                        taa.comp_seq AS compSeq
+                        , taa.req_date AS reqDate
+                        , taa.req_sqno AS reqSqno
+                        , taa.detail_sqno AS detailSqno
+                        , taa.dept_seq AS deptSeq
+                        , tcdm.dept_name AS deptName
+                        , IFNULL(epm.dp_name, epm_basic.dp_name) AS positionName
+                        , taa.emp_seq AS empSeq
+                        , IFNULL(tcec.erp_emp_seq, '') AS erpEmpNum
+                        , tcem.emp_name AS empName
+                        , taard.att_item_code AS attItemCode
+                        , taaci.att_item_name AS attItemName
+                        , taard.att_div_code AS attDivCode
+                        , taacd.att_div_name_kr AS attDivNameKr
+                        , taard.start_dt AS startDt
+                        , taard.end_dt AS endDt
+                        , taard.start_time AS startTime
+                        , taard.end_time AS endTime
+                        , IF(
+                                taard.att_time != ''
+                                , CONCAT(
+                                        SUBSTRING(taard.att_time, 1, (LENGTH(taard.att_time) - 2))
+                                        , '시간'
+                                        , SUBSTRING( taard.att_time, LENGTH(taard.att_time) - 1, ( LENGTH(taard.att_time) ) )
+                                        , '분'
+                                )
+                                , IF(
+                                        taard.req_time != '' OR taard.req_time != 0
+                                        , CONCAT(SUBSTRING(taard.req_time, 1, (LENGTH(taard.req_time) - 2)), '시간')
+                                        , ''
+                                )
+                        ) AS reqTime
+                        , taard.day_cnt AS dayCnt
+                        , taard.annv_use_day_cnt AS annvUseDayCnt
+                        , taar.att_req_title AS attReqTitle
+                        , taa.approve_yn AS approveYn
+                        , taa.reason
+                        , IFNULL(c21.detail_name, '') AS approveName
+                        , taa.close_yn AS closeYn
+                        , IFNULL(c22.detail_name, '') AS closeName
+                        , taard.remark AS remark
+                        , taard.ver_sp AS verSp
+                        , taard.transfer_dt AS transferDt
+                        , taard.create_dt AS createDt
+                        , IFNULL(DATE_FORMAT((taa.modify_dt),'%Y-%m-%d'), '') AS attModifyDt
+                        , taar.elet_appv_interface_key AS approKey
+
+
+                        , IFNULL(ea_link.appr_dikey, '') AS docId
+                        , IFNULL(ea_record.c_ridocfullnum, '') AS appDocNo
+                        , '' AS formId
+
+                        , IFNULL(taard.field_office, '') AS fieldOffice
+                        , IFNULL(taard.official_trip_purpose, '') AS officialTripPurpose
+                        , IF(taard.att_time != '', CONCAT(SUBSTRING(taard.att_time, 1, (length(taard.att_time)-2)), '시간'), '') AS attTime
+                        , IFNULL(taard.transport, '') AS transport
+
+                FROM neos.t_at_att taa
+                LEFT JOIN neos.t_at_att_req_detail taard ON
+                        taard.req_sqno = taa.req_sqno
+                        AND taard.detail_sqno = taa.detail_sqno
+                        AND taard.req_date = taa.req_date
+                        AND taard.emp_seq = taa.emp_seq
+                        AND taard.comp_seq = taa.comp_seq
+                        AND taard.group_seq = taa.group_seq
+                LEFT JOIN neos.t_at_att_req taar ON
+                        taar.req_date = taard.req_date
+                        AND taar.req_sqno = taard.req_sqno
+                        AND taar.req_date = taard.req_date
+                        AND taar.comp_seq = taard.comp_seq
+                LEFT JOIN neos.t_at_att_code_item taaci ON
+                        taaci.comp_seq = taa.comp_seq
+                        AND taaci.att_item_code = taard.att_item_code
+                LEFT JOIN neos.t_at_att_code_div taacd ON
+                        taacd.comp_seq = taa.comp_seq
+                        AND taacd.att_item_code = taa.att_item_code
+                        AND taacd.att_div_code = taa.att_div_code
+                LEFT JOIN neos.t_co_emp tce ON
+                        tce.emp_seq = taa.emp_seq
+                        AND tce.group_seq = taa.group_seq
+                LEFT JOIN neos.t_co_emp_multi tcem ON
+                        tcem.emp_seq = tce.emp_seq
+                        AND tcem.lang_code = 'kr'
+                LEFT JOIN neos.t_co_emp_comp tcec ON
+                        tcec.emp_seq = tce.emp_seq
+                        AND tcec.comp_seq = taa.comp_seq
+                LEFT JOIN neos.t_co_emp_dept tced ON
+                        tced.emp_seq = tce.emp_seq
+                        AND tced.comp_seq = tcec.comp_seq
+                        AND tced.main_dept_yn = 'Y'
+                LEFT JOIN neos.t_co_dept_multi tcdm ON
+                        tcdm.dept_seq = taa.dept_seq
+                        AND tcdm.lang_code = 'kr'
+                LEFT JOIN neos.t_co_comp_duty_position_multi epm ON
+                        epm.dp_seq = tced.position_code
+                        AND epm.lang_code = 'kr'
+                        AND epm.dp_type = 'POSITION'
+                        AND epm.comp_seq = taa.comp_seq
+                LEFT JOIN neos.t_co_comp_duty_position_multi epm_basic ON
+                        epm_basic.dp_seq = tced.position_code
+                        AND epm_basic.lang_code = 'kr'
+                        AND epm_basic.dp_type = 'POSITION'
+                        AND epm_basic.comp_seq = '0'
+                LEFT JOIN neos.t_co_code_detail_multi c21 ON
+                        c21.detail_code = taa.approve_yn
+                        AND c21.code = 'ATT0021'
+                        AND c21.lang_code = 'kr'
+                LEFT JOIN neos.t_co_code_detail_multi c22 ON
+                        c22.detail_code = taa.close_yn
+                        AND c22.code = 'ATT0022'
+                        AND c22.lang_code = 'kr'
+
+
+                LEFT JOIN neos.erpgwlink ea_link ON
+                        ea_link.docx_numb = taar.elet_appv_interface_key
+                        AND ea_link.docx_gubn IN ('000', '005', '010', '011', '012')
+                LEFT JOIN neos.a_recordinfo ea_record ON
+                        ea_record.c_dikeycode = ea_link.appr_dikey
+                        AND ea_record.c_ridocfullnum IS NOT NULL
+
+                WHERE
+                        taa.comp_seq = '10163'
+                        AND taa.group_seq = 'klti'
+                        AND taa.att_date BETWEEN date_format(now(),'%Y%m%d') AND date_format(now(),'%Y%m%d')
+                        AND taa.att_item_code NOT IN ('10')
+                        AND (
+                                (taa.approve_yn IN ('C', 'D') AND taa.use_yn = 'N')
+                                OR taa.use_yn = 'Y'
+                        )
+                        AND taa.att_div_type != '711'
+                        AND taa.approve_yn NOT IN ('R', 'K', 'S')
+						AND c21.detail_name = '결재종결'
+
+
+
+				group by empName
+		) T
+	</select>
+	
+	
+	<select id="subHoliday.subHolidayReqList" resultType="Map" parameterType="Map">
+   		 SELECT 
+replace_day_off_use_id,
+replace_holi_step,
+(SELECT code_kr FROM dj_COMMON_CODE WHERE active = 'Y' AND group_code = 'OVER_WORK_STEP' AND `code` = replace_holi_step) AS replaceHoliStep,
+    DATE_FORMAT(apply_start_date, '%Y-%m-%d') AS apply_start_date,
+    DATE_FORMAT(apply_end_date, '%Y-%m-%d') AS apply_end_date,
+    CASE WEEKDAY(apply_start_date)
+        WHEN 0 THEN '월'
+        WHEN 1 THEN '화'
+        WHEN 2 THEN '수'
+        WHEN 3 THEN '목'
+        WHEN 4 THEN '금'
+        WHEN 5 THEN '토'
+        WHEN 6 THEN '일'
+    END AS weekDay,
+    CASE WHEN use_date_dn = 'single' THEN CONCAT(apply_start_hour, ':', apply_start_min) ELSE '' END AS applyStartTime,
+    CASE WHEN use_date_dn = 'single' THEN CONCAT(apply_end_hour, ':', apply_end_min) ELSE '' END AS applyEndTime,
+    use_dept_name,
+    (SELECT 
+            emp_name
+        FROM
+            neos.t_co_emp_multi
+        WHERE
+            emp_seq = use_emp_seq
+                AND lang_code = 'kr') AS emp_name,
+	use_position,
+    use_duty,
+    agree_hour,
+    return_cause,
+    DATE_FORMAT(create_date, '%Y-%m-%d') AS reqDate,
+    remark
+FROM
+    dj_REPLACE_HOLIDAY_APPLY
+    WHERE use_emp_seq = #{empSeq}
+	AND active = 'Y'
+	
+    	LIMIT ${skip} , ${pageSize}
+    </select>
+   
+    <select id="subHoliday.subHolidayReqListTotal" resultType="int" parameterType="Map">
+   		
+    	SELECT COUNT(1) FROM (
+    	 SELECT 
+replace_day_off_use_id,
+replace_holi_step,
+(SELECT code_kr FROM dj_COMMON_CODE WHERE active = 'Y' AND group_code = 'OVER_WORK_STEP' AND `code` = replace_holi_step) AS replaceHoliStep,
+    DATE_FORMAT(apply_start_date, '%Y-%m-%d') AS apply_start_date,
+    DATE_FORMAT(apply_end_date, '%Y-%m-%d') AS apply_end_date,
+    CASE WEEKDAY(apply_start_date)
+        WHEN 0 THEN '월'
+        WHEN 1 THEN '화'
+        WHEN 2 THEN '수'
+        WHEN 3 THEN '목'
+        WHEN 4 THEN '금'
+        WHEN 5 THEN '토'
+        WHEN 6 THEN '일'
+    END AS weekDay,
+    CONCAT(apply_start_hour, ':', apply_start_min) AS applyStartTime,
+    CONCAT(apply_end_hour, ':', apply_end_min) AS applyEndTime,
+    use_dept_name,
+    (SELECT 
+            emp_name
+        FROM
+            neos.t_co_emp_multi
+        WHERE
+            emp_seq = use_emp_seq
+                AND lang_code = 'kr') AS emp_name,
+	use_position,
+    use_duty,
+    agree_hour,
+    return_cause,
+    DATE_FORMAT(create_date, '%Y-%m-%d') AS reqDate,
+    remark
+FROM
+    dj_REPLACE_HOLIDAY_APPLY
+    WHERE use_emp_seq = #{empSeq}
+	AND active = 'Y'
+    	) t
+    </select>
+
+	<select id="sp_subHoliday_reject" parameterType="map">
+		CALL SP_SUBHOLIDAY_REJECT(
+			#{replace_day_off_use_id}
+			, #{use_emp_seq}
+			)
+	</select>
+</mapper>

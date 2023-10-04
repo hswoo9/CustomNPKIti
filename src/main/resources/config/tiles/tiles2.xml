@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+					"-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+					"http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+<tiles-definitions>
+	
+	<definition name=".contents" template="/WEB-INF/views/templates/defaultLayout.jsp">
+	</definition>
+	
+	<definition name=".popup_v2"	template="/WEB-INF/views/templates/popup_tiles_v2.jsp">
+	</definition>
+	
+	<definition name="/*" extends=".contents">
+		<put-attribute name="body" value="/WEB-INF/views/{1}.jsp"></put-attribute>
+	</definition> 
+
+	<definition name="/common/*" extends=".contents">
+		<put-attribute name="body" value="/WEB-INF/views/common/{1}.jsp"></put-attribute>
+	</definition> 
+
+	<definition name="/workPlan/*" extends=".contents">
+		<put-attribute name="body" value="/WEB-INF/views/workPlan/{1}.jsp"></put-attribute>
+	</definition> 
+	
+	<definition name="/commcode/*" extends=".contents">
+		<put-attribute name="body" value="/WEB-INF/views/commcode/{1}.jsp"></put-attribute>
+	</definition>
+	
+	<definition name="/subHoliday/*" extends=".contents">
+		<put-attribute name="body" value="/WEB-INF/views/subHoliday/{1}.jsp"></put-attribute>
+	</definition>	
+	
+	<definition name="/educationManagement/*" extends=".contents">
+		<put-attribute name="body" value="/WEB-INF/views/educationManagement/{1}.jsp"></put-attribute>
+	</definition>	
+	
+	<definition name="/budget/pop/*" extends=".popup_v2">
+		<put-attribute name="body" value="/WEB-INF/views/budget/pop/{1}.jsp"></put-attribute>
+	</definition>
+	
+	<definition name="/budget/*" extends=".contents">
+		<put-attribute name="body" value="/WEB-INF/views/budget/{1}.jsp"></put-attribute>
+	</definition>
+	
+	<definition name="/airlineMileage/*" extends=".contents">
+		<put-attribute name="body" value="/WEB-INF/views//airlineMileage/{1}.jsp"></put-attribute>
+	</definition> 
+	
+	<definition name="/enrollment/*" extends=".contents">
+		<put-attribute name="body" value="/WEB-INF/views/enrollment/{1}.jsp"></put-attribute>
+	</definition>
+	
+	<definition name="/popup/*" extends=".popup_v2">
+		<put-attribute name="body" value="/WEB-INF/views/enrollment/popup/{1}.jsp"></put-attribute>
+	</definition>
+	
+</tiles-definitions>

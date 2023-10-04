@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="BudgetMaria">
+	
+	<select id="BudgetMaria.selectLoginHistory" parameterType="map" resultType="map">
+		/*BudgetMaria.selectLoginHistory*/
+		select 
+			emp_seq
+		    ,access_ip
+		    ,device_type
+		    ,date_format(login_date, '%Y-%m-%d') AS yyyymmdd
+		    ,date_format(login_date, '%H:%i') AS hhii
+		    ,login_date
+		from neos.t_co_emp_login_history 
+		where emp_seq = #{empSeq}
+		<if test="fromDate != null and !''.equals(fromDate)">
+			and login_date between STR_TO_DATE(#{fromDate}, '%Y%m%d') and DATE_ADD(STR_TO_DATE(#{toDate}, '%Y%m%d'), interval 1 day)
+		</if>
+		order by login_date desc
+		<if test="fromDate == null or ''.equals(fromDate)">
+			limit 1
+		</if>
+	</select>
+	
+</mapper>

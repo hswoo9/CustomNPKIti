@@ -1,0 +1,1342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="vcatn">
+	
+	<!--
+	<resultMap type="" id="">
+		<collection column="" property="" javaType="" ofType="" select="" />
+	</resultMap>
+	-->
+	<select id="getVcatnCreatHistList" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnCreatHistDTO">
+		/* 생성이력 리스트 조회 */
+		SELECT
+			*
+		FROM
+			cust_klti.v_vcatn_creat_hist
+		WHERE
+			USE_YN = 'Y'
+		<if test="vcatnSn != null and vcatnSn != ''">
+		AND
+			VCATN_SN = #{vcatnSn}
+		</if>
+		ORDER BY
+			SORT_SN ASC
+	</select>
+	
+	<select id="getVcatnUseHistList" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnUseHistDTO">
+		/* 사용이력 리스트 조회 */
+			SELECT
+				*
+			FROM
+				cust_klti.v_vcatn_use_hist
+			WHERE
+				USE_YN = 'Y'
+			<if test="vcatnSn != null and vcatnSn != ''">
+			AND
+				VCATN_SN = #{vcatnSn}
+			</if>
+			ORDER BY
+				SORT_SN ASC
+	</select>
+	
+	<select id="getVcatnList" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnDTO">
+		/* 휴가 리스트 조회 */
+		SELECT
+			*
+		FROM
+			cust_klti.v_vcatn
+		WHERE
+			USE_YN = 'Y'
+		<if test="applyYr != null and applyYr != ''">
+		AND
+			APPLY_YR = #{applyYr}
+		</if>
+		<if test="empNameSearch != null and empNameSearch != ''">
+		AND
+			EMP_NAME = #{empNameSearch}
+		</if>
+		<if test="deptSeq != null and deptSeq != ''">
+		AND
+			DEPT_SEQ = #{deptSeq}
+		</if>
+		ORDER BY
+			CREAT_DT DESC
+	</select>	
+	
+	<select id="checkVcatn" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnDTO">
+		/* 휴가 조회(사원seq) */
+		SELECT
+			*
+		FROM
+			cust_klti.v_vcatn
+		WHERE
+			USE_YN = 'Y'
+		AND
+			APPLY_YR = #{applyYr}
+		AND
+			EMP_SEQ = #{empSeq}
+	</select>
+	
+	<select id="checkVcatnCreatHist" parameterType="map" resultType="int">
+		/* 생성이력 있는지 조회 */
+		SELECT
+			COUNT(*)
+		FROM
+			cust_klti.v_vcatn_creat_hist
+		WHERE
+			#{vcatnSn}
+	</select>
+	
+	<insert id="vcatnSave" parameterType="com.duzon.custom.egov_cms.dto.VcatnDTO">
+		<selectKey keyProperty="vcatnSn" resultType="int" order="BEFORE">
+			/* 연가생성 기본키 가져오기 */
+			SELECT 
+				AUTO_INCREMENT AS vcatnSn
+			FROM 
+				INFORMATION_SCHEMA.TABLES
+			WHERE
+				TABLE_SCHEMA = 'cust_klti'
+			AND
+				TABLE_NAME = 'v_vcatn'
+		</selectKey>
+		/* 연가생성 등록 */
+		INSERT INTO
+			cust_klti.v_vcatn
+		(
+			VCATN_SN
+			, APPLY_YR
+			, DEPT_NAME
+			, DEPT_SEQ
+			, EMP_SEQ
+			, EMP_NAME
+			, YRVAC_FRST_ALWNC_DAYCNT
+			, YRVAC_MDTN_ALWNC_DAYCNT
+			, YRVAC_REMNDR_DAYCNT
+			, YRVAC_USE_DAYCNT
+			, LNGLBC_VCATN_FRST_ALWNC_DAYCNT
+			, LNGLBC_VCATN_MDTN_ALWNC_DAYCNT
+			, LNGLBC_VCATN_REMNDR_DAYCNT
+			, LNGLBC_VCATN_USE_DAYCNT
+			, SPECL_VCATN_REMNDR_DAYCNT
+			, SPECL_VCATN_USE_DAYCNT
+			, SORT_SN
+			, RMK
+			, USE_YN
+			, CRTR_EMPL_SN
+			, CREAT_DT
+			, YRVAC_CREAT_RESN
+			, LNGLBC_VCATN_CREAT_RESN
+		)VALUES(
+			#{vcatnSn}
+			, #{applyYr}
+			, #{deptName}
+			, #{deptSeq}
+			, #{empSeq}
+			, #{empName}
+			, #{yrvacFrstAlwncDaycnt}
+			, #{yrvacMdtnAlwncDaycnt}
+			, #{yrvacRemndrDaycnt}
+			, #{yrvacUseDaycnt}
+			, #{lnglbcVcatnFrstAlwncDaycnt}
+			, #{lnglbcVcatnMdtnAlwncDaycnt}
+			, #{lnglbcVcatnRemndrDaycnt}
+			, #{lnglbcVcatnUseDaycnt}
+			, #{speclVcatnRemndrDaycnt}
+			, #{speclVcatnUseDaycnt}
+			, #{sortSn}
+			, #{rmk}
+			, #{useYn}
+			, #{crtrEmplSn}
+			, NOW()
+			, #{yrvacCreatResn}
+			, #{lnglbcVcatnCreatResn}
+		)
+		
+	</insert>
+	
+	<insert id="VcatnCreatHistSave" parameterType="com.duzon.custom.egov_cms.dto.VcatnCreatHistDTO">
+		/* 생성이력 등록 */
+		INSERT INTO
+			cust_klti.v_vcatn_creat_hist
+		(
+			VCATN_SN
+			, VCATN_KND_SN
+			, ALWNC_DAYCNT
+			, CREAT_GBN
+			, CREAT_RESN
+			, SORT_SN
+			, RMK
+			, USE_YN
+			, CRTR_EMPL_SN
+			, CREAT_DT
+		)VALUES(
+			#{vcatnSn}
+			, #{vcatnKndSn}
+			, #{alwncDaycnt}
+			, #{creatGbn}
+			, #{creatResn}
+			, #{sortSn}
+			, #{rmk}
+			, #{useYn}
+			, #{crtrEmplSn}
+			, NOW()
+		)
+	</insert>
+	
+	<select id="getVcatnOne" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnDTO">
+		/* 연가생성 정보보기 */
+		SELECT
+			*
+		FROM
+			cust_klti.v_vcatn
+		WHERE
+			USE_YN = 'Y'
+		AND
+			VCATN_SN = #{vcatnSn}
+	</select>
+	
+	<update id="deleteVcatn" parameterType="string">
+		/* 연가생성 use_yn N */
+		UPDATE
+			cust_klti.v_vcatn
+		SET
+			USE_YN = 'N'
+		WHERE
+			VCATN_SN = #{vcatnSn}
+	</update>
+	
+	<update id="updateVcatn" parameterType="com.duzon.custom.egov_cms.dto.VcatnDTO">
+		/* 연가생성 수정 */
+		UPDATE
+			cust_klti.v_vcatn
+		SET
+			YRVAC_FRST_ALWNC_DAYCNT = #{yrvacFrstAlwncDaycnt}
+			, YRVAC_MDTN_ALWNC_DAYCNT = #{yrvacMdtnAlwncDaycnt}
+			, YRVAC_REMNDR_DAYCNT = #{yrvacRemndrDaycnt}
+			, YRVAC_CREAT_RESN = #{yrvacCreatResn}
+			, LNGLBC_VCATN_FRST_ALWNC_DAYCNT = #{lnglbcVcatnFrstAlwncDaycnt}
+			, LNGLBC_VCATN_MDTN_ALWNC_DAYCNT = #{lnglbcVcatnMdtnAlwncDaycnt}
+			, LNGLBC_VCATN_REMNDR_DAYCNT = #{lnglbcVcatnRemndrDaycnt}
+			, LNGLBC_VCATN_CREAT_RESN = #{lnglbcVcatnCreatResn}
+			, RMK = #{rmk}
+			, UPDUSR_EMPL_SN = #{updusrEmplSn}
+			, UPDT_DT = NOW()
+			
+		WHERE
+			VCATN_SN = #{vcatnSn}
+	</update>
+	
+	<select id="getVcatnCreatHistSortSn" parameterType="com.duzon.custom.egov_cms.dto.VcatnDTO" resultType="int">
+		/* 생성이력 정렬순번 값 가져오기 */
+		SELECT
+			CASE 
+				WHEN MAX(SORT_SN) IS NULL THEN '0'
+				ELSE CONCAT(MAX(SORT_SN)+1)
+            END as sortSn
+		FROM
+			cust_klti.v_vcatn_creat_hist
+		WHERE
+			USE_YN = 'Y'
+		AND
+			VCATN_SN = #{vcatnSn}
+	</select>
+	
+	<select id="getVcatnUseHistSortSn" parameterType="com.duzon.custom.egov_cms.dto.VcatnDTO" resultType="int">
+		/* 사용이력 정렬순번 값 가져오기 */
+		SELECT
+			CASE 
+				WHEN MAX(SORT_SN) IS NULL THEN '0'
+				ELSE CONCAT(MAX(SORT_SN)+1)
+            END as sortSn
+		FROM
+			cust_klti.v_vcatn_use_hist
+		WHERE
+			USE_YN = 'Y'
+		AND
+			VCATN_SN = #{vcatnSn}
+	</select>
+	
+	<insert id="specialSave" parameterType="com.duzon.custom.egov_cms.dto.SpeclDTO">
+		<selectKey keyProperty="speclSn" resultType="int" order="BEFORE">
+			/* 특별휴가 기본키 가져오기 */
+			SELECT 
+				AUTO_INCREMENT AS speclSn
+			FROM 
+				INFORMATION_SCHEMA.TABLES
+			WHERE
+				TABLE_SCHEMA = 'cust_klti'
+			AND
+				TABLE_NAME = 'v_specl'
+		</selectKey>
+		/* 특별휴가 생성 */
+		INSERT INTO
+			cust_klti.v_specl
+		(
+			SPECL_VCATN_SETUP_SN
+			, DEPT_NAME
+			, DEPT_SEQ
+			, EMP_SEQ
+			, EMP_NAME
+			, ALWNC_DAYCNT
+			, RMK
+			, SORT_SN
+			, USE_YN
+			, CRTR_EMPL_SN
+			, CREAT_DT
+		)VALUES(
+			#{speclVcatnSetupSn}
+			, #{deptName}
+			, #{deptSeq}
+			, #{empSeq}
+			, #{empName}
+			, #{alwncDaycnt}
+			, #{rmk}
+			, #{sortSn}
+			, 'Y'
+			, #{crtrEmplSn}
+			, NOW()
+		)
+	</insert>
+	
+	<select id="getSpecialOne" parameterType="map" resultType="map">
+		/* 휴가정보 및 특별휴가 생성이력 조회 */
+		SELECT
+			a.*
+            ,c.VCATN_KND_NAME
+            ,
+           IFNULL(
+            (
+				SELECT
+					0
+				FROM
+					cust_klti.v_vcatn_use_hist AA
+				WHERE
+					AA.SPECL_SN = a.SPECL_SN
+			)
+            , '0') as useDate
+		FROM
+			cust_klti.v_specl a
+		LEFT JOIN
+			cust_klti.v_vcatn_use_hist b
+		ON
+			a.SPECL_SN = b.SPECL_SN
+		LEFT JOIN
+			(
+				SELECT
+					AA.*
+                    ,BB.VCATN_KND_NAME
+				FROM
+					cust_klti.specl_vcatn_setup AA
+				LEFT JOIN
+					cust_klti.vcatn_knd BB
+				ON
+					AA.VCATN_KND_SN = BB.VCATN_KND_SN
+				WHERE
+					AA.USE_YN = 'Y'
+            )as c
+		ON
+			a.SPECL_VCATN_SETUP_SN = c.SPECL_VCATN_SETUP_SN
+		WHERE
+			a.USE_YN = 'Y'
+		AND
+			a.SPECL_SN = #{speclSn}
+	</select>
+	
+	<select id="getSpecialHist" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnCreatHistDTO">
+		/* 특별휴가 생성이력 조회 */
+		SELECT
+			*
+		FROM
+			cust_klti.v_vcatn_creat_hist
+		WHERE
+			VCATN_CREAT_HIST_SN = #{vcatnCreatHistSn}
+	</select>
+	
+	<update id="deleteSpecialHist" parameterType="string">
+		/* 특별휴가 생성이력 N 처리 */
+		UPDATE
+			cust_klti.v_vcatn_creat_hist
+		SET
+			USE_YN = 'N'
+		WHERE
+			VCATN_CREAT_HIST_SN = #{vcatnCreatHistSn}
+	</update>
+	
+	<update id="specialDelete" parameterType="map">
+		/* 특별휴가 0 처리 */
+		UPDATE
+			cust_klti.v_vcatn
+		SET
+			SPECL_VCATN_REMNDR_DAYCNT = #{speclVcatnRemndrDaycnt}
+		WHERE
+			VCATN_SN = #{vcatnSn}
+	</update>
+	
+	
+	<select id="getSpecialVcatnKey" parameterType="string" resultType="map">
+		/* 삭제하기 위한 특별휴가 생성이력 조회 */
+		SELECT
+			a.VCATN_SN as vcatnSn
+			, b.VCATN_CREAT_HIST_SN as vcatnCreatHistSn
+		FROM
+			cust_klti.v_vcatn a
+		LEFT JOIN
+			(
+				SELECT
+					AA.*
+					, BB.VCATN_KND_NAME
+				FROM
+					cust_klti.v_vcatn_creat_hist AA
+				LEFT JOIN
+					cust_klti.vcatn_knd BB
+				ON
+					AA.VCATN_KND_SN = BB.VCATN_KND_SN
+				WHERE
+					BB.VCATN_KND_SN IS NOT NULL
+				AND
+					BB.USE_YN = 'Y'
+				AND
+					AA.USE_YN = 'Y'
+					
+			)as b
+		ON
+			a.VCATN_SN = b.VCATN_SN
+		WHERE
+			a.USE_YN = 'Y'
+		AND
+			a.VCATN_SN = #{vcatnSn}
+		AND
+			b.VCATN_CREAT_HIST_SN IS NOT NULL
+	</select>
+	
+	<select id="getSpecialVacCode" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.SpeclVcatnSetupDTO">
+		/* 특별휴가 내용 및 휴가구분 */
+		SELECT
+			*
+		FROM
+			cust_klti.specl_vcatn_setup
+		WHERE 
+			USE_YN = 'Y'
+		AND
+			SPECL_VCATN_SETUP_SN = #{speclVcatnSetupSn}
+	</select>
+	
+	<select id="getVcatnCreatHist" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnCreatHistDTO">
+		/* 생성이력 리스트 조회2 */
+		SELECT 
+			b.*
+		FROM
+			cust_klti.v_vcatn a
+		LEFT JOIN
+			cust_klti.v_vcatn_creat_hist b
+		ON
+			a.VCATN_SN = b.VCATN_SN
+		WHERE
+			a.emp_Seq = #{empSeq}
+		AND
+			b.VCATN_KND_SN = #{vcatnKndSn}
+	</select>
+	
+	<select id="getSpecialList" parameterType="map" resultType="map">
+	
+		/* 특별휴가 리스트 조회 */
+		SELECT
+			a.*
+			,DATE_FORMAT(a.CREAT_DT, '%Y%m%d') as APPLY_YR
+	        ,c.VCATN_KND_NAME
+	        ,c.VALID_PD_YN
+	        ,c.VALID_PD
+	        ,c.VALID_PD_UNIT
+	        ,c.PAY_YN
+	        ,c.BRMK
+	        ,(
+				SELECT
+					IFNULL(SUM(AA.USE_DAY),0)
+				FROM
+					cust_klti.v_vcatn_use_hist AA
+				WHERE
+					AA.SPECL_SN = a.SPECL_SN
+				AND
+					AA.USE_YN = 'Y'
+			) as useDate
+	        ,(
+			CASE
+				WHEN (
+					SELECT 
+						DD.VALID_PD_YN 
+					FROM 
+						cust_klti.specl_vcatn_setup DD
+					WHERE 
+						DD.SPECL_VCATN_SETUP_SN = a.SPECL_VCATN_SETUP_SN) = 'Y'
+	            THEN (
+					SELECT 
+						CASE
+							WHEN (DD.VALID_PD_UNIT) = 'DAY'
+	                        THEN DATE_ADD(a.CREAT_DT, INTERVAL DD.VALID_PD DAY)
+	                        WHEN (DD.VALID_PD_UNIT) = 'MONTH'
+	                        THEN DATE_ADD(a.CREAT_DT, INTERVAL DD.VALID_PD MONTH)
+	                        WHEN (DD.VALID_PD_UNIT) = 'TIME'
+	                        THEN DATE_ADD(a.CREAT_DT, INTERVAL DD.VALID_PD HOUR)
+						END
+					FROM 
+						cust_klti.specl_vcatn_setup DD
+					WHERE 
+						DD.SPECL_VCATN_SETUP_SN = a.SPECL_VCATN_SETUP_SN
+					)
+				
+				ELSE '-'
+			END
+			) as maxDay
+		FROM
+			cust_klti.v_specl a
+		LEFT JOIN
+			cust_klti.v_vcatn_use_hist b
+		ON
+			a.SPECL_SN = b.SPECL_SN
+		LEFT JOIN
+			(
+				SELECT
+					AA.*
+	                ,BB.VCATN_KND_NAME
+	                ,BB.RMK as BRMK
+				FROM
+					cust_klti.specl_vcatn_setup AA
+				LEFT JOIN
+					cust_klti.vcatn_knd BB
+				ON
+					AA.VCATN_KND_SN = BB.VCATN_KND_SN
+				WHERE
+					AA.USE_YN = 'Y'
+		<if test="isAdmin != null and isAdmin != ''">
+			<if test="isAdmin.toString() == 'special'">
+		        AND BB.VCATN_TYPE = 'V004'
+	        </if>
+		</if>
+	        )as c
+		ON
+			a.SPECL_VCATN_SETUP_SN = c.SPECL_VCATN_SETUP_SN
+		WHERE
+			a.USE_YN = 'Y'
+		<if test="isAdmin != null and isAdmin != ''">
+			<if test="isAdmin.toString() == 'special'">
+			AND
+		    	c.SPECL_VCATN_SETUP_SN IS NOT NULL
+		    </if>
+		</if>
+		<if test="empSeq != null and empSeq != ''">
+		AND
+			a.EMP_SEQ = #{empSeq}
+		</if>
+			
+		<if test="empNameSearch != null and empNameSearch != ''">
+		AND
+			a.EMP_NAME = #{empNameSearch}
+		</if>
+		<if test="deptName != null and deptName != ''">
+		AND
+			a.DEPT_NAME = #{deptName}
+		</if>
+		<if test="speclVcatnSetupSn != null and speclVcatnSetupSn != ''">
+		AND
+			a.SPECL_VCATN_SETUP_SN = #{speclVcatnSetupSn}
+		</if>
+		<if test="year != null and year != ''">
+		AND
+			a.CREAT_DT LIKE CONCAT(#{year},'%')
+		</if>
+		GROUP BY
+			a.SPECL_SN
+		ORDER BY a.CREAT_DT DESC
+	</select>
+	
+	<select id="getSpeclSortSn" parameterType="string" resultType="int">
+		/* 특별휴가 정렬순번 값 가져오기 */
+		SELECT
+			CASE 
+				WHEN MAX(SORT_SN) IS NULL THEN '0'
+				ELSE CONCAT(MAX(SORT_SN)+1)
+            END as sortSn
+		FROM
+			cust_klti.v_specl
+		WHERE
+			USE_YN = 'Y'
+		AND
+			EMP_SEQ = #{empSeq}
+	</select>
+	
+	<select id="empInfo" parameterType="string" resultType="map">
+		SELECT
+			*
+		FROM
+			cust_klti.v_emp_info
+		WHERE
+			use_yn = 'Y'
+		AND
+			emp_seq = #{empSeq}
+	</select>
+	
+	<update id="updateSpecl" parameterType="com.duzon.custom.egov_cms.dto.SpeclDTO">
+		UPDATE
+			cust_klti.v_specl
+		SET
+			SPECL_VCATN_SETUP_SN = #{speclVcatnSetupSn}
+			, DEPT_NAME = #{deptName}
+			, DEPT_SEQ = #{deptSeq}
+			, ALWNC_DAYCNT = #{alwncDaycnt}
+			, RMK = #{rmk}
+			, UPDUSR_EMPL_SN = #{crtrEmplSn}
+			, UPDT_DT = NOW()
+		WHERE
+			SPECL_SN = #{speclSn}
+	</update>
+	
+	
+	<update id="deleteSpecl" parameterType="string">
+		UPDATE
+			cust_klti.v_specl
+		SET
+			USE_YN = 'N'
+		WHERE
+			SPECL_SN = #{speclSn}
+	</update>
+	
+	<select id="getAllDept" parameterType="map" resultType="map">
+		SELECT
+		*
+		FROM
+			NEOS.T_CO_DEPT_MULTI A JOIN NEOS.T_CO_DEPT B ON A.DEPT_SEQ = B.DEPT_SEQ
+		WHERE
+			B.USE_YN = 'Y'
+		AND
+			B.DISPLAY_YN = 'Y'
+		AND A.COMP_SEQ = '10163'
+	</select>
+	
+	<select id="getList" parameterType="map" resultType="map">
+		SELECT
+			a.*
+			,SUM(b.USE_DAY) as useDay
+		FROM
+			cust_klti.v_vcatn a,
+			(SELECT
+				SUM(b.USE_DAY) as USE_DAY
+			FROM
+				cust_klti.v_vcatn a
+			LEFT JOIN
+				cust_klti.v_vcatn_use_hist b
+			ON
+				a.VCATN_SN = b.VCATN_SN
+			WHERE
+				a.USE_YN = 'Y'
+			<if test="type != null and type != ''">
+				<if test='type.toString() == "1"'>
+					AND	b.VCATN_KND_SN != '0'
+				</if>
+				<if test='type.toString() == "2"'>
+					AND	b.VCATN_KND_SN = '0'
+				</if>
+			</if>
+			AND
+				a.EMP_SEQ = #{empSeq}
+			AND
+				b.USE_YN = 'Y'
+			AND
+				a.APPLY_YR = #{year})as b
+		WHERE
+			a.USE_YN = 'Y'
+		AND
+			a.EMP_SEQ = #{empSeq}
+		<if test="year != null and year != ''">
+		AND
+			a.APPLY_YR = #{year}
+		</if>
+		ORDER BY
+			a.APPLY_YR DESC
+	</select>
+	
+	<select id="getLnglbcList" parameterType="map" resultType="map">
+		SELECT
+			a.*
+		    ,(SELECT IFNULL(SUM(BB.USE_DAY),0)
+				FROM cust_klti.v_vcatn_use_hist BB
+				WHERE BB.USE_YN = 'Y'
+				AND BB.VCATN_SN = a.VCATN_SN
+				AND BB.SPECL_SN = 0 AND BB.VCATN_KND_SN = 0)as useDay
+			,CONCAT(
+				a.LNGLBC_VCATN_FRST_ALWNC_DAYCNT - (SELECT IFNULL(SUM(BB.USE_DAY),0)
+				FROM cust_klti.v_vcatn_use_hist BB
+				WHERE BB.USE_YN = 'Y'
+				AND BB.VCATN_SN = a.VCATN_SN
+                   AND BB.SPECL_SN = 0 AND BB.VCATN_KND_SN = 0)
+			)as remainingDays
+		,CONCAT(a.LNGLBC_VCATN_FRST_ALWNC_DAYCNT + a.LNGLBC_VCATN_MDTN_ALWNC_DAYCNT)as totalDay
+		,CONCAT("V006")as TYPE
+		,DATE_FORMAT(a.LNGLBC_LAST_DT, '%Y-%m-%d') as lnglbcLastDt
+		
+		FROM
+			cust_klti.v_vcatn a
+		WHERE
+			a.EMP_SEQ = #{empSeq}
+		AND
+			a.USE_YN = 'Y'
+		<if test="year != null and year != ''">
+		AND
+			a.APPLY_YR = #{year}
+		</if>
+		ORDER BY
+			a.APPLY_YR DESC
+	</select>
+	
+	<select id="getUseList" parameterType="map" resultType="map">
+		SELECT
+			a.*
+			,DATE_FORMAT(a.VCATN_USE_STDT, '%Y-%m-%d') as stDt
+            ,DATE_FORMAT(a.VCATN_USE_STDT, '%H:%i') as stDtTime
+            ,DATE_FORMAT(a.VCATN_USE_ENDT, '%Y-%m-%d') as enDt
+            ,DATE_FORMAT(a.VCATN_USE_ENDT, '%H:%i') as enDtTime
+            ,TIMESTAMPDIFF(MINUTE, a.VCATN_USE_STDT, a.VCATN_USE_ENDT) as useTime
+            ,c.VCATN_GBN_NAME
+            ,c.VCATN_KND_NAME
+           	,d.c_dikeycode
+           	,d.doc_title
+           	,e.C_RIDOCFULLNUM as appDocNo
+           	,b.DEPT_NAME
+            ,b.EMP_NAME
+		FROM
+			cust_klti.v_vcatn_use_hist a
+		LEFT JOIN
+			cust_klti.v_vcatn b
+		ON
+			a.VCATN_SN = b.VCATN_SN
+		LEFT JOIN
+			cust_klti.vcatn_knd c
+		ON
+			a.VCATN_KND_SN = c.VCATN_KND_SN
+		LEFT JOIN
+			neos.a_docinterlock d
+		ON
+			a.APPRO_KEY = d.approkey
+		LEFT JOIN
+			neos.a_recordinfo e
+		ON
+			d.c_dikeycode = e.c_dikeycode
+		WHERE
+			1=1
+		AND
+			a.USE_YN != 'N'
+		AND
+			b.USE_YN = 'Y'
+		<if test="empSeq != null and empSeq != ''">
+		AND
+			b.EMP_SEQ = #{empSeq}
+		</if>
+		AND
+			b.APPLY_YR = #{year}
+		<if test="type != null and type != ''">
+		AND
+			a.VCATN_KND_SN = '0'
+		AND
+			a.SPECL_SN = '0'
+		</if>
+		<if test="type == null or type == ''">
+		AND
+			a.VCATN_KND_SN != '0'
+		</if>
+		
+		<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+		AND
+			a.VCATN_USE_STDT BETWEEN DATE(#{startDate}) AND DATE(#{endDate})
+		AND
+			a.VCATN_USE_ENDT BETWEEN DATE(#{startDate}) AND DATE(#{endDate})
+		</if>
+		<if test="vacationType != null and vacationType != ''">
+			<if test='vacationType.toString() == "1"'>
+				AND
+					a.VCATN_KND_SN != '0'
+			</if>
+			<if test='vacationType.toString() == "2"'>
+				AND
+					a.VCATN_KND_SN = '0'
+			</if>
+		</if>
+		ORDER BY
+			a.SORT_SN DESC
+	</select>
+	
+	<select id="getMyVcation" parameterType="map" resultType="map">
+		SELECT
+			*
+		<if test="type != null and type == 1">
+			,(SELECT SUM(sB.USE_DAY) FROM cust_klti.v_vcatn sA
+			LEFT JOIN cust_klti.v_vcatn_use_hist sB ON sA.VCATN_SN = sB.VCATN_SN
+			WHERE  sA.VCATN_SN = a.VCATN_SN AND sB.USE_YN = 'Y' AND sB.VCATN_KND_SN != '0')as useCnt
+			,CONCAT(a.YRVAC_FRST_ALWNC_DAYCNT - (SELECT SUM(sB.USE_DAY) FROM cust_klti.v_vcatn sA
+			LEFT JOIN cust_klti.v_vcatn_use_hist sB ON sA.VCATN_SN = sB.VCATN_SN
+			WHERE  sA.VCATN_SN = a.VCATN_SN AND sB.USE_YN = 'Y' AND sB.VCATN_KND_SN != '0')) as remnCnt
+		</if>
+		<if test="type != null and type == 2">
+			,(SELECT SUM(sB.USE_DAY) FROM cust_klti.v_vcatn sA
+			LEFT JOIN cust_klti.v_vcatn_use_hist sB ON sA.VCATN_SN = sB.VCATN_SN
+			WHERE  sA.VCATN_SN = a.VCATN_SN AND sB.USE_YN = 'Y' AND sB.VCATN_KND_SN = 0 AND sB.SPECL_SN = 0)as useCnt
+			,CONCAT(a.LNGLBC_VCATN_REMNDR_DAYCNT - (SELECT SUM(sB.USE_DAY) FROM cust_klti.v_vcatn sA
+			LEFT JOIN cust_klti.v_vcatn_use_hist sB ON sA.VCATN_SN = sB.VCATN_SN
+			WHERE  sA.VCATN_SN = a.VCATN_SN AND sB.USE_YN = 'Y' AND sB.VCATN_KND_SN = 0 AND sB.SPECL_SN = 0)) as remnCnt
+			,DATE_FORMAT(a.LNGLBC_LAST_DT, '%Y-%m-%d') as lastDate
+		</if>
+		FROM
+			cust_klti.v_vcatn a
+		<if test="type != null and type == 1">
+		LEFT JOIN
+			(
+		    SELECT
+				AA.VCATN_SN as sub_sn
+		        ,BB.VCATN_GBN_NAME as dataView
+		        ,BB.VCATN_KND_SN as dataValue
+			FROM
+				cust_klti.v_vcatn_creat_hist AA
+		    LEFT JOIN
+				cust_klti.vcatn_knd BB
+			ON
+				AA.VCATN_KND_SN = BB.VCATN_KND_SN
+			WHERE
+				AA.USE_YN = 'Y'
+			AND
+				BB.USE_YN = 'Y'
+			
+			AND
+				BB.VCATN_TYPE = 'V001'
+			GROUP BY
+				AA.VCATN_SN
+		    )as b
+		ON
+			a.VCATN_SN = b.sub_sn
+		</if>
+		<if test="type != null and type == 2">
+		LEFT JOIN
+			(
+		    SELECT
+				AA.VCATN_SN as sub_sn
+		        ,CONCAT("장기근속휴가") as dataView
+		        ,CONCAT("0") as dataValue
+			FROM
+				cust_klti.v_vcatn_creat_hist AA
+		    LEFT JOIN
+				cust_klti.vcatn_knd BB
+			ON
+				AA.VCATN_KND_SN = BB.VCATN_KND_SN
+			WHERE
+				AA.USE_YN = 'Y'
+			AND
+				BB.USE_YN = 'Y'
+			GROUP BY
+				AA.VCATN_SN
+		    )as b
+		ON
+			a.VCATN_SN = b.sub_sn	
+		</if>
+		WHERE
+			a.APPLY_YR = #{year}
+		AND
+			a.EMP_SEQ = #{empSeq}
+		AND
+			a.USE_YN = 'Y'
+	</select>
+	
+	<select id="getSpecialMyList" parameterType="map" resultType="map">
+	
+		/* 특별휴가 리스트 조회 */
+		SELECT
+			a.*
+			,DATE_FORMAT(a.CREAT_DT, '%Y%m%d') as APPLY_YR
+            ,c.VCATN_KND_NAME
+            ,c.VALID_PD_YN
+            ,c.VALID_PD
+            ,c.VALID_PD_UNIT
+            ,c.VCATN_KND_NAME as dataView
+            ,a.SPECL_SN as dataValue
+            ,c.CN as cn
+            ,(
+				SELECT
+					SUM(AA.USE_DAY)
+				FROM
+					cust_klti.v_vcatn_use_hist AA
+				WHERE
+					AA.SPECL_SN = a.SPECL_SN
+				AND
+					AA.USE_YN = 'Y'
+			) as useDate
+		FROM
+			cust_klti.v_specl a
+		LEFT JOIN
+			cust_klti.v_vcatn_use_hist b
+		ON
+			a.SPECL_SN = b.SPECL_SN
+		LEFT JOIN
+			(
+				SELECT
+					AA.*
+                    ,BB.VCATN_KND_NAME
+				FROM
+					cust_klti.specl_vcatn_setup AA
+				LEFT JOIN
+					cust_klti.vcatn_knd BB
+				ON
+					AA.VCATN_KND_SN = BB.VCATN_KND_SN
+				WHERE
+					AA.USE_YN = 'Y'
+		<if test="isAdmin != null and isAdmin != ''">
+			<if test="isAdmin.toString() == 'special'">
+				AND BB.VCATN_TYPE = 'V004'
+			</if>
+		</if>
+            )as c
+		ON
+			a.SPECL_VCATN_SETUP_SN = c.SPECL_VCATN_SETUP_SN
+		WHERE
+			a.USE_YN = 'Y'
+		<if test="isAdmin != null and isAdmin != ''">
+			<if test="isAdmin.toString() == 'special'">
+			AND
+				c.SPECL_VCATN_SETUP_SN IS NOT NULL
+			</if>
+		</if>
+		AND
+			a.EMP_SEQ = #{empSeq}
+		GROUP BY
+			a.SPECL_SN
+		ORDER BY a.CREAT_DT DESC
+	</select>
+	
+	<select id="getSpecialUseHist" parameterType="map" resultType="map">
+		SELECT
+			*
+			,e.C_RIDOCFULLNUM as appDocNo
+			,DATE_FORMAT(CC.VCATN_USE_STDT, '%Y-%m-%d') as stDt
+            ,DATE_FORMAT(CC.VCATN_USE_STDT, '%H:%i') as stDtTime
+            ,DATE_FORMAT(CC.VCATN_USE_ENDT, '%Y-%m-%d') as enDt
+            ,DATE_FORMAT(CC.VCATN_USE_ENDT, '%H:%i') as enDtTime
+            ,TIMESTAMPDIFF(MINUTE, CC.VCATN_USE_STDT, CC.VCATN_USE_ENDT) as useTime
+			 ,(CASE BB.AFTFAT_MNT_YN
+					WHEN 'Y' THEN CONCAT(CASE BB.AFTFAT_MNT_MTH WHEN 0 THEN '전자결재' WHEN 1 THEN '증빙파일' END)
+					WHEN 'N' THEN '-'
+				END)as fileYn
+			,CC.USE_YN as state
+			<if test="authority != null and authority != ''">
+			, (CASE
+				WHEN (
+				 SELECT
+					 DD.VALID_PD_YN
+				 FROM
+					 cust_klti.specl_vcatn_setup DD
+				 WHERE
+					 DD.SPECL_VCATN_SETUP_SN = AA.SPECL_VCATN_SETUP_SN) = 'Y'
+				 THEN (
+					 SELECT
+						 CASE
+							WHEN (DD.VALID_PD_UNIT) = 'DAY'
+								THEN DATE_ADD(AA.CREAT_DT, INTERVAL DD.VALID_PD DAY)
+							WHEN (DD.VALID_PD_UNIT) = 'MONTH'
+								THEN DATE_ADD(AA.CREAT_DT, INTERVAL DD.VALID_PD MONTH)
+							WHEN (DD.VALID_PD_UNIT) = 'TIME'
+								THEN DATE_ADD(AA.CREAT_DT, INTERVAL DD.VALID_PD HOUR)
+							END
+					 FROM
+						cust_klti.specl_vcatn_setup DD
+					 WHERE
+						DD.SPECL_VCATN_SETUP_SN = AA.SPECL_VCATN_SETUP_SN
+					)
+				 ELSE '-'
+			END
+			) as max_day
+			,CC.target_emp_seq
+			</if>
+		FROM
+			cust_klti.v_specl AA
+		LEFT JOIN
+		(SELECT
+			a.*
+		    ,b.VCATN_KND_NAME
+		FROM 
+			cust_klti.specl_vcatn_setup a
+		LEFT JOIN
+			cust_klti.vcatn_knd b
+		ON
+			a.VCATN_KND_SN = b.VCATN_KND_SN
+		)as BB
+		ON
+			AA.SPECL_VCATN_SETUP_SN = BB.SPECL_VCATN_SETUP_SN
+		LEFT JOIN
+			cust_klti.v_vcatn_use_hist CC
+		ON
+			AA.SPECL_SN = CC.SPECL_SN
+		LEFT JOIN
+			cust_klti.v_evidence_file DD
+		ON
+			CC.VCATN_USE_HIST_SN = DD.VCATN_USE_HIST_SN
+		LEFT JOIN
+			neos.a_docinterlock d
+		ON
+			CC.APPRO_KEY = d.approkey
+			
+		LEFT JOIN
+			neos.a_recordinfo e
+		ON
+			d.c_dikeycode = e.c_dikeycode
+			
+		WHERE
+			AA.USE_YN = 'Y'
+		AND
+			CC.USE_YN != 'N'
+		<if test="empSeq != null and empSeq != ''">
+		AND
+			AA.EMP_SEQ = #{empSeq}
+		</if>
+		<if test="speclSn != null and speclSn != ''">
+		AND
+			AA.SPECL_SN = #{speclSn}
+		</if>
+		<if test="vcatnKndSn != null and vcatnKndSn != ''">
+		AND
+			BB.VCATN_KND_SN = #{vcatnKndSn}
+		</if>
+		<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+		AND
+			CC.VCATN_USE_STDT BETWEEN DATE(#{startDate}) AND DATE(#{endDate})
+		AND
+			CC.VCATN_USE_ENDT BETWEEN DATE(#{startDate}) AND DATE(#{endDate})
+		</if>
+	
+	</select>
+	
+	<insert id="evidenceFileSave" parameterType="map">
+		INSERT INTO
+			cust_klti.v_evidence_file
+		(
+			FILE_EXTENTION
+			,FILE_MASK
+			,FILE_NAME
+			,FILE_SIZE
+			,VCATN_USE_HIST_SN
+		)VALUES(
+			#{fileExtention}
+			,#{fileMask}
+			,#{fileName}
+			,#{fileSize}
+			,#{vcatnUseHistSn}
+		)
+	</insert>
+	
+	<select id="getMyHistList" parameterType="map" resultType="map">
+		SELECT
+			@num := @num+1 as sortSn
+		    ,DATE_FORMAT(a.CREAT_DT,'%Y-%m-%d') as creatDt
+		    ,a.ALWNC_DAYCNT as alwncDaycnt
+		    ,a.RMK as rmk
+		FROM
+			cust_klti.v_specl a
+		    ,(SELECT @num := -1) rowNumber
+		WHERE
+			a.USE_YN = 'Y'
+		<if test="speclSn != null and speclSn != ''">
+		AND
+			a.SPECL_SN = #{speclSn}
+		</if>
+		ORDER BY CREAT_DT DESC
+	</select>
+	
+	<select id="reduplicationCheck" parameterType="map" resultType="map">
+		SELECT
+			*
+		FROM
+			cust_klti.v_specl
+		WHERE
+			SPECL_VCATN_SETUP_SN = #{speclVcatnSetupSn}
+		AND
+			EMP_SEQ = #{empSeq}
+		AND
+			USE_YN = 'Y'
+	</select>
+	
+	<select id="selectFileUploadList" parameterType="map" resultType="map">
+		/* 증빙파일 업로드 전체리스트 */
+		SELECT
+			AA.*
+			,DATE_FORMAT(CC.VCATN_USE_STDT, '%Y-%m-%d') as stDt
+            ,DATE_FORMAT(CC.VCATN_USE_STDT, '%H:%i') as stDtTime
+            ,DATE_FORMAT(CC.VCATN_USE_ENDT, '%Y-%m-%d') as enDt
+            ,DATE_FORMAT(CC.VCATN_USE_ENDT, '%H:%i') as enDtTime
+            ,TIMESTAMPDIFF(MINUTE, CC.VCATN_USE_STDT, CC.VCATN_USE_ENDT) as useTime
+            ,BB.VCATN_KND_NAME
+			,CASE WHEN DD.EVIDENCE_FILE_SN IS NOT NULL THEN 'Y'
+			ELSE 'N' END as uploadYn
+			,BB.AFTFAT_MNT_YN
+			,CC.USE_DAY
+			,CC.VCATN_USE_HIST_SN
+		FROM
+			cust_klti.v_specl AA
+		LEFT JOIN
+		(SELECT
+			a.*
+		    ,b.VCATN_KND_NAME
+		FROM 
+			cust_klti.specl_vcatn_setup a
+		LEFT JOIN
+			cust_klti.vcatn_knd b
+		ON
+			a.VCATN_KND_SN = b.VCATN_KND_SN
+		)as BB
+		ON
+			AA.SPECL_VCATN_SETUP_SN = BB.SPECL_VCATN_SETUP_SN
+		LEFT JOIN
+			cust_klti.v_vcatn_use_hist CC
+		ON
+			AA.SPECL_SN = CC.SPECL_SN
+		LEFT JOIN
+			cust_klti.v_evidence_file DD
+		ON
+			CC.VCATN_USE_HIST_SN = DD.VCATN_USE_HIST_SN
+			
+		WHERE
+			AA.USE_YN = 'Y'
+		AND
+			CC.USE_YN = 'Y'
+		AND
+			BB.AFTFAT_MNT_YN = 'Y'
+		AND
+			AA.EMP_SEQ = #{empSeq}
+		AND
+			CC.VCATN_USE_STDT > '2000-01-01'
+		<if test="evidenceFileSn != null and evidenceFileSn != ''">
+			<if test='evidenceFileSn == "N"'>	
+		AND
+			DD.EVIDENCE_FILE_SN IS NULL
+			</if>
+			
+			<if test='evidenceFileSn == "Y"'>	
+		AND
+			DD.EVIDENCE_FILE_SN IS NOT NULL
+			</if>
+		</if>
+	</select>
+	
+	<delete id="fileDelete" parameterType="map">
+		DELETE FROM	cust_klti.v_evidence_file
+		WHERE
+			EVIDENCE_FILE_SN = #{fileKey}
+	</delete>
+	
+	<select id="getEmpSeqFileList" parameterType="map" resultType="map">
+		SELECT
+			AA.emp_name
+			,DD.FILE_NAME
+			,DD.FILE_MASK
+			,e.C_RIDOCFULLNUM as appDocNo
+			,CONCAT("[",e.C_RIDOCFULLNUM,"] ", DD.FILE_NAME) as saveFileName
+		FROM
+			cust_klti.v_specl AA
+		LEFT JOIN
+		(SELECT
+			a.*
+			,b.VCATN_KND_NAME
+		FROM 
+			cust_klti.specl_vcatn_setup a
+		LEFT JOIN
+			cust_klti.vcatn_knd b
+		ON
+			a.VCATN_KND_SN = b.VCATN_KND_SN
+		)as BB
+		ON
+			AA.SPECL_VCATN_SETUP_SN = BB.SPECL_VCATN_SETUP_SN
+		LEFT JOIN
+			cust_klti.v_vcatn_use_hist CC
+		ON
+			AA.SPECL_SN = CC.SPECL_SN
+		LEFT JOIN
+			cust_klti.v_evidence_file DD
+		ON
+			CC.VCATN_USE_HIST_SN = DD.VCATN_USE_HIST_SN
+		LEFT JOIN
+			neos.a_docinterlock f
+		ON
+			CC.APPRO_KEY = f.approkey	
+		LEFT JOIN
+			neos.a_recordinfo e
+		ON
+			f.c_dikeycode = e.c_dikeycode
+		WHERE
+			AA.USE_YN = 'Y'
+		AND
+			CC.USE_YN = 'Y'
+		AND
+			BB.AFTFAT_MNT_YN = 'Y'
+		AND
+			AA.EMP_SEQ = #{empSeq}
+		AND
+			DD.EVIDENCE_FILE_SN IS NOT NULL 
+	</select>
+	
+	<update id="outProcessCancel" parameterType="map">
+		UPDATE v_vcatn_use_hist
+		SET
+			USE_YN = "C",
+			UPDUSR_EMPL_SN = #{dfEmpSeq},
+			UPDT_DT = NOW()
+		WHERE
+			APPRO_KEY = #{approKey}
+	</update>
+	
+	<select id="selectEmpYrvacAllList" parameterType="map" resultType="map">
+		SELECT
+			b.dept_seq,
+			c.dept_name,
+			em.emp_seq,
+			em.emp_name,
+			a.join_day,
+			(SELECT
+				sA.ALWNC_VCATN
+			FROM
+				cust_klti.yrvac_setup sA
+			WHERE sA.ATMC_CREAT_YN = 'Y'
+			AND	sA.USE_YN = 'Y'
+			AND
+				CASE
+					WHEN (sA.HFFC_PD_END_YR != 0)
+		            THEN
+						TIMESTAMPDIFF(YEAR, a.join_day, date_format(NOW(), '%Y-%m-%d')) BETWEEN sA.HFFC_PD_STR_YR AND (sA.HFFC_PD_END_YR-1)
+					WHEN (sA.HFFC_PD_END_YR = 0)
+		            THEN
+						TIMESTAMPDIFF(YEAR, a.join_day, date_format(NOW(), '%Y-%m-%d')) >= sA.HFFC_PD_STR_YR 
+				END
+			AND
+				sA.VCATN_KND_SN = #{vcatnKndSn}
+			) as ALWNC_VCATN,
+			TIMESTAMPDIFF(YEAR, a.join_day, date_format(NOW(), '%Y-%m-%d'))as yearsOfService
+		FROM
+			neos.t_co_emp a
+		LEFT JOIN
+			neos.t_co_emp_multi em
+		ON (a.emp_seq = em.emp_seq AND em.lang_code = "kr")
+		LEFT JOIN
+			neos.t_co_comp_duty_position_multi p
+		ON a.position_code = p.dp_seq
+		LEFT JOIN
+			neos.t_co_emp_dept b
+		ON a.emp_seq = b.emp_seq
+		LEFT JOIN
+			neos.t_co_dept_multi c
+		ON b.dept_seq = c.dept_seq
+		LEFT JOIN
+			neos.t_co_dept d
+		ON c.dept_seq = d.dept_seq
+		WHERE
+			a.use_yn = "Y"
+		GROUP BY a.emp_seq
+	</select>
+	
+	<select id="vacationUseCheck" parameterType="map" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			cust_klti.v_vcatn_use_hist
+		WHERE
+			(
+				VCATN_USE_STDT BETWEEN DATE_FORMAT(#{startDate}, '%Y-%m-%d %H:i')
+				AND DATE_FORMAT(#{endDate}, '%Y-%m-%d %H:i')
+				OR
+				VCATN_USE_ENDT BETWEEN DATE_FORMAT(#{startDate}, '%Y-%m-%d %H:i')
+				AND DATE_FORMAT(#{endDate}, '%Y-%m-%d %H:i')
+			)
+		AND
+			TARGET_EMP_SEQ = #{targetEmpSeq}
+		AND
+			USE_YN != 'C'
+		AND
+			USE_YN != 'N'
+	</select>
+	
+	<update id="outProcessReturn" parameterType="map">
+		UPDATE v_vcatn_use_hist
+		SET
+			USE_YN = "N",
+			UPDUSR_EMPL_SN = #{dfEmpSeq},
+			UPDT_DT = NOW()
+		WHERE
+			APPRO_KEY = #{approKey}
+	</update>
+	
+	<update id="outProcessApplication" parameterType="map">
+		UPDATE v_vcatn_use_hist
+		SET
+			USE_YN = "A",
+			UPDUSR_EMPL_SN = #{dfEmpSeq},
+			UPDT_DT = NOW()
+		WHERE
+			APPRO_KEY = #{approKey}
+	</update>
+	
+	<select id="selectVacationList" parameterType="map" resultType="map">
+		SELECT
+			*
+		FROM
+			cust_klti.vcatn_knd
+		WHERE
+			USE_YN = 'Y'
+		<if test="type != null and type != ''">
+			<if test='type.toString() == "3"'>
+				AND
+					VCATN_TYPE = 'V004'
+			</if>
+			<if test='type.toString() == "4"'>
+				AND
+					VCATN_TYPE != 'V004'
+				AND
+					VCATN_TYPE != 'V001'
+			</if>
+		</if>
+	</select>
+
+	<!-- 연차 귀속년도 조회 -->
+	<select id="checkAnnv" parameterType="map" resultType="map">
+		SELECT
+			*
+		FROM
+			neos.t_at_annv_mst
+		WHERE
+			USE_YN = 'Y'
+		  AND
+			ANNV_YEAR = #{annvYear}
+		  AND
+			EMP_SEQ = #{empSeq}
+	</select>
+
+	<!-- 연차 개수 조회 -->
+	<select id="getMyAnnv" parameterType="map" resultType="map">
+		SELECT
+			*,
+			(SELECT IFNULL(SUM(BB.annv_use_day_cnt),0)
+			 FROM neos.t_at_annv_use BB
+			 WHERE BB.USE_YN = 'Y'
+			   AND BB.annv_year = a.annv_year
+			   AND a.annv_year = #{annvYear}
+			   AND BB.emp_seq = #{empSeq}
+			   AND BB.approve_yn != 'R')as useCnt
+			 ,CONCAT(
+					CONCAT(a.basic_annv_day_cnt + a.add_annv_day_cnt + a.annv_abjust_day_cnt) - (SELECT IFNULL(SUM(BB.annv_use_day_cnt),0)
+																								 FROM neos.t_at_annv_use BB
+																								 WHERE BB.USE_YN = 'Y'
+																								   AND BB.annv_year = a.annv_year
+																								   AND a.annv_year = #{annvYear} AND BB.emp_seq = #{empSeq}
+																								   AND BB.approve_yn != 'R')) as remnCnt
+			 , att_item_code AS dataValue
+			 , "연가" AS dataView
+		FROM
+			neos.t_at_annv_mst a
+		WHERE
+			a.annv_year = #{annvYear}
+		  AND
+			a.EMP_SEQ = #{empSeq}
+		  AND
+			a.USE_YN = 'Y'
+	</select>
+
+</mapper>

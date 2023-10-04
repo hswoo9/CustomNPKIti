@@ -1,0 +1,1738 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="workPlan">
+    
+    <select id="workTypeList" parameterType="map" resultType="map">
+    
+    	SELECT 
+	    *
+	    ,CONCAT(TRUNCATE(work_min/60 ,0),'시간 ',TRUNCATE(work_min%60 ,0),'분') AS workTime
+		FROM
+	    dj_work_type
+	    WHERE 
+			active = 'Y'		
+		ORDER BY work_type_id ASC
+		
+    	LIMIT ${skip} , ${pageSize}
+    	
+    </select>
+    
+    <select id="workTypeListTotal" parameterType="map" resultType="int">
+    
+	    SELECT COUNT(*) FROM (
+	    	
+	    	SELECT 
+		    *
+			FROM
+		    dj_work_type
+		    WHERE 
+				active = 'Y'		
+			ORDER BY work_type_id ASC
+	    
+	    ) T
+    
+    </select>
+    
+    <insert id="workTypeSave" parameterType="map">
+    	insert into dj_work_type
+		(
+		work_type, 
+		attend_time, 
+		leave_time, 
+		work_min,
+		break_min,
+		create_emp_seq,		
+		create_date,
+		active
+		)
+		values
+		(
+		#{work_type}, 
+		#{attend_time}, 
+		#{leave_time}, 
+		#{work_min},
+		#{break_min}, 
+		#{userId},		
+		NOW(),
+		'Y'
+		)
+    
+    </insert>
+    
+    <update id="workTypeMod" parameterType="map">
+    	
+    	UPDATE dj_work_type SET 
+        work_type = #{work_type}
+        ,attend_time = #{attend_time}
+        ,leave_time = #{leave_time}
+        ,work_min = #{work_min}
+        ,break_min = #{break_min}
+        ,update_emp_seq = #{userId}
+        ,update_date = NOW()
+        WHERE 
+        work_type_id = #{work_type_id}
+    
+    </update>
+    
+    <update id="workTypeDel" parameterType="map">
+    	
+    	UPDATE dj_work_type SET 
+        active = 'N'
+        ,update_emp_seq = #{userId}
+        ,update_date = NOW()
+        WHERE 
+        work_type_id = #{work_type_id}
+    
+    </update>
+    
+    <select id="getWorkPlanSts" parameterType="map" resultType="map">
+	    SELECT 
+		CASE 
+			WHEN (
+					SELECT IFNULL(MAX(status), 0) 
+					FROM dj_work_plan 
+					WHERE apply_month = #{searchDt} 
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '2W') 
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				) != 0
+			THEN (
+					SELECT IFNULL(MAX(status), 0) 
+					FROM dj_work_plan 
+					WHERE apply_month = #{searchDt} 
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '2W') 
+						AND request_emp_seq = #{empSeq}
+						AND active = 'Y'
+				)
+			WHEN (
+					SELECT IFNULL(MAX(status), 0) 
+					FROM dj_work_plan 
+					WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 2 MONTH)) 
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M') 
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				) != 0 
+			THEN (
+					SELECT IFNULL(MAX(status), 0) 
+					FROM dj_work_plan 
+					WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 2 MONTH))
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M')  
+						AND request_emp_seq = #{empSeq}
+						AND active = 'Y'
+				)
+		ELSE 
+			IFNULL((SELECT status FROM dj_work_plan WHERE (apply_month = #{searchDt}) AND request_emp_seq = #{empSeq} AND active = 'Y'), 0) 
+		END AS STATUS
+		,CASE 
+			WHEN (
+					SELECT IFNULL(MAX(work_plan_id), 0) 
+					FROM dj_work_plan 
+					WHERE apply_month = #{searchDt}
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '2W')  
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				) != 0
+			THEN (
+					SELECT IFNULL(MAX(work_plan_id), 0) 
+					FROM dj_work_plan 
+					WHERE apply_month = #{searchDt}
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '2W')  
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				)
+			WHEN (
+					SELECT IFNULL(MAX(work_plan_id), 0) 
+					FROM dj_work_plan 
+					WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 2 MONTH))
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M')  
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				) != 0 
+			THEN (
+					SELECT IFNULL(MAX(work_plan_id), 0) 
+					FROM dj_work_plan 
+					WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 2 MONTH))
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M')  
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				)
+		ELSE 
+			IFNULL((SELECT work_plan_id FROM dj_work_plan WHERE apply_month = #{searchDt} AND request_emp_seq = #{empSeq} AND active = 'Y'), 0) 
+		END AS PK
+		,CASE 
+			WHEN (
+					SELECT IFNULL(MAX(default_work_type), 0) 
+					FROM dj_work_plan 
+					WHERE apply_month = #{searchDt}
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '2W')  
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				) != 0
+			THEN (
+					SELECT IFNULL(MAX(default_work_type), 0) 
+					FROM dj_work_plan 
+					WHERE apply_month = #{searchDt}
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '2W')  
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				)
+			WHEN (
+					SELECT IFNULL(MAX(default_work_type), 0) 
+					FROM dj_work_plan 
+					WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 2 MONTH))
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M')  
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				) !=0 
+			THEN (
+					SELECT IFNULL(MAX(default_work_type), 0) 
+					FROM dj_work_plan 
+					WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 2 MONTH))
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M')  
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				)
+		ELSE 
+			IFNULL((SELECT default_work_type FROM dj_work_plan WHERE apply_month = #{searchDt} AND request_emp_seq = #{empSeq} AND active = 'Y'), 0) 
+		END AS WORK_TYPE
+		,CASE
+			WHEN (
+					SELECT IFNULL(MAX(flex_code_id), 0) 
+					FROM dj_work_plan 
+					WHERE apply_month = #{searchDt}
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '2W')  
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				) != 0
+			THEN (
+					SELECT IFNULL(MAX(flex_code_id), 0) 
+					FROM dj_work_plan 
+					WHERE apply_month = #{searchDt}
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '2W')  
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+				)
+			ELSE
+				(
+					SELECT IFNULL(MAX(flex_code_id), 0) 
+					FROM dj_work_plan 
+					WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 2 MONTH))
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M')  
+						AND request_emp_seq = #{empSeq} 
+						AND active = 'Y'
+		        )
+		END AS flex_code_id
+		, (
+			SELECT IFNULL(MAX(start_week_no), 0) 
+			FROM dj_work_plan
+			WHERE apply_month = #{searchDt}
+				AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '2W')  
+				AND request_emp_seq = #{empSeq} 
+				AND active = 'Y'
+		) AS start_week_no
+    </select>
+    
+    <select id="setDataSearch" parameterType="map" resultType="map">
+    	SELECT 
+		    A.work_plan_detail_id,
+		    A.emp_seq,
+		    DATE_FORMAT(A.work_date, '%Y-%m-%d') AS work_date,
+		    A.weekday,
+		    WEEK(DATE_FORMAT(A.work_date, '%Y%m%d'),1) AS week_no,
+		    A.work_min,
+		    A.break_min,
+		    CASE
+	    	<![CDATA[
+		        WHEN DATE_FORMAT(A.work_date, '%Y%m%d') <= DATE_FORMAT(NOW(), '%Y%m%d') THEN 'N'
+		        
+		        ELSE 'Y'
+		    END AS NOWSTS,
+		    
+		    CASE
+		        WHEN B.H_DAY IS NOT NULL THEN 'Y'
+		        WHEN DAYOFWEEK(A.work_date) = '1' THEN 'Y'
+		        WHEN DAYOFWEEK(A.work_date) = '7' THEN 'Y'
+		        ELSE 'N'
+		    END AS HOLIDAY_STATUS,
+		    A.work_plan_history_id,
+		    A.work_type_id,
+		    CASE 
+				WHEN A.work_plan_history_id IS NOT NULL 
+					THEN (
+						SELECT work_type 
+		                FROM dj_work_type 
+		                WHERE active = 'Y' 
+							AND work_type_id = (SELECT work_type_id FROM dj_work_plan_history WHERE work_plan_history_id = A.work_plan_history_id)
+		            )
+				ELSE 'N'
+			END AS change_work_type,  
+		    (SELECT work_type FROM dj_work_type WHERE active = 'Y' AND work_type_id = A.work_type_id) AS work_type,
+		    A.attend_time,
+		    A.leave_time,
+		    A.status,
+		    A.change_degree,
+		    A.family_yn,
+		    A.remark,
+            C.apply_date,
+            CASE WHEN D.ot_work_apply_id <>'' THEN 'Y' ELSE 'N' END AS ot_yn
+            ]]>
+		FROM
+		    dj_work_plan_detail A
+		        LEFT JOIN
+		    NEOS.T_CO_HOLIDAY B ON DATE_FORMAT(A.work_date, '%Y%m%d') = B.H_DAY
+		    	LEFT JOIN 
+			dj_day_of_family C ON A.work_date = C.apply_date AND A.emp_seq = C.apply_emp_seq AND C.active = 'Y'
+				LEFT JOIN
+			dj_ot_work_apply D ON A.work_date = D.apply_start_date AND A.emp_seq = D.apply_emp_seq AND D.active = 'Y'
+		WHERE
+		    A.active = 'Y'
+		    <choose>
+		    	<when test="flex_code_id == 629">
+<!-- 		    	AND A.work_plan_id = (
+		    		SELECT work_plan_id 
+		    		FROM dj_work_plan 
+		    		WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 2 MONTH))
+		    		WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 0 MONTH))
+		    		AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M')  
+		    		AND request_emp_seq = #{empSeq}
+		    		AND active = 'Y'
+		    	) -->
+		    	AND DATE_FORMAT(A.work_date, '%Y%m') = #{searchDt}		 
+		    	</when>
+		    	<otherwise>
+		    	AND DATE_FORMAT(A.work_date, '%Y%m') = #{searchDt}		    	
+		    	</otherwise>
+		    </choose>
+		    AND A.emp_seq = #{empSeq}
+			
+		ORDER BY A.work_date
+	
+    </select>
+    
+    <select id="setNewSearch" parameterType="map" resultType="map">
+    	SELECT 
+		    '' AS work_plan_detail_id,
+		    #{empSeq} AS emp_seq,
+		    A.DATE AS work_date,
+		    WEEK(DATE_FORMAT(A.DATE, '%Y%m%d'),1) AS week_no,
+		    (SELECT 
+		            CASE
+		                    WHEN DAYOFWEEK(A.Date) = '1' THEN '일요일'
+		                    WHEN DAYOFWEEK(A.Date) = '2' THEN '월요일'
+		                    WHEN DAYOFWEEK(A.Date) = '3' THEN '화요일'
+		                    WHEN DAYOFWEEK(A.Date) = '4' THEN '수요일'
+		                    WHEN DAYOFWEEK(A.Date) = '5' THEN '목요일'
+		                    WHEN DAYOFWEEK(A.Date) = '6' THEN '금요일'
+		                    WHEN DAYOFWEEK(A.Date) = '7' THEN '토요일'
+		                END AS WEEKDAY
+		        FROM DUAL) AS weekday,
+		    CASE
+		    	<![CDATA[
+		        WHEN DATE_FORMAT(a.Date, '%Y%m%d') <= DATE_FORMAT(NOW(), '%Y%m%d') THEN 'N'
+		        ELSE 'Y'
+		    END AS NOWSTS,
+		    CASE
+		        WHEN B.H_DAY IS NOT NULL THEN 'Y'
+		        WHEN DAYOFWEEK(a.Date) = '1' THEN 'Y'
+		        WHEN DAYOFWEEK(a.Date) = '7' THEN 'Y'
+		        ELSE 'N'
+		    END AS HOLIDAY_STATUS,
+		    '' AS work_type_id,
+		    '' AS status,
+		    '' AS remark,
+            CASE WHEN C.ot_work_apply_id <>'' THEN 'Y' ELSE 'N' END AS ot_yn
+            ]]>
+		FROM
+		    (
+		    SELECT 
+		        DATE
+		    FROM
+		    	DATES
+		    ) A
+		        LEFT JOIN
+		    NEOS.T_CO_HOLIDAY B ON DATE_FORMAT(A.DATE, '%Y%m%d') = B.H_DAY
+		    	LEFT JOIN
+			dj_ot_work_apply C ON DATE_FORMAT(A.DATE, '%Y%m%d') = C.apply_start_date AND C.apply_emp_seq = #{empSeq} AND C.active = 'Y'
+		WHERE
+		<choose>
+	    	<when test="flex_code_id != null and flex_code_id != ''">
+	    	DATE_FORMAT(A.DATE, '%Y%m') BETWEEN #{startMonth} AND #{endMonth}
+	    	</when>
+	    	<otherwise>
+	    	DATE_FORMAT(A.DATE, '%Y%m') = #{searchDt} 		    	
+	    	</otherwise>
+	    </choose>
+		ORDER BY A.DATE
+	
+    </select>
+    
+    <select id="getWorkPlanType" resultType="map">
+    	SELECT 
+		    *
+		FROM
+		    dj_work_type
+		WHERE
+		    active = 'Y'
+    </select>
+    
+    <insert id="workPlanMasterSave" parameterType="map"  useGeneratedKeys="true" keyProperty="work_plan_id">
+    	insert into dj_work_plan
+		(
+		request_emp_seq, 
+		request_dept_name, 
+		request_position, 
+		request_duty, 
+		approval_emp_seq, 
+		request_date, 
+		apply_month,		
+ 		default_work_type,
+		<if test="flex_code_id != null and flex_code_id != ''">
+		flex_code_id,
+		work_min_sum,
+		total_work_day,
+		<if test="start_week_no != null and start_week_no != ''">
+		start_week_no,
+		</if>
+		</if>
+		status, 
+		active,
+		remark,
+		create_emp_seq,
+		create_date
+		
+		)
+		values
+		(
+		#{empSeq}, 
+		#{orgnztNm}, 
+		#{positionNm}, 
+		#{classNm}, 
+		#{approval_emp_seq}, 
+		(DATE_FORMAT(NOW(), '%Y%m%d')), 
+		#{apply_month},	
+ 		#{default_work_type},
+		<if test="flex_code_id != null and flex_code_id != ''">
+		#{flex_code_id},
+		#{work_min_sum},
+		#{total_work_day},
+		<if test="start_week_no != null and start_week_no != ''">
+		#{start_week_no},
+		</if>
+		</if>
+		'1',
+		'Y',
+		<choose>
+			<when test="flex_code_id != null and flex_code_id != ''">
+			CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 탄력근무]'),
+			</when>
+			<otherwise>
+			#{remark},
+			</otherwise>
+		</choose>
+		#{empSeq},
+		NOW()
+		
+		)
+    </insert>
+    
+    <insert id="workPlanDetailSave" parameterType="map"  useGeneratedKeys="true" keyProperty="work_plan_detail_id">
+    	insert into dj_work_plan_detail
+		(
+		work_plan_id, 
+		work_type_id, 
+		attend_time, 
+		leave_time,
+		work_min,
+		break_min,
+		<if test="flex_code_id != null and flex_code_id != ''">
+		flex_code_id,
+		</if> 
+		status, 
+		emp_seq, 
+		worker_dept_name, 
+		worker_position, 
+		worker_duty,		
+		work_date, 
+		weekday,
+		remark,
+		active
+		
+		)
+		values
+		(
+		#{work_plan_id}, 
+		#{work_type_id}, 
+		#{attend_time}, 
+		#{leave_time}, 
+		#{work_min},
+		#{break_min},
+		<if test="flex_code_id != null and flex_code_id != ''">
+		#{flex_code_id},
+		</if>
+		#{status}, 
+		#{empSeq}, 
+		#{worker_dept_name}, 
+		#{worker_position}, 
+		#{worker_duty}, 
+		#{work_date}, 
+		#{weekday},
+		<choose>
+			<when test="flex_code_id != null and flex_code_id != '' and flex_code_id == '634'">
+				<choose>
+					<when test="week_flex_yn != null and week_flex_yn != ''">
+					CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 탄력근무]', #{remark}),			
+					</when>
+					<otherwise>
+					#{remark},
+					</otherwise>
+				</choose>
+			</when>
+			<when test="flex_code_id != null and flex_code_id != '' and flex_code_id == '629'">
+			CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 탄력근무]', #{remark}),
+			</when>
+			<otherwise>
+			#{remark},
+			</otherwise>
+		</choose>
+		'Y'
+		
+		
+		)
+    </insert>
+    
+    <insert id="workPlanDetailHistorySave" parameterType="map">
+    	insert into dj_work_plan_history
+		(
+		work_plan_id,
+		work_type_id, 
+		attend_time, 
+		leave_time, 
+		work_min,
+		break_min,
+		<if test="flex_code_id != null and flex_code_id != ''">
+		flex_code_id,
+		</if>
+		work_plan_detail_id, 
+		change_date, 
+		change_weekday,
+		change_degree,
+		active,
+		remark,
+		create_emp_seq,
+		create_date
+		
+		)
+		values
+		(
+		#{work_plan_id}, 
+		#{work_type_id}, 
+		#{attend_time}, 
+		#{leave_time}, 
+		#{work_min},
+		#{break_min},
+		<if test="flex_code_id != null and flex_code_id != ''">
+		#{flex_code_id},
+		</if>
+		#{work_plan_detail_id}, 
+		#{work_date}, 
+		#{weekday}, 
+		0,
+		'Y',
+		'최초 생성 자료',
+		#{empSeq},
+		NOW()
+		
+		)
+    </insert>
+    
+    <select id="workPlanAppList" parameterType="map" resultType="map">
+    	SELECT 
+		    *
+		    ,CASE WHEN status = '1' THEN '신청'
+		    WHEN status = '2' THEN '승인'
+		    WHEN status = '3' THEN '반려'
+		    END statusKr
+		    ,(SELECT DISTINCT emp_name FROM v_emp_info WHERE emp_seq = request_emp_seq) AS emp_name
+		    ,DATE_FORMAT(request_date, '%Y-%m-%d') AS reqDate
+		    ,DATE_FORMAT(CONCAT(apply_month,'01'), '%Y-%m') AS reqMonth
+		FROM
+		    dj_work_plan
+		WHERE
+			active = 'Y'
+			<if test="approvalSeq != null and approvalSeq != ''">
+				AND approval_emp_seq = #{approvalSeq}  
+			</if>
+			
+			<if test="userSeq != null and userSeq != ''">
+				AND request_emp_seq = #{userSeq}  
+			</if>
+			<if test="statusType != null and statusType != ''">
+				AND status = #{statusType}  
+			</if>
+			<if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+				AND apply_month BETWEEN #{dateFr} AND #{dateTo}
+			</if> 
+		ORDER BY request_date DESC
+		LIMIT ${skip} , ${pageSize}
+    </select>
+    
+    <select id="workPlanAppListTotal" parameterType="map" resultType="int">
+    	SELECT COUNT(*) FROM (
+    		SELECT 
+		    *
+			FROM
+			    dj_work_plan
+			WHERE
+				active = 'Y'
+				<if test="approvalSeq != null and approvalSeq != ''">
+					AND approval_emp_seq = #{approvalSeq}  
+				</if>
+				<if test="userSeq != null and userSeq != ''">
+					AND request_emp_seq = #{userSeq}  
+				</if>
+				<if test="statusType != null and statusType != ''">
+					AND status = #{statusType}  
+				</if>
+				<if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+					AND apply_month BETWEEN #{dateFr} AND #{dateTo}
+				</if>
+    	) T
+    	
+    </select>
+    
+    <update id="workPlanMasterApproval" parameterType="map">
+    	UPDATE dj_work_plan SET
+    		status = '2'
+    		,approval_emp_seq = #{userId}
+    	WHERE work_plan_id = #{work_plan_id}
+    </update>
+    
+    <update id="workPlanDetailApproval" parameterType="map">
+    	UPDATE dj_work_plan_detail SET
+    		status = '2'
+    		,approval_yn = 'Y'
+    	WHERE work_plan_id = #{work_plan_id}
+    </update>
+    
+    <update id="workPlanAppMasterCancel" parameterType="map">
+    	UPDATE dj_work_plan SET
+    		status = '1'
+    		,approval_emp_seq = #{userId}
+    	WHERE work_plan_id = #{work_plan_id}
+    </update>
+    
+    <update id="workPlanAppDetailCancel" parameterType="map">
+    	UPDATE dj_work_plan_detail SET
+    		status = '1'
+    		,approval_yn = 'Y'
+    	WHERE work_plan_id = #{work_plan_id}
+    </update>
+    
+    <select id="workTypeCodeList" parameterType="map" resultType="map">
+    
+    	SELECT 
+	    *
+		FROM
+	    dj_work_type
+	    WHERE 
+			active = 'Y'		
+		
+		ORDER BY work_type_id ASC
+    	
+    </select>
+    
+    <update id="workPlanHistoryUpdate" parameterType="map">
+    	UPDATE dj_work_plan_history SET
+    		status = '1'
+    	WHERE work_plan_id = #{work_plan_id}
+    </update>
+    
+    <update id="workPlanDetailChange" parameterType="map">
+    	UPDATE dj_work_plan_detail SET
+    		status = '3'
+    	WHERE work_plan_detail_id = #{work_plan_detail_id}
+    </update>
+    
+    <insert id="workPlanHistoryChange" parameterType="map"  useGeneratedKeys="true" keyProperty="work_plan_history_id">
+    	insert into dj_work_plan_history
+		(
+		work_plan_id,
+		work_type_id, 
+		attend_time, 
+		leave_time, 
+		work_min, 
+		break_min,
+		work_plan_detail_id, 
+		change_date, 
+		change_weekday,
+		approval_emp_seq,
+		change_degree,
+		active,
+		remark,
+		create_emp_seq,
+		create_date
+		
+		)
+		values
+		(
+		#{work_plan_id}, 
+		#{work_type_id}, 
+		#{attend_time}, 
+		#{leave_time}, 
+		#{work_min}, 
+		#{break_min},
+		#{work_plan_detail_id}, 
+		#{work_date}, 
+		#{weekday}, 
+		#{approval_emp_seq}, 
+		#{change_degree},
+		'Y',
+		#{remark},
+		#{userId},
+		NOW()
+		
+		)
+    </insert>
+    
+    <update id="workPlanDetailHistoryKeyUpdate" parameterType="map">
+    	UPDATE dj_work_plan_detail SET
+    		work_plan_history_id = #{work_plan_history_id}
+    	WHERE work_plan_detail_id = #{work_plan_detail_id}
+    </update>
+    
+    <select id="workPlanChangeAppList" parameterType="map" resultType="map">
+    <![CDATA[
+    	
+    	SELECT 
+		    A.*
+		    ,CASE WHEN A.status = '0' THEN '변경신청'
+		    WHEN A.status = '1' THEN '변경승인'
+		    WHEN A.status = '3' THEN '반려'
+		    END statusKr
+            ,CONCAT('변경 근무유형 : ',(SELECT GROUP_CONCAT(D.work_type ORDER BY change_degree ASC SEPARATOR ' → ') FROM dj_work_plan_history C JOIN dj_work_type D ON C.work_type_id = D.work_type_id AND C.active ='Y' AND D.active='Y' WHERE C.work_plan_detail_id = A.work_plan_detail_id ORDER BY A.change_degree LIMIT 1)) AS changeWorkType
+            ,CONCAT('변경 출근시간 : ',(SELECT GROUP_CONCAT(IF(attend_time = '', '휴일', attend_time) ORDER BY change_degree ASC SEPARATOR ' → ') FROM dj_work_plan_history WHERE work_plan_detail_id = A.work_plan_detail_id AND active = 'Y' ORDER BY A.change_degree LIMIT 1)) AS changeWorkAttend
+            ,CONCAT('변경 퇴근시간 : ',(SELECT GROUP_CONCAT(IF(leave_time = '', '휴일', leave_time) ORDER BY change_degree ASC SEPARATOR ' → ') FROM dj_work_plan_history WHERE work_plan_detail_id = A.work_plan_detail_id AND active = 'Y' ORDER BY A.change_degree LIMIT 1)) AS changeWorkLeave
+		    ,(SELECT emp_name FROM v_emp_info WHERE emp_seq = B.emp_seq) AS emp_name
+		    ,DATE_FORMAT(A.change_date, '%Y-%m-%d') AS reqDate
+		    ,B.work_plan_detail_id
+		    ,B.worker_dept_name
+		    ,B.worker_position
+		    ,B.worker_duty
+            ,B.attend_time AS beforAttend
+            ,B.leave_time  AS beforLeave
+            ,DATE_FORMAT(A.change_date, '%Y-%m-%d') AS reqDate
+		FROM
+		    dj_work_plan_history A
+		    	JOIN
+		    dj_work_plan_detail B 
+		    	ON A.work_plan_detail_id = B.work_plan_detail_id AND A.active = 'Y' AND B.active = 'Y'
+		    
+		WHERE
+			A.active = 'Y'
+			AND A.change_degree > 0    
+			]]>
+			<if test="userSeq != null and userSeq != ''">
+				AND B.emp_seq = #{userSeq}  
+			</if>
+			<if test="approvalSeq != null and approvalSeq != ''">
+				AND A.approval_emp_seq = #{approvalSeq}  
+			</if>
+			<if test="statusType != null and statusType != ''">
+				AND A.status = #{statusType}  
+			</if>
+			<if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+				AND A.change_date BETWEEN #{dateFr} AND #{dateTo}
+			</if> 
+			GROUP BY A.work_plan_detail_id, A.status
+            ORDER BY A.status ASC, A.work_plan_history_id DESC 
+		LIMIT ${skip} , ${pageSize}
+    </select>
+    
+    <select id="workPlanChangeAppList2" parameterType="map" resultType="map">
+    <![CDATA[
+    	
+    		SELECT 
+		    A.*
+		    ,CASE WHEN A.status = '0' THEN '변경신청'
+		    WHEN A.status = '1' THEN '변경승인'
+		    WHEN A.status = '3' THEN '반려'
+		    END statusKr
+            ,CONCAT('변경 근무유형 : ',(SELECT GROUP_CONCAT(D.work_type ORDER BY change_degree ASC SEPARATOR ' → ') FROM dj_work_plan_history C JOIN dj_work_type D ON C.work_type_id = D.work_type_id AND C.active ='Y' AND D.active='Y' WHERE C.work_plan_detail_id = A.work_plan_detail_id ORDER BY A.change_degree LIMIT 1)) AS changeWorkType
+            ,CONCAT('변경 출근시간 : ',(SELECT GROUP_CONCAT(IF(attend_time = '', '휴일', attend_time) ORDER BY change_degree ASC SEPARATOR ' → ') FROM dj_work_plan_history WHERE work_plan_detail_id = A.work_plan_detail_id AND active = 'Y' ORDER BY A.change_degree LIMIT 1)) AS changeWorkAttend
+            ,CONCAT('변경 퇴근시간 : ',(SELECT GROUP_CONCAT(IF(leave_time = '', '휴일', leave_time) ORDER BY change_degree ASC SEPARATOR ' → ') FROM dj_work_plan_history WHERE work_plan_detail_id = A.work_plan_detail_id AND active = 'Y' ORDER BY A.change_degree LIMIT 1)) AS changeWorkLeave
+		    ,(SELECT emp_name FROM v_emp_info WHERE emp_seq = B.emp_seq) AS emp_name
+		    ,DATE_FORMAT(A.change_date, '%Y-%m-%d') AS reqDate
+		    ,B.work_plan_detail_id
+		    ,B.worker_dept_name
+		    ,B.worker_position
+		    ,B.worker_duty
+            ,B.attend_time AS beforAttend
+            ,B.leave_time  AS beforLeave
+            ,DATE_FORMAT(A.change_date, '%Y-%m-%d') AS reqDate
+            ,C.apply_month
+		FROM
+		    dj_work_plan_history A
+		    	JOIN
+		    dj_work_plan_detail B 
+		    	ON A.work_plan_detail_id = B.work_plan_detail_id AND A.active = 'Y' AND B.active = 'Y'
+				JOIN
+			dj_work_plan C
+				ON A.work_plan_id = C.work_plan_id
+		WHERE
+			A.active = 'Y'
+			AND A.change_degree > 0    
+			
+				
+			]]>
+			<if test="userSeq != null and userSeq != ''">
+			AND B.emp_seq = #{userSeq}
+			</if>
+			<if test="statusType != null and statusType != ''">
+			AND A.status = #{statusType}  
+			</if>
+			<if test="month != null and month != ''">
+			AND C.apply_month = #{month}
+			</if>
+				
+			
+			GROUP BY A.work_plan_detail_id, A.status
+            ORDER BY A.status ASC, A.work_plan_history_id DESC
+		LIMIT ${skip} , ${pageSize}
+    </select>
+    
+    <select id="workPlanChangeAppListTotal" parameterType="map" resultType="int">
+    	SELECT COUNT(*) FROM (
+    	<![CDATA[
+    		SELECT 
+		   A.*
+		FROM
+		    dj_work_plan_history A
+		    	JOIN
+		    dj_work_plan_detail B 
+		    	ON A.work_plan_detail_id = B.work_plan_detail_id AND A.active = 'Y' AND B.active = 'Y'
+		    
+		WHERE
+			A.active = 'Y'
+			AND A.change_degree > 0    
+			]]>
+			<if test="request_emp_seq != null and request_emp_seq != ''">
+				AND B.emp_seq = #{userSeq}  
+			</if>
+			<if test="statusType != null and statusType != ''">
+				AND A.status = #{statusType}  
+			</if>
+			<if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+				AND A.change_date BETWEEN #{dateFr} AND #{dateTo}
+			</if> 
+			GROUP BY A.work_plan_detail_id, A.status
+            ORDER BY A.status, A.change_date
+    	) T
+    	
+    </select>
+    
+    <update id="workPlanDetailChangeCancel" parameterType="map">
+    	UPDATE dj_work_plan_detail SET
+    		status = '2'
+    	WHERE work_plan_detail_id = #{work_plan_detail_id}
+    </update>
+    
+    <update id="workPlanHistoryChangeCancel" parameterType="map">
+    	UPDATE dj_work_plan_history SET
+    		active = 'N'
+    	WHERE work_plan_history_id = #{work_plan_history_id}
+    </update>
+    
+    <update id="workPlanDetailChangeApproval" parameterType="map">
+    	UPDATE dj_work_plan_detail a SET
+    		status = '2'
+    		,change_degree= #{change_degree}
+    		,work_type_id= #{work_type_id}
+    		,work_min = #{work_min}
+    		,break_min = #{break_min}
+    		,attend_time= #{attend_time}
+    		,leave_time= #{leave_time}
+    		,change_yn = 'Y'
+    		,remark = CONCAT('['
+    						, (SELECT code_kr FROM dj_common_code WHERE common_code_id = a.flex_code_id)
+    						, ' 탄력근무]'
+    						, (SELECT remark FROM dj_work_plan_history WHERE work_plan_history_id = #{work_plan_history_id})
+    						)
+    	WHERE work_plan_detail_id = #{work_plan_detail_id}
+    </update>
+    
+    <update id="workPlanHistoryChangeApproval" parameterType="map">
+    	UPDATE dj_work_plan_history SET
+    		status = '1'
+    	WHERE work_plan_history_id = #{work_plan_history_id}
+    </update>
+    
+    <select id="adminWorkPlanDetail" parameterType="map" resultType="map">
+    <![CDATA[
+    	
+    	SELECT 
+    		A.work_plan_detail_id,
+		    A.emp_seq,
+		    DATE_FORMAT(A.work_date, '%Y-%m-%d') AS work_date,
+		    A.weekday,
+		    
+		    CASE
+		        WHEN DATE_FORMAT(A.work_date, '%Y%m%d') <= DATE_FORMAT(NOW(), '%Y%m%d') THEN 'N'
+		        ELSE 'Y'
+		    END AS NOWSTS,
+		    A.work_type_id,
+		    CASE
+		        WHEN B.H_DAY IS NOT NULL THEN 'Y'
+		        WHEN DAYOFWEEK(A.work_date) = '1' THEN 'Y'
+		        WHEN DAYOFWEEK(A.work_date) = '7' THEN 'Y'
+		        ELSE 'N'
+		    END AS HOLIDAY_STATUS,
+		    (SELECT work_type FROM dj_work_type WHERE active = 'Y' AND work_type_id = A.work_type_id) AS work_type,
+		    A.work_min,
+		    A.break_min,
+		    A.attend_time,
+		    A.leave_time,
+            DATE_FORMAT(C.come_dt, '%H:%i') AS come_dt,
+            DATE_FORMAT(C.leave_dt, '%H:%i') AS leave_dt,
+		    A.remark
+    	FROM
+    		dj_work_plan_detail A
+    			LEFT JOIN
+		    NEOS.T_CO_HOLIDAY B ON DATE_FORMAT(A.work_date, '%Y%m%d') = B.H_DAY
+				LEFT JOIN
+			NEOS.T_AT_ATT C ON A.work_date = C.att_date AND C.att_item_code = '10' AND A.emp_seq = C.emp_seq
+   		WHERE
+   			A.active = 'Y'
+	   		AND
+	   			work_plan_id = #{key}
+    	ORDER BY work_date ASC
+			]]>
+
+    </select>
+    
+    <select id="adminWorkPlanDetail2" parameterType="map" resultType="map">
+    <![CDATA[
+ SELECT 
+    		A.work_plan_detail_id,
+		    A.emp_seq,
+		    DATE_FORMAT(A.work_date, '%Y-%m-%d') AS work_date,
+		    A.weekday,
+		    
+		    CASE
+		        WHEN DATE_FORMAT(A.work_date, '%Y%m%d') <= DATE_FORMAT(NOW(), '%Y%m%d') THEN 'N'
+		        ELSE 'Y'
+		    END AS NOWSTS,
+		    A.work_type_id,
+		    CASE
+		        WHEN B.H_DAY IS NOT NULL THEN 'Y'
+		        WHEN DAYOFWEEK(A.work_date) = '1' THEN 'Y'
+		        WHEN DAYOFWEEK(A.work_date) = '7' THEN 'Y'
+		        ELSE 'N'
+		    END AS HOLIDAY_STATUS,
+		    (SELECT work_type FROM dj_work_type WHERE active = 'Y' AND work_type_id = A.work_type_id) AS work_type,
+		    A.work_min,
+		    A.break_min,
+		    A.attend_time,
+		    A.leave_time,
+            DATE_FORMAT(C.come_dt, '%H:%i') AS come_dt,
+            DATE_FORMAT(C.leave_dt, '%H:%i') AS leave_dt,
+		    A.remark,
+            D.request_emp_seq,
+            D.apply_month,
+            D.status
+    	FROM
+    		dj_work_plan_detail A
+    			LEFT JOIN
+		    NEOS.T_CO_HOLIDAY B ON DATE_FORMAT(A.work_date, '%Y%m%d') = B.H_DAY
+				LEFT JOIN
+			NEOS.T_AT_ATT C ON A.work_date = C.att_date AND C.att_item_code = '10' AND A.emp_seq = C.emp_seq
+				LEFT JOIN
+			dj_work_plan D ON A.work_plan_id = D.work_plan_id
+   		WHERE
+   			A.active = 'Y'
+			]]>
+   			<if test="userSeq != null and userSeq != ''">
+	   		AND	D.request_emp_seq = #{userSeq}
+	   		</if>
+	   		
+	   		<if test="month != null and month != ''">
+			AND	D.apply_month = #{month}
+			</if>
+			
+			<if test="statusType != null and statusType != ''">
+			AND	D.status = #{statusType}
+			</if>
+    	ORDER BY work_date ASC
+
+    </select>
+    
+    <select id="workPlanMasterList" parameterType="map" resultType="map">
+    <![CDATA[
+    	
+    	SELECT 
+		    A.emp_seq,
+		    A.emp_name,
+		    A.dept_name,
+		    A.duty AS duty_name,
+		    A.position AS position_name,
+		    B.*,
+		    (
+		    	SELECT emp_name
+		    	FROM v_emp_info
+		    	WHERE emp_seq = B.approval_emp_seq
+		    ) AS approval_emp_name,
+		    CASE B.status
+		        WHEN '1' THEN '신청'
+		        WHEN '2' THEN '승인'
+		        ELSE '미신청'
+		    END AS status_kr
+		FROM
+		    v_emp_info A
+		        LEFT JOIN
+		    dj_work_plan B ON A.emp_seq = B.request_emp_seq
+		        AND B.active = 'Y'
+		        ]]>
+		        <if test="month != null and month != ''">
+					AND 
+					(
+						(B.apply_month = #{month})
+						OR 
+						(
+							(CONCAT(#{month}, '01') BETWEEN CONCAT(B.apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(B.apply_month, '01'), '%Y%m%d'), INTERVAL 2 MONTH))
+							AND
+							(B.flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M'))
+						) 
+					)
+				</if> 
+			WHERE A.USE_YN = 'Y'
+		<if test="userSeq != null and userSeq != ''">
+			AND A.emp_seq = #{userSeq}  
+		</if>
+		<if test="statusType != null and statusType != ''">
+			AND B.status = #{statusType}  
+		</if>
+		<if test="request_dept_name != null and request_dept_name != '' and request_dept_name != '전체'">
+			AND B.request_dept_name = #{request_dept_name}
+		</if>
+		<if test="workPlanType != null and workPlanType != ''">
+			AND B.default_work_type = #{workPlanType}
+		</if>
+		ORDER BY work_plan_id DESC
+				
+		LIMIT ${skip} , ${pageSize}
+    </select>
+    
+    <select id="workPlanMasterListTotal" parameterType="map" resultType="int">
+    <![CDATA[
+    SELECT COUNT(*) FROM (	
+    	SELECT 
+		    A.emp_seq
+		FROM
+		    v_emp_info A
+		        LEFT JOIN
+		    dj_work_plan B ON A.emp_seq = B.request_emp_seq
+		        AND B.active = 'Y'
+		        ]]>
+		        <if test="month != null and month != ''">
+					AND 
+					(
+						(B.apply_month = #{month})
+						OR 
+						(
+							(CONCAT(#{month}, '01') BETWEEN CONCAT(B.apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(B.apply_month, '01'), '%Y%m%d'), INTERVAL 2 MONTH))
+							AND
+							(B.flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M'))
+						) 
+					)
+				</if> 
+			WHERE A.USE_YN = 'Y'	
+		<if test="userSeq != null and userSeq != ''">
+			AND A.emp_seq = #{userSeq}  
+		</if>
+		<if test="statusType != null and statusType != ''">
+			AND B.status = #{statusType}  
+		</if>
+		<if test="request_dept_name != null and request_dept_name != '' and request_dept_name != '전체'">
+			AND B.request_dept_name = #{request_dept_name}
+		</if>
+		<if test="workPlanType != null and workPlanType != ''">
+			AND B.default_work_type = #{workPlanType}
+		</if>
+			ORDER BY work_plan_id DESC
+		) T
+		
+    </select>
+    
+    <select id="dayOfFamilyList" parameterType="map" resultType="map">
+    
+    	call SP_DAY_OF_FAMILY_MONTH(#{date})
+    	
+    </select>
+    
+    <insert id="dayOfFamilyApply" parameterType="map">
+    	insert into dj_day_of_family
+		(
+		apply_month,
+		apply_date, 
+		apply_emp_seq, 
+		apply_dept, 
+		apply_position, 
+		apply_duty, 
+		remark, 
+		create_emp_seq
+		
+		)
+		values
+		(
+		DATE_FORMAT(#{dateVal}, '%Y%m'), 
+		#{dateVal}, 
+		#{apply_emp_seq},
+		#{apply_dept},
+		#{apply_position},
+		#{apply_duty},
+		#{remark},
+		#{userId}
+		
+		)
+    </insert>
+    
+    <update id="dayOfFamilyApplyCancel" parameterType="map">
+    	UPDATE dj_day_of_family SET
+        	active = 'N'
+    	WHERE
+    		day_of_family_id = #{key}
+    </update>
+    
+    <update id="workPlanWeekUpdate" parameterType="map">
+    	UPDATE dj_work_plan_detail SET
+        <choose>
+        	<when test='type == "N"'>
+        		leave_time = DATE_FORMAT(DATE_ADD(CONCAT(DATE_FORMAT(work_date, '%Y-%m-%d'),
+                ' ',
+                leave_time,
+                ':00'),
+        		INTERVAL 30 MINUTE),'%H:%i')
+        		,family_yn = 'Y'
+        	</when>
+        	<otherwise>
+        		leave_time = DATE_FORMAT(DATE_ADD(CONCAT(DATE_FORMAT(work_date, '%Y-%m-%d'),
+                ' ',
+                leave_time,
+                ':00'),
+        		INTERVAL -30 MINUTE),'%H:%i')
+        		,family_yn = 'N'
+        	</otherwise>
+        </choose>
+    	WHERE
+    	WEEK(DATE_FORMAT(work_date, '%Y%m%d'),1) = WEEK(DATE_FORMAT(#{dateVal}, '%Y%m%d'),1)
+        AND work_type_id != '6'
+        AND emp_seq = #{apply_emp_seq}
+    </update>
+    
+    <update id="workPlanDateUpdate" parameterType="map">
+    	UPDATE dj_work_plan_detail SET
+    	<choose>
+        	<when test='type == "N"'>
+        		leave_time = DATE_FORMAT(DATE_ADD(CONCAT(DATE_FORMAT(work_date, '%Y-%m-%d'),
+                ' ',
+                leave_time,
+                ':00'),
+       			INTERVAL -${addMin} MINUTE),'%H:%i')
+       			,family_yn = 'Y'
+        	</when>
+        	<otherwise>
+        		leave_time = DATE_FORMAT(DATE_ADD(CONCAT(DATE_FORMAT(work_date, '%Y-%m-%d'),
+                ' ',
+                leave_time,
+                ':00'),
+       			INTERVAL ${addMin} MINUTE),'%H:%i')
+       			,family_yn = 'N'
+        	</otherwise>
+        </choose>
+    	WHERE 
+    		work_date = #{dateVal}
+    		AND emp_seq = #{apply_emp_seq}
+    </update>
+    
+    <update id="workPlanHistoryCancel" parameterType="map">
+    	UPDATE dj_work_plan_history SET
+    		ACTIVE = 'N'
+    	WHERE work_plan_id = #{work_plan_id}
+    </update>
+    
+    <update id="workPlanDetailCancel" parameterType="map">
+    	UPDATE dj_work_plan_detail SET
+    		ACTIVE = 'N'
+    	WHERE work_plan_id = #{work_plan_id}
+    </update>
+    
+    <update id="workPlanCancel" parameterType="map">
+    	UPDATE dj_work_plan SET
+    		ACTIVE = 'N'
+    	WHERE work_plan_id = #{work_plan_id}
+    </update>
+    
+    <select id="familyDayReqLeftList" parameterType="map" resultType="map">
+    
+    	SELECT 
+		    *
+		FROM
+		    v_emp_info
+		WHERE
+		    USE_YN = 'Y'
+		        AND EMP_SEQ NOT IN (SELECT 
+		            IFNULL((APPLY_EMP_SEQ), '0')
+		        FROM
+		            DJ_DAY_OF_FAMILY
+		        WHERE
+		            ACTIVE = 'Y' AND apply_month = DATE_FORMAT(#{dateVal}, '%Y%m'))
+    	<if test="deptKey != null and deptKey != ''">
+			AND dept_seq = #{deptKey}
+		</if>
+		<if test="positionKey != null and positionKey != ''">
+			AND position_code = #{positionKey}
+		</if> 
+		<if test="dutyKey != null and dutyKey != ''">
+			AND duty_code = #{dutyKey}
+		</if>  
+    </select>
+    
+    <select id="familyDayReqRightList" parameterType="map" resultType="map">
+    
+    	SELECT 
+		    *
+		    ,(SELECT emp_name FROM v_emp_info WHERE emp_seq = apply_emp_seq) AS emp_name
+		    ,DATE_FORMAT(apply_date, '%Y-%m-%d') AS reqDate
+		FROM
+		    dj_day_of_family
+		        WHERE
+		            ACTIVE = 'Y' AND apply_month = DATE_FORMAT(#{dateVal}, '%Y%m')
+    	<if test="deptKr != null and deptKr != ''">
+			AND apply_dept = #{deptKr}
+		</if>
+		<if test="positionKr != null and positionKr != ''">
+			AND apply_position = #{positionKr}
+		</if> 
+		<if test="dutyKr != null and dutyKr != ''">
+			AND apply_duty = #{dutyKr}
+		</if>  
+    </select>
+    
+    <select id="makeWorkPlanYn" parameterType="map" resultType="String">
+    
+    	SELECT 
+		    CASE
+		        WHEN COUNT(*) = 0 THEN 'N'
+		        ELSE 'Y'
+		    END
+		FROM
+		    dj_work_plan
+		WHERE
+		    request_emp_seq = #{apply_emp_seq}
+		        AND (STATUS = '2' OR STATUS = '1')
+		        AND active = 'Y'
+		        AND apply_month = DATE_FORMAT(#{dateVal}, '%Y%m')
+		
+    </select>
+    
+    <select id="getWeekCnt" parameterType="map" resultType="map">
+    
+    	SELECT 
+		    COUNT(*) AS CNT
+		    ,DATE_FORMAT(DATE_ADD(#{dateVal}, INTERVAL 1 MONTH), '%Y%m01') AS AFTER_MONTH
+		    ,(SELECT work_type_id FROM dj_work_plan_detail WHERE WORK_DATE = DATE_FORMAT(#{dateVal}, '%Y%m%d') AND emp_seq = #{apply_emp_seq}) AS WORK_TYPE_ID
+		FROM
+		    dj_work_plan_detail
+		WHERE
+		    WEEK(DATE_FORMAT(work_date, '%Y%m%d'), 1) = WEEK(DATE_FORMAT(#{dateVal}, '%Y%m%d'), 1)
+        AND emp_seq = #{apply_emp_seq}
+		
+    </select>
+    
+    <select id="getAddMin" parameterType="map" resultType="int">
+    
+    	SELECT 
+		    COUNT(*)*30	    
+		FROM
+		    dj_work_plan_detail
+		WHERE
+		    WEEK(DATE_FORMAT(work_date, '%Y%m%d'), 1) = WEEK(DATE_FORMAT(#{dateVal}, '%Y%m%d'), 1)
+        AND emp_seq = #{apply_emp_seq}
+        AND work_type_id != '6'
+		
+    </select>
+    
+    <select id="autoMakeWorkPlan" parameterType="map">
+    
+    	call SP_DJ_MAKE_WORKPLAN(DATE_FORMAT(#{dateVal}, '%Y%m'), #{apply_emp_seq})
+    	
+    </select>
+    
+    <select id="weekLimit" parameterType="map" resultType="map">
+	    SELECT 
+		    WEEK(DATE_FORMAT(DATE, '%Y%m%d'), 1) WEEK_NO,
+		    COUNT(*) * 480 WEEK_LIMIT
+		FROM
+		    DATES
+		WHERE
+		    DATE_FORMAT(DATE, '%Y%m%d') NOT IN (SELECT 
+										            H_DAY
+										        FROM
+										            NEOS.T_CO_HOLIDAY)
+	        AND DATE_FORMAT(DATE, '%Y%m') = #{month}
+	        AND DAYOFWEEK(DATE) NOT IN ('1' , '7')
+		GROUP BY WEEK(DATE_FORMAT(DATE, '%Y%m%d'), 1)
+		ORDER BY DATE
+    
+    </select>
+    
+    <select id="monthLimit" parameterType="map" resultType="map">
+    
+	    SELECT 
+		    COUNT(*) * 480 AS MONTH_LIMIT
+		FROM
+		    DATES
+		WHERE
+		    DATE_FORMAT(DATE, '%Y%m%d') NOT IN (SELECT 
+										            H_DAY
+										        FROM
+										            NEOS.T_CO_HOLIDAY)
+	        AND DATE_FORMAT(DATE, '%Y%m') = #{month}
+	        AND DAYOFWEEK(DATE) NOT IN ('1' , '7')
+		ORDER BY DATE
+    
+    </select>
+    
+    <select id="getWorkPlanMin" parameterType="map" resultType="map">
+		SELECT
+		CASE WHEN
+			MOD(TIMESTAMPDIFF(MINUTE, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i')), 240) = 0
+		THEN 
+			TRUNCATE(
+						(TIMESTAMPDIFF(MINUTE, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i')) 
+						-
+						(
+							(
+								TIMESTAMPDIFF(HOUR, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i'))
+								- TIMESTAMPDIFF(HOUR, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i')) 
+								% 4
+							) 
+							/ 8
+						) * 60)
+						, 0
+					) + 30
+		ELSE
+			TRUNCATE(
+						(TIMESTAMPDIFF(MINUTE, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i')) 
+						-
+						(
+							(
+								TIMESTAMPDIFF(HOUR, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i'))
+								- TIMESTAMPDIFF(HOUR, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i')) 
+								% 4
+							) 
+							/ 8
+						) * 60)
+						, 0
+					)
+		END AS work_min
+		, 
+		CASE WHEN
+			MOD(TIMESTAMPDIFF(MINUTE, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i')), 240) = 0
+		THEN
+			TRUNCATE(GREATEST(((
+				(
+					TIMESTAMPDIFF(HOUR, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i'))
+					- TIMESTAMPDIFF(HOUR, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i')) 
+					% 4
+				) 
+				/ 8
+			) * 60) - 30, 0), 0)
+		ELSE
+			TRUNCATE((
+				(
+					TIMESTAMPDIFF(HOUR, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i'))
+					- TIMESTAMPDIFF(HOUR, STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE(#{leave_time}, '%H:%i')) 
+					% 4
+				) 
+				/ 8
+			) * 60, 0)
+		END AS rest_min
+    </select>
+
+    <select id="getWorkMin" parameterType="map" resultType="map">
+    	SELECT B.total_work_min
+    		 , (B.total_work_min - B.break_min) AS work_min
+    		 , B.break_min AS rest_min
+    		 , (B.night_min - B.break_min) AS night_min
+    	FROM (
+    		SELECT A.total_work_min
+	    		 , CASE 
+	    		 	WHEN MOD(A.total_work_min, 240) = 0
+	    		 		THEN GREATEST((TRUNCATE(A.total_work_min/240, 0) * 30) - 30, 0)
+	    		 	ELSE TRUNCATE(A.total_work_min/240, 0) * 30
+	    		 END AS break_min
+	    		 , A.v_night_time AS night_min
+	    	FROM (
+		    	SELECT TIMESTAMPDIFF(MINUTE, AA.v_come_time, AA.v_leave_time) AS total_work_min, AA.v_night_time
+		    	FROM (
+			    	SELECT AAA.v_come_time
+			    		 , CASE
+			    		 	WHEN AAA.v_leave_time <![CDATA[<]]> AAA.v_come_time
+			    		 		THEN DATE_ADD(AAA.v_leave_time, INTERVAL 1 DAY)
+			    		 	ELSE AAA.v_leave_time
+			    		 END AS v_leave_time
+			    		 , CASE
+							WHEN (AAA.v_come_time > '06:00' AND AAA.v_come_time <![CDATA[<]]> '22:00') AND AAA.v_leave_time <![CDATA[<]]> AAA.v_come_time
+								THEN TIMESTAMPDIFF(MINUTE, AAA.v_come_time, STR_TO_DATE('22:00', '%H:%i')) + (TIMESTAMPDIFF(MINUTE, STR_TO_DATE('22:00', '%H:%i'), DATE_ADD(AAA.v_leave_time, INTERVAL 1 DAY))*2)
+							WHEN (AAA.v_come_time > '06:00' AND AAA.v_come_time <![CDATA[<]]> '22:00') AND AAA.v_leave_time > '22:00' AND AAA.v_leave_time <![CDATA[<]]> '23:59'
+								THEN TIMESTAMPDIFF(MINUTE, AAA.v_come_time, STR_TO_DATE('22:00', '%H:%i')) + (TIMESTAMPDIFF(MINUTE, STR_TO_DATE('22:00', '%H:%i'), AAA.v_leave_time)*2)
+							WHEN (AAA.v_come_time > '06:00' AND AAA.v_come_time <![CDATA[<]]> '22:00') AND AAA.v_leave_time <![CDATA[<=]]> '22:00'
+								THEN TIMESTAMPDIFF(MINUTE, AAA.v_come_time, AAA.v_leave_time)
+                                
+							WHEN (AAA.v_come_time >= '22:00' AND AAA.v_come_time <![CDATA[<]]> '23:59') AND AAA.v_leave_time <![CDATA[<]]> AAA.v_come_time AND AAA.v_leave_time <![CDATA[<=]]> '06:00'
+								THEN (TIMESTAMPDIFF(MINUTE, AAA.v_come_time, DATE_ADD(AAA.v_leave_time, INTERVAL 1 DAY))*2)
+							WHEN (AAA.v_come_time >= '22:00' AND AAA.v_come_time <![CDATA[<]]> '23:59') AND AAA.v_leave_time > '22:00' AND AAA.v_leave_time <![CDATA[<]]> '23:59'
+								THEN (TIMESTAMPDIFF(MINUTE, AAA.v_come_time, AAA.v_leave_time)*2)
+							WHEN (AAA.v_come_time >= '22:00' AND AAA.v_come_time <![CDATA[<]]> '23:59') AND AAA.v_leave_time <![CDATA[<]]> AAA.v_come_time AND AAA.v_leave_time > '06:00'
+								THEN (TIMESTAMPDIFF(MINUTE, AAA.v_come_time, DATE_ADD(STR_TO_DATE('06:00', '%H:%i'), INTERVAL 1 DAY))*2) + TIMESTAMPDIFF(MINUTE, STR_TO_DATE('06:00', '%H:%i'), AAA.v_leave_time)
+                                
+							WHEN (AAA.v_come_time >= '00:00' AND AAA.v_come_time <![CDATA[<]]> '06:00') AND AAA.v_leave_time <![CDATA[<=]]> '06:00'
+								THEN (TIMESTAMPDIFF(MINUTE, AAA.v_come_time, AAA.v_leave_time)*2)
+							WHEN (AAA.v_come_time >= '00:00' AND AAA.v_come_time <![CDATA[<]]> '06:00') AND AAA.v_leave_time > '06:00'
+								THEN (TIMESTAMPDIFF(MINUTE, AAA.v_come_time, STR_TO_DATE('06:00', '%H:%i'))*2) + TIMESTAMPDIFF(MINUTE, STR_TO_DATE('06:00', '%H:%i'), AAA.v_leave_time)
+							
+                            ELSE
+								TIMESTAMPDIFF(MINUTE, AAA.v_come_time, AAA.v_leave_time)
+						END AS v_night_time
+			    	FROM (
+			    		SELECT IFNULL(STR_TO_DATE(#{attend_time}, '%H:%i'), STR_TO_DATE('00:00', '%H:%i')) AS v_come_time
+			    			 , IFNULL(STR_TO_DATE(#{leave_time}, '%H:%i'), STR_TO_DATE('00:00', '%H:%i')) AS v_leave_time
+			    	) AAA
+		    	) AA
+	    	) A
+    	) B
+    </select>
+    
+    <update id="defaultMod" parameterType="map">
+    	UPDATE dj_work_plan SET
+        	default_work_type = #{default_type} 
+        	,update_emp_seq = #{userId}
+        	,update_date = NOW()
+    	WHERE
+    		request_emp_seq = #{empSeq}
+    		AND
+    		apply_month = #{month}
+    </update>
+    <select id="getWeekNo" parameterType="map" resultType="map">
+    	SELECT WEEK(DATE_FORMAT(#{firstDate}, '%Y%m%d'),1) AS week_no
+    </select>
+    <select id="checkFlexPlan" parameterType="map" resultType="map">
+    	SELECT COUNT(work_plan_id) AS cnt
+		FROM dj_work_plan 
+		WHERE (CONCAT(apply_month, '01') BETWEEN CONCAT(#{searchDt}, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(#{searchDt}, '01'), '%Y%m%d'), INTERVAL 2 MONTH)) 
+			AND request_emp_seq = #{empSeq}
+			AND active = 'Y'
+    </select>
+    
+    <select id="workPlanExcelList" fetchSize="1000" resultType="java.util.LinkedHashMap" parameterType="map">
+    	SELECT
+    		  DATE_FORMAT(A.request_date, '%Y-%m-%d') AS 신청일자
+			, CASE A.status
+				WHEN '1' THEN '신청'
+				WHEN '2' THEN '승인'
+				ELSE '미신청'
+			END AS 진행단계
+			, (
+				SELECT IFNULL(emp_name, '')
+				FROM v_emp_info
+				WHERE emp_seq = A.approval_emp_seq
+			) AS 승인권자
+		    , A.request_dept_name AS 부서
+		    , (SELECT emp_name FROM v_emp_info WHERE emp_seq = A.request_emp_seq AND use_yn = 'Y') AS 성명
+		    , A.request_position AS 직급
+		    , A.request_duty AS 직책
+		    , IFNULL(A.remark, '') AS 비고
+		    , DATE_FORMAT(B.work_date, '%Y-%m-%d') AS 근무일자
+		    , B.weekday AS 요일
+		    , (SELECT work_type FROM dj_work_type WHERE active = 'Y' AND work_type_id = B.work_type_id) AS 근무유형
+		    , IFNULL(B.attend_time, '') AS 출근시간
+		    , IFNULL(B.leave_time, '') AS 퇴근시간
+		    , (
+				SELECT IFNULL(MAX(DATE_FORMAT(come_dt, '%H:%i')), '')		
+				FROM neos.t_at_att
+				WHERE DATE_FORMAT(att_date, '%Y%m%d') = B.work_date
+				AND EMP_SEQ = A.request_emp_seq
+					  AND ATT_ITEM_CODE = '10'
+			) AS 실제출근시간
+		    , (
+				SELECT IFNULL(MAX(DATE_FORMAT(leave_dt, '%H:%i')), '')						
+				FROM neos.t_at_att
+				WHERE DATE_FORMAT(att_date, '%Y%m%d') = B.work_date
+				AND EMP_SEQ = A.request_emp_seq
+					  AND ATT_ITEM_CODE = '10'
+			) AS 실제퇴근시간
+		    , IFNULL(B.remark, '') AS 비고
+		FROM dj_work_plan A 
+			JOIN dj_work_plan_detail B
+				ON A.work_plan_id = B.work_plan_id
+		WHERE A.active = 'Y'
+			<if test="userSeq2 != null and userSeq2 != ''">
+			AND A.request_emp_seq = #{userSeq2}
+			</if>
+			<if test="request_dept_name2 != null and request_dept_name2 != '' and request_dept_name2 != '전체'">
+			AND A.request_dept_name = #{request_dept_name2}
+			</if>
+			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			AND B.work_date BETWEEN #{startDt} AND #{endDt}
+			</if>
+		ORDER BY A.request_dept_name, A.request_emp_seq, B.work_date ASC
+    </select>
+    <select id="getAdminSeq" resultType="map">
+    	SELECT emp_seq
+		FROM v_emp_info
+		WHERE login_id = (
+							SELECT code_val
+		                    FROM dj_common_code
+		                    WHERE active = 'Y'
+								AND group_code = 'DEPT_HEADER'
+		                        AND code_kr = '경영관리팀'
+						)
+    </select>
+    <select id="scheduleList" parameterType="map" resultType="map">
+ select AAA.*,
+case
+when (CONCAT(TRUNCATE((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0))/60 ,0),'시간 ', TRUNCATE((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0))%60 ,0),'분') like '0시간 0분')
+then ''
+else CONCAT(TRUNCATE((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0))/60 ,0),'시간 ', TRUNCATE((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0))%60 ,0),'분')
+end as night_min_occur,
+case
+when (CONCAT(TRUNCATE(((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0))- MOD((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0)), 30))/60 ,0),'시간 ',TRUNCATE(((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0))- MOD((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0)), 30))%60 ,0),'분') like '0시간 0분')
+then ''
+else CONCAT(TRUNCATE((((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0))- MOD((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0)), 30)))/60 ,0),'시간 ',TRUNCATE((((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0))- MOD((ifnull(AAA.night_work_min,0) + ifnull(AAA.dawn_work_min,0)), 30)))%60 ,0),'분')
+end as night_min_agree
+ from
+ 		(SELECT AA.*
+    			,CASE 
+					WHEN ( ( AA.come_dt <![CDATA[<]]> AA.night_start_time) AND (AA.leave_dt > AA.night_end_time) ) 
+						THEN 480
+					WHEN ( (AA.come_dt <![CDATA[<=]]> AA.night_start_time) AND ( AA.leave_dt >= AA.night_start_time AND AA.leave_dt <![CDATA[<=]]> AA.night_end_time) ) 
+						THEN FLOOR(( TIME_TO_SEC(AA.leave_dt) - TIME_TO_SEC(AA.night_start_time) ) / 60)
+					WHEN ( (AA.come_dt >= AA.night_start_time AND AA.come_dt <![CDATA[<=]]> AA.night_end_time) AND (AA.leave_dt >= AA.night_end_time) )
+						THEN FLOOR(( TIME_TO_SEC(AA.night_end_time) - TIME_TO_SEC(AA.come_dt) ) / 60)
+					WHEN ( (AA.come_dt >= AA.night_start_time AND AA.come_dt <![CDATA[<=]]> AA.night_end_time) AND (AA.leave_dt >= AA.night_start_time AND AA.leave_dt <![CDATA[<=]]> AA.night_end_time) )
+						THEN FLOOR(( TIME_TO_SEC(AA.leave_dt) - TIME_TO_SEC(AA.come_dt) ) / 60)
+				END AS night_work_min
+				, CASE 
+					WHEN ( ( AA.come_dt <![CDATA[<]]> AA.dawn_start_time) AND (AA.leave_dt > AA.dawn_end_time) ) 
+						THEN 360
+					WHEN ( (AA.come_dt <![CDATA[<=]]> AA.dawn_start_time) AND ( AA.leave_dt >= AA.dawn_start_time AND AA.leave_dt <![CDATA[<=]]> AA.dawn_end_time) ) 
+						THEN FLOOR(( TIME_TO_SEC(AA.leave_dt) - TIME_TO_SEC(AA.dawn_start_time) ) / 60)
+					WHEN ( (AA.come_dt >= AA.dawn_start_time AND AA.come_dt <![CDATA[<=]]> AA.dawn_end_time) AND (AA.leave_dt >= AA.dawn_end_time) )
+						THEN FLOOR(( TIME_TO_SEC(AA.dawn_end_time) - TIME_TO_SEC(AA.come_dt) ) / 60)
+					WHEN ( (AA.come_dt >= AA.dawn_start_time AND AA.come_dt <![CDATA[<=]]> AA.dawn_end_time) AND (AA.leave_dt >= AA.dawn_start_time AND AA.leave_dt <![CDATA[<=]]> AA.dawn_end_time) )
+						THEN FLOOR(( TIME_TO_SEC(AA.leave_dt) - TIME_TO_SEC(AA.come_dt) ) / 60)
+				END AS dawn_work_min
+ from
+ <![CDATA[
+    	(SELECT STR_TO_DATE('22:00', '%H:%i') AS night_start_time
+		  ,DATE_ADD(STR_TO_DATE('06:00', '%H:%i'), INTERVAL 1 DAY) AS night_end_time
+		  ,STR_TO_DATE('00:00', '%H:%i') AS dawn_start_time
+		  ,STR_TO_DATE('06:00', '%H:%i') AS dawn_end_time
+		 , A.work_plan_detail_id
+		 , A.emp_seq
+	     , (SELECT emp_name FROM v_emp_info WHERE emp_seq = A.emp_seq) AS empName
+	     , DATE_FORMAT(A.work_date, '%Y-%m-%d') AS work_date
+	     , A.weekday
+	     ]]>
+		 , A.work_type_id
+	     , (SELECT work_type FROM dj_work_type WHERE active = 'Y' AND work_type_id = A.work_type_id) AS work_type
+	     , A.attend_time
+	     , A.leave_time
+	     , 
+	     CASE E.work_place
+			WHEN 'outdoor' THEN E.work_start_time
+			ELSE DATE_FORMAT(
+				     		#C.come_dt
+				     		DATE_ADD(	
+			    				 C.come_dt
+			     			   , INTERVAL
+			     			   (
+			     			   	SELECT time_differ_min
+			     			   	FROM dj_ot_emp_set
+			     			   	WHERE ot_emp_seq = C.emp_seq
+			     			   )
+			     			   MINUTE
+				     		)
+				     		, '%H:%i'
+				     ) 
+		END AS come_dt
+	     , 
+	     CASE E.work_place 
+			WHEN 'outdoor' THEN E.work_end_time
+			ELSE DATE_FORMAT(
+							     		#C.leave_dt
+							     		DATE_ADD(	
+						    				 C.leave_dt
+						     			   , INTERVAL
+						     			   (
+						     			   	SELECT time_differ_min
+						     			   	FROM dj_ot_emp_set
+						     			   	WHERE ot_emp_seq = C.emp_seq
+						     			   )
+						     			   MINUTE
+							     		)
+							     		, '%H:%i'
+							     ) 
+		END AS leave_dt
+	     , CASE WHEN 
+			F.apply_start_date IS NOT NULL THEN '보상휴무' 
+			ELSE '' 
+		 END AS holiSts
+	     , CASE 
+			WHEN A.status = '3' THEN CONCAT('[변경승인대기]', A.remark)
+			ELSE A.remark
+		 END AS remark
+	     , CASE 
+			WHEN A.attend_time <![CDATA[<]]> DATE_FORMAT(
+										     		#C.come_dt
+										     		DATE_ADD(	
+									    				 C.come_dt
+									     			   , INTERVAL
+									     			   (
+									     			   	SELECT time_differ_min
+									     			   	FROM dj_ot_emp_set
+									     			   	WHERE ot_emp_seq = C.emp_seq
+									     			   )
+									     			   MINUTE
+										     		)
+										     		, '%H:%i'
+										     ) THEN '불일치'
+	        ELSE ''
+		 END AS attCheck
+	     , CASE 
+			WHEN E.ot_type_code_id = 572 THEN '시간외근무'
+	        WHEN E.ot_type_code_id = 573 THEN '휴일근무'
+	        ELSE ''
+		 END AS overWk
+		 , E.apply_start_time
+	     , E.apply_end_time
+	     , CONCAT(TRUNCATE((IFNULL(A.work_min, 0) + IFNULL(E.apply_min, 0))/60 ,0),'시간 ',TRUNCATE((IFNULL(A.work_min, 0) + IFNULL(E.apply_min, 0)) %60 ,0),'분') AS reqWorkTime
+	     , CASE
+			WHEN E.apply_min IS NULL THEN ''
+			ELSE CONCAT(TRUNCATE(E.apply_min/60 ,0),'시간 ',TRUNCATE(E.apply_min%60 ,0),'분')
+		 END AS applyHour
+	     , CASE
+			WHEN G.occur_min IS NULL THEN ''
+			ELSE CONCAT(TRUNCATE(G.occur_min/60 ,0),'시간 ',TRUNCATE(G.occur_min%60 ,0),'분')
+		 END AS occurHour
+		 , CASE
+			WHEN G.agree_min IS NULL THEN ''
+			ELSE CONCAT(TRUNCATE(G.agree_min/60 ,0),'시간 ',TRUNCATE(G.agree_min%60 ,0),'분')
+		 END AS agreeHour
+		 
+	FROM
+		dj_work_plan_detail A
+		LEFT JOIN NEOS.T_AT_ATT C 
+			ON A.work_date = C.att_date 
+	        AND C.att_item_code = '10' 
+	        AND A.emp_seq = C.emp_seq
+		LEFT JOIN dj_ot_work_apply E 
+			ON A.work_date = E.apply_start_date 
+	        AND A.emp_seq = E.apply_emp_seq 
+	        #AND E.ot_type_code_id = '573'
+	        AND E.active = 'Y' 
+	        AND E.approval_status = '2'
+		#
+	    LEFT JOIN dj_ot_work_result G
+			ON E.ot_work_apply_id = G.ot_work_apply_id
+	    #
+		LEFT JOIN dj_replace_holiday_apply F 
+			ON A.work_date BETWEEN F.apply_start_date AND F.apply_end_date 
+	        AND A.emp_seq = F.use_emp_seq 
+	        AND F.approval_status = '2' 
+	        AND F.active = 'Y'
+	WHERE
+		A.active = 'Y'
+		AND A.status IN ('2', '3')
+		AND DATE_FORMAT(A.work_date, '%Y%m') = #{month}
+		<if test="userSeq != null and userSeq != ''">
+			AND A.emp_seq = #{userSeq}
+		</if>
+		<if test="bizSeq != null and bizSeq != ''">
+			AND D.biz_seq = #{bizSeq}
+		</if>
+		<if test="deptName != null and deptName != ''">
+			AND A.worker_dept_name = #{deptName}
+		</if>
+	ORDER BY A.emp_seq,A.work_date) AA ) AAA
+    </select>
+        <update id="workPlanMasterReject" parameterType="list">
+    	<foreach collection="list" item="item" index="index" separator="">
+    		UPDATE dj_work_plan
+	    	SET status = #{item.approval_status}
+	    	  , update_emp_seq = (SELECT emp_seq FROM v_emp_info WHERE login_id = #{item.update_emp_seq})
+	    	  , update_date = NOW()
+	    	  <if test="item.remark != null and item.remark != ''">
+	    	  , remark = #{item.remark}
+	    	  </if>
+	    	WHERE work_plan_id = #{item.work_plan_id}
+    	</foreach>
+    </update>
+    <update id="workPlanDetailReject" parameterType="list">
+    	<foreach collection="list" item="item" index="index" separator=";">
+    		UPDATE dj_work_plan_detail
+    		SET status = #{item.approval_status}
+    		  , approval_yn = 'N'
+    		WHERE work_plan_id = #{item.work_plan_id}
+    	</foreach>
+    </update>
+        <update id="workPlanDocStsUpdate" parameterType="map">
+    	UPDATE dj_work_plan
+    	SET approval_status = #{docSts}
+    	<if test="processId != null and processId != ''">
+		  , processId = #{processId}
+		</if>
+    	  , update_emp_seq = (SELECT emp_seq FROM v_emp_info WHERE login_id = #{update_emp_seq})
+    	  , update_date = NOW()
+    	WHERE work_plan_id = #{target_id}
+    </update>
+        <update id="workPlanChangeRejectDetailUpdate" parameterType="map">
+    	UPDATE dj_work_plan_detail
+    	SET status = '2'
+    	  , remark = #{remark}
+    	WHERE work_plan_detail_id = #{work_plan_detail_id}
+    </update>
+    <update id="workPlanChangeRejectHistoryUpdate" parameterType="map">
+    	UPDATE dj_work_plan_history
+    	SET status = '3'
+    	  , update_emp_seq = (SELECT emp_seq FROM v_emp_info WHERE login_id = #{update_emp_seq})
+    	  , update_date = NOW()
+    	WHERE work_plan_history_id = #{work_plan_history_id}
+    </update>
+        <update id="workPlanChangeDocStsUpdate" parameterType="map">
+    	UPDATE dj_work_plan_change
+    	SET approval_status = #{docSts}
+    	<if test="processId != null and processId != ''">
+    	  , processId = #{processId}
+    	</if>
+    	  , update_emp_seq = (SELECT emp_seq FROM v_emp_info WHERE login_id = #{update_emp_seq})
+    	  , update_date = NOW()
+    	WHERE work_plan_change_id = #{target_id}
+    </update>
+        <select id="getWorkPlanChangeList" parameterType="map" resultType="map">
+    	SELECT dwph.work_plan_history_id
+			 , dwph.work_plan_detail_id
+			 , dwph.change_degree
+			 , dwph.work_type_id
+		     , dwph.attend_time
+		     , dwph.leave_time
+		     , dwph.work_min
+		     , dwph.remark
+		FROM dj_work_plan_change dwpc
+			JOIN dj_work_plan_change_detail dwpcd
+		    ON dwpc.work_plan_change_id = dwpcd.work_plan_change_id
+		    JOIN dj_work_plan_history dwph
+		    ON dwpcd.work_plan_history_id = dwph.work_plan_history_id
+		WHERE dwpc.work_plan_change_id = #{target_id} 
+    </select>
+</mapper>    

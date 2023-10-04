@@ -1,0 +1,844 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="trip">
+
+    <!-- 출장지관리 목록조회 -->
+    <select id="selectTripAreaList" parameterType="java.util.Map" resultType="java.util.Map">
+    	/*trip.selectTripAreaList*/
+    	SELECT
+    			SQL_CALC_FOUND_ROWS
+    			TA.group_seq AS groupSeq, TA.comp_seq AS compSeq, TA.domestic_div AS domesticDiv, TA.area_seq  AS areaSeq
+    			, CASE 
+    					WHEN #{langCode} = 'kr' THEN TA.areaname_kr
+    					WHEN #{langCode} = 'en' THEN TA.areaname_en
+    					WHEN #{langCode} = 'jp' THEN TA.areaname_jp
+    					WHEN #{langCode} = 'cn' THEN TA.areaname_cn
+    			  		ELSE TA.areaname_kr
+    			  END AS areaname		
+    			, TA.areaname_kr AS areanameKr, TA.areaname_en AS areanameEn, TA.areaname_jp AS areanameJp, TA.areaname_cn AS areanameCn
+    			, CASE WHEN TA.direct_input_yn = 'Y' THEN '허용' ELSE '불가' END AS directInputYn
+    			, CASE WHEN TA.use_yn = 'Y' THEN '사용' ELSE '미사용' END AS useYn
+    			, CASE WHEN TA.local_yn = 'Y' THEN '예' ELSE '아니오' END AS localYn
+    			, TA.order_num AS orderNum, TA.note
+    			, TA.create_seq AS createSeq, TA.create_dt AS createDt, TA.modify_seq AS modifySeq, TA.modify_dt AS modifyDt     			
+    	FROM DJ_AT_TRIP_AREA TA
+    	WHERE TA.group_seq = #{groupSeq}
+    	AND TA.comp_seq = #{compSeq}
+    	AND TA.domestic_div = #{domesticDiv}
+    	AND TA.del_yn = 'N'
+    	
+   	<if test="areaname != null and areaname != ''">
+    	<choose>
+    		<when test="langCode.equalsIgnoreCase('kr')">
+    			AND TA.areaname_kr LIKE '%${areaname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('en')">
+    			AND TA.areaname_en LIKE '%${areaname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('jp')">
+    			AND TA.areaname_jp LIKE '%${areaname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('cn')">
+    			AND TA.areaname_cn LIKE '%${areaname}%'
+    		</when>
+    	</choose>    	
+   	</if>
+   	
+   	<if test="directInputYn != null and directInputYn != ''">    	
+    	AND TA.direct_input_yn = #{directInputYn}
+   	</if>
+   	
+   	<if test="useYn != null and useYn != ''">
+    	AND TA.use_yn = #{useYn}
+   	</if>
+   	<choose>
+   		<when test="langCode.equalsIgnoreCase('kr')">
+   			ORDER BY TA.order_num, TA.areaname_kr
+   		</when>
+   		<when test="langCode.equalsIgnoreCase('en')">
+   			ORDER BY TA.order_num, TA.areaname_en
+   		</when>
+   		<when test="langCode.equalsIgnoreCase('jp')">
+   			ORDER BY TA.order_num, TA.areaname_jp
+   		</when>
+   		<when test="langCode.equalsIgnoreCase('cn')">
+   			ORDER BY TA.order_num, TA.areaname_cn
+   		</when>
+   	</choose>
+    </select>
+    
+    <!-- 출장지관리 목록조회 카운트 -->
+    <select id="selectTripAreaListCount" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT FOUND_ROWS() AS TOTAL
+    </select>
+    
+    <!-- 출장지관리 상세조회 -->
+    <select id="selectTripAreaDetail" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT
+    			TA.group_seq AS groupSeq, TA.comp_seq AS compSeq, TA.domestic_div AS domesticDiv, TA.area_seq AS areaSeq
+    			, CASE 
+    					WHEN #{langCode} = 'kr' THEN TA.areaname_kr
+    					WHEN #{langCode} = 'en' THEN TA.areaname_en
+    					WHEN #{langCode} = 'jp' THEN TA.areaname_jp
+    					WHEN #{langCode} = 'cn' THEN TA.areaname_cn
+    			  		ELSE TA.areaname_kr
+    			  END AS areaname	
+    			, TA.areaname_kr AS areanameKr, TA.areaname_en AS areanameEn, TA.areaname_jp AS areanameJp, TA.areaname_cn AS areanameCn
+    			, TA.direct_input_yn AS directInputYn, TA.local_yn AS localYn, TA.use_yn AS useYn, TA.order_num AS orderNum, TA.note
+    			, TA.create_seq AS createSeq, TA.create_dt AS createDt, TA.modify_seq AS modifySeq, TA.modify_dt AS modifyDt
+    	FROM DJ_AT_TRIP_AREA TA
+    	WHERE TA.group_seq = #{groupSeq}
+    	AND TA.comp_seq = #{compSeq}
+    	AND TA.domestic_div = #{domesticDiv}
+    	AND area_seq = #{areaSeq}
+    </select>
+    
+    <!-- 출장지관리 등록 -->
+	<insert id="insertTripArea" parameterType="java.util.Map">
+		/*trip.insertTripArea*/
+		INSERT INTO DJ_AT_TRIP_AREA (
+			group_seq, comp_seq, domestic_div
+			, area_seq 
+			, areaname_kr, areaname_en, areaname_jp, areaname_cn
+			, direct_input_yn, local_yn, use_yn, order_num, note, del_yn
+			, create_seq, create_dt			
+		)
+		VALUES (
+			#{groupSeq}, #{compSeq}, #{domesticDiv}
+			, (SELECT ifnull(max(a.area_seq + 1), 1) FROM DJ_AT_TRIP_AREA a JOIN (SELECT 1 FROM DUAL) b)
+			, #{areanameKr}, #{areanameEn}, #{areanameJp}, #{areanameCn}
+			, #{directInputYn}, #{localYn}, #{useYn}, #{orderNum}, #{note}, 'N'
+			, #{empSeq}, SYSDATE()
+		) 					
+    </insert>
+    
+    <!-- 출장지관리 수정 -->
+    <update id="updateTripArea" parameterType="java.util.Map">
+    	/*trip.updateTripArea*/
+    	UPDATE DJ_AT_TRIP_AREA SET
+    		areaname_kr = #{areanameKr}
+    		, areaname_en = #{areanameEn}
+    		, areaname_jp = #{areanameJp}
+    		, areaname_cn = #{areanameCn}
+    		, direct_input_yn = #{directInputYn}
+    		, use_yn = #{useYn}
+    		, local_yn = #{localYn}
+    		, order_num = #{orderNum}
+    		, note = #{note}
+    		, modify_seq = #{empSeq}
+    		, modify_dt = SYSDATE()
+    	WHERE group_seq = #{groupSeq}
+    	AND comp_seq = #{compSeq}
+    	AND domestic_div = #{domesticDiv}
+    	AND area_seq = #{areaSeq}
+    </update>
+    
+    <!-- 출장지관리 단가적용여부 조회 -->
+    <select id="selectApplyTripArea" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT
+    			TC.group_seq AS groupSeq, TC.comp_seq AS compSeq, TC.domestic_div AS domesticDiv, TC.cost_div AS costDiv, TC.cost_seq AS costSeq
+    			, TC.pgroup_seq AS pgroupSeq, TC.area_seq AS areaSeq, TC.standard_date AS standardDate
+    	FROM DJ_AT_TRIP_COST TC
+    	WHERE TC.group_seq = #{groupSeq}
+    	AND TC.comp_seq = #{compSeq}
+    	AND TC.area_seq = #{areaSeq}
+    	AND TC.del_yn = 'N'
+    	LIMIT 1
+    </select>
+    
+    <!-- 출장지관리 삭제 -->
+    <delete id="deleteTripArea" parameterType="java.util.Map">
+    	UPDATE DJ_AT_TRIP_AREA SET
+    		del_yn = 'Y'
+    		, modify_seq = #{empSeq}
+    		, modify_dt = SYSDATE()
+    	WHERE group_seq = #{groupSeq}
+    	AND comp_seq = #{compSeq}
+    	AND domestic_div = #{domesticDiv}
+    	AND area_seq = #{areaSeq}
+    </delete>
+    
+    <!-- 직급그룹관리 목록조회 -->
+    <select id="selectTripPositionGroupList" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT
+    			SQL_CALC_FOUND_ROWS
+    			TPG.group_seq AS groupSeq, TPG.comp_seq AS compSeq, TPG.domestic_div AS domesticDiv, TPG.pgroup_seq AS pgroupSeq
+    			, CASE 
+    					WHEN #{langCode} = 'kr' THEN TPG.pgroupname_kr
+    					WHEN #{langCode} = 'en' THEN TPG.pgroupname_en
+    					WHEN #{langCode} = 'jp' THEN TPG.pgroupname_jp
+    					WHEN #{langCode} = 'cn' THEN TPG.pgroupname_cn
+    			  		ELSE TPG.pgroupname_kr
+    			  END AS pgroupname		
+    			, TPG.pgroupname_kr AS pgroupnameKr, TPG.pgroupname_en AS pgroupnameEn, TPG.pgroupname_jp AS pgroupnameJp, TPG.pgroupname_cn AS pgroupnameCn
+    			, TPG.order_num AS orderNum, TPG.note, TPG.sel_position AS selPosition
+    			, TPG.create_seq AS createSeq, TPG.create_dt AS createDt, TPG.modify_seq AS modifySeq, TPG.modify_dt AS modifyDt     			
+    	FROM DJ_AT_TRIP_POSITION_GROUP TPG
+    	WHERE TPG.group_seq = #{groupSeq}
+    	AND TPG.comp_seq = #{compSeq}
+    	AND TPG.domestic_div = #{domesticDiv}
+    	AND TPG.del_yn = 'N'
+    	
+    <if test="pgroupname != null and pgroupname != ''">
+    	<choose>
+    		<when test="langCode.equalsIgnoreCase('kr')">
+    			AND TPG.pgroupname_kr LIKE '%${pgroupname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('en')">
+    			AND TPG.pgroupname_en LIKE '%${pgroupname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('jp')">
+    			AND TPG.pgroupname_jp LIKE '%${pgroupname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('cn')">
+    			AND TPG.pgroupname_cn LIKE '%${pgroupname}%'
+    		</when>
+    	</choose>    	
+   	</if>   	
+   		<choose>
+    		<when test="langCode.equalsIgnoreCase('kr')">
+    			ORDER BY TPG.order_num, TPG.pgroupname_kr
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('en')">
+    			ORDER BY TPG.order_num, TPG.pgroupname_en
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('jp')">
+    			ORDER BY TPG.order_num, TPG.pgroupname_jp
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('cn')">
+    			ORDER BY TPG.order_num, TPG.pgroupname_cn
+    		</when>
+    	</choose>
+    </select>
+    
+    <!-- 직급그룹관리 목록조회 카운트 -->
+    <select id="selectTripPositionGroupListCount" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT FOUND_ROWS() AS TOTAL
+    </select>
+    
+    <!-- 직급 목록조회 -->
+    <select id="selectPositionGroupList" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT 
+				cdp.dp_seq AS dpSeq, cdp.group_seq AS groupSeq, cdp.comp_seq AS compSeq, cdp.dp_type AS dpType, cdp.order_num AS orderNum
+				, cdpm.dp_name AS dpName
+				, IFNULL((SELECT comp_name from neos.T_CO_COMP_MULTI ccm where ccm.comp_seq=cdp.comp_seq and lang_code=#{langCode}),'그룹') as compName
+				, IFNULL((
+					SELECT 
+							CASE 
+		    					WHEN #{langCode} = 'kr' THEN TPG.pgroupname_kr
+		    					WHEN #{langCode} = 'en' THEN TPG.pgroupname_en
+		    					WHEN #{langCode} = 'jp' THEN TPG.pgroupname_jp
+		    					WHEN #{langCode} = 'cn' THEN TPG.pgroupname_cn
+		    			  		ELSE TPG.pgroupname_kr
+		    			  	END AS pgroupname		
+					FROM DJ_AT_TRIP_POSITION_GROUP TPG 
+					WHERE TPG.group_seq = #{groupSeq}
+					AND TPG.comp_seq = #{compSeq}
+					AND TPG.domestic_div = #{domesticDiv}
+					AND TPG.del_yn = 'N'
+					AND CONCAT(',', TPG.sel_position, ',') LIKE CONCAT('%,', cdp.dp_seq, ',%')
+				),'') AS pgroupnameKr
+		<choose>			
+			<when test="selPosition != null and selPosition != ''">
+				, CASE WHEN cdp.dp_seq IN
+				<foreach item="item" index="index" collection="selPosition" open="(" separator="," close=")">
+					 #{item} 
+				</foreach>				
+				THEN 'checked' ELSE '' END AS checkYn
+			</when>
+			<when test="selPosition = null or selPosition = ''">
+				, '' AS checkYn
+			</when>			
+		</choose>			
+		FROM neos.T_CO_COMP_DUTY_POSITION cdp
+			INNER JOIN neos.T_CO_COMP_DUTY_POSITION_MULTI cdpm 
+				ON cdp.group_seq = cdpm.group_seq
+				AND cdp.comp_seq = cdpm.comp_seq
+				AND cdp.dp_seq = cdpm.dp_seq
+				AND cdpm.dp_type = 'DUTY'
+				AND cdpm.lang_code = #{langCode}
+				AND cdpm.use_yn = 'Y'
+		WHERE cdp.group_seq = #{groupSeq}
+		AND (cdp.comp_seq = #{compSeq} or cdp.comp_seq = '0')
+		AND cdp.dp_type = 'DUTY'
+		AND cdp.use_yn = 'Y'
+		ORDER BY cdp.order_num, cdpm.dp_name
+    </select>
+    
+    <!-- 직급그룹관리 상세조회 -->
+    <select id="selectTripPositionGroupDetail" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT
+    			TPG.group_seq AS groupSeq, TPG.comp_seq AS compSeq, TPG.domestic_div AS domesticDiv, TPG.pgroup_seq AS pgroupSeq
+    			, CASE 
+    					WHEN #{langCode} = 'kr' THEN TPG.pgroupname_kr
+    					WHEN #{langCode} = 'en' THEN TPG.pgroupname_en
+    					WHEN #{langCode} = 'jp' THEN TPG.pgroupname_jp
+    					WHEN #{langCode} = 'cn' THEN TPG.pgroupname_cn
+    			  		ELSE TPG.pgroupname_kr
+    			  END AS pgroupname		
+    			, TPG.pgroupname_kr AS pgroupnameKr, TPG.pgroupname_en AS pgroupnameEn, TPG.pgroupname_jp AS pgroupnameJp, TPG.pgroupname_cn AS pgroupnameCn
+    			, TPG.order_num AS orderNum, TPG.note, TPG.sel_position AS selPosition
+    			, TPG.create_seq AS createSeq, TPG.create_dt AS createDt, TPG.modify_seq AS modifySeq, TPG.modify_dt AS modifyDt     			
+    	FROM DJ_AT_TRIP_POSITION_GROUP TPG
+    	WHERE TPG.group_seq = #{groupSeq}
+    	AND TPG.comp_seq = #{compSeq}
+    	AND TPG.domestic_div = #{domesticDiv}
+    	AND pgroup_seq = #{pgroupSeq}
+    </select>
+    
+    <!-- 직급그룹관리 등록 -->
+	<insert id="insertTripPositionGroup" parameterType="java.util.Map">
+		INSERT INTO DJ_AT_TRIP_POSITION_GROUP (
+			group_seq, comp_seq, domestic_div
+			, pgroup_seq 
+			, pgroupname_kr, pgroupname_en, pgroupname_jp, pgroupname_cn
+			, order_num, note, sel_position, del_yn
+			, create_seq, create_dt			
+		)
+		VALUES (
+			#{groupSeq}, #{compSeq}, #{domesticDiv}
+			, (SELECT ifnull(max(a.pgroup_seq + 1), 1) FROM DJ_AT_TRIP_POSITION_GROUP a JOIN (SELECT 1 FROM DUAL) b)
+			, #{pgroupnameKr}, #{pgroupnameEn}, #{pgroupnameJp}, #{pgroupnameCn}
+			, #{orderNum}, #{note}, #{selPosition}, 'N'
+			, #{empSeq}, SYSDATE()
+		) 					
+    </insert>
+    
+    <!-- 직급그룹관리 수정 -->
+    <update id="updateTripPositionGroup" parameterType="java.util.Map">
+    	UPDATE DJ_AT_TRIP_POSITION_GROUP SET
+    		pgroupname_kr = #{pgroupnameKr}
+    		, pgroupname_en = #{pgroupnameEn}
+    		, pgroupname_jp = #{pgroupnameJp}
+    		, pgroupname_cn = #{pgroupnameCn}
+    		, order_num = #{orderNum}
+    		, note = #{note}
+    		, sel_position = #{selPosition}
+    		, modify_seq = #{empSeq}
+    		, modify_dt = SYSDATE()
+    	WHERE group_seq = #{groupSeq}
+    	AND comp_seq = #{compSeq}
+    	AND domestic_div = #{domesticDiv}
+    	AND pgroup_seq = #{pgroupSeq}
+    </update>
+    
+    <!-- 직급그룹 단가적용여부 조회 -->
+    <select id="selectApplyPositionGroup" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT
+    			TC.group_seq, TC.comp_seq, TC.domestic_div, TC.cost_div, TC.cost_seq
+    			, TC.pgroup_seq, TC.area_seq, TC.standard_date
+    	FROM DJ_AT_TRIP_COST TC
+    	WHERE TC.group_seq = #{groupSeq}
+    	AND TC.comp_seq = #{compSeq}
+    	AND TC.pgroup_seq = #{pgroupSeq}
+    	AND TC.del_yn = 'N'
+    	LIMIT 1
+    </select>
+    
+    <!-- 직급그룹관리 삭제 -->
+    <delete id="deleteTripPositionGroup" parameterType="java.util.Map">
+    	UPDATE DJ_AT_TRIP_POSITION_GROUP SET
+    		del_yn = 'Y'
+    		, modify_seq = #{empSeq}
+    		, modify_dt = SYSDATE()
+    	WHERE group_seq = #{groupSeq}
+    	AND comp_seq = #{compSeq}
+    	AND domestic_div = #{domesticDiv}
+    	AND pgroup_seq = #{pgroupSeq}
+    </delete>
+    
+    <!-- 출장지관리 목록조회 -->
+    <select id="selectTripTransList" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT
+    			SQL_CALC_FOUND_ROWS
+    			TT.group_seq AS groupSeq, TT.comp_seq AS compSeq, TT.trans_seq  AS transSeq
+    			, CASE 
+    					WHEN #{langCode} = 'kr' THEN TT.transname_kr
+    					WHEN #{langCode} = 'en' THEN TT.transname_en
+    					WHEN #{langCode} = 'jp' THEN TT.transname_jp
+    					WHEN #{langCode} = 'cn' THEN TT.transname_cn
+    			  		ELSE TT.transname_kr
+    			  END AS transname
+    			, TT.transname_kr AS transnameKr, TT.transname_en AS transnameEn, TT.transname_jp AS transnameJp, TT.transname_cn AS transnameCn
+    			, CASE WHEN TT.use_yn = 'Y' THEN '사용' ELSE '미사용' END AS useYn
+    			, TT.trans_cd AS transCd
+<!--     			, CASE WHEN TT.air_yn = 'Y' THEN '예' ELSE '아니오' END AS airYn -->
+    			, TT.order_num AS orderNum, TT.note
+    			, TT.create_seq AS createSeq, TT.create_dt AS createDt, TT.modify_seq AS modifySeq, TT.modify_dt AS modifyDt     			
+    	FROM DJ_AT_TRIP_TRANSPORT TT
+    	WHERE TT.group_seq = #{groupSeq}
+    	AND TT.comp_seq = #{compSeq}
+    	AND TT.del_yn = 'N'
+    	
+   	<if test="transname != null and transname != ''">
+    	<choose>
+    		<when test="langCode.equalsIgnoreCase('kr')">
+    			AND TT.transname_kr LIKE '%${transname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('en')">
+    			AND TT.transname_en LIKE '%${transname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('jp')">
+    			AND TT.transname_jp LIKE '%${transname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('cn')">
+    			AND TT.transname_cn LIKE '%${transname}%'
+    		</when>
+    	</choose>    	
+   	</if>
+   	
+   	<if test="useYn != null and useYn != ''">
+    	AND TT.use_yn = #{useYn}
+   	</if>
+   	<choose>
+   		<when test="langCode.equalsIgnoreCase('kr')">
+   			ORDER BY TT.order_num, TT.transname_kr
+   		</when>
+   		<when test="langCode.equalsIgnoreCase('en')">
+   			ORDER BY TT.order_num, TT.transname_en
+   		</when>
+   		<when test="langCode.equalsIgnoreCase('jp')">
+   			ORDER BY TT.order_num, TT.transname_jp
+   		</when>
+   		<when test="langCode.equalsIgnoreCase('cn')">
+   			ORDER BY TT.order_num, TT.transname_cn
+   		</when>
+   	</choose>
+    </select>
+    
+    <!-- 출장지관리 목록조회 카운트 -->
+    <select id="selectTripTransListCount" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT FOUND_ROWS() AS TOTAL
+    </select>
+    
+    <!-- 출장지관리 목록조회 -->
+    <select id="selectTripTransDetail" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT
+    			TT.group_seq AS groupSeq, TT.comp_seq AS compSeq, TT.trans_seq  AS transSeq
+    			, CASE 
+    					WHEN #{langCode} = 'kr' THEN TT.transname_kr
+    					WHEN #{langCode} = 'en' THEN TT.transname_en
+    					WHEN #{langCode} = 'jp' THEN TT.transname_jp
+    					WHEN #{langCode} = 'cn' THEN TT.transname_cn
+    			  		ELSE TT.transname_kr
+    			  END AS transname
+    			, TT.transname_kr AS transnameKr, TT.transname_en AS transnameEn, TT.transname_jp AS transnameJp, TT.transname_cn AS transnameCn
+    			, TT.use_yn AS useYn
+    			, TT.trans_cd AS transCd
+<!--     			, TT.air_yn AS airYn -->
+    			, TT.order_num AS orderNum, TT.note
+    			, TT.create_seq AS createSeq, TT.create_dt AS createDt, TT.modify_seq AS modifySeq, TT.modify_dt AS modifyDt     			
+    	FROM DJ_AT_TRIP_TRANSPORT TT
+    	WHERE TT.group_seq = #{groupSeq}
+    	AND TT.comp_seq = #{compSeq}
+    	AND TT.trans_seq = #{transSeq}
+    	AND TT.del_yn = 'N'
+    </select>
+    
+    <!-- 교통수단관리 등록 -->
+	<insert id="insertTripTrans" parameterType="java.util.Map">
+		INSERT INTO DJ_AT_TRIP_TRANSPORT (
+			group_seq, comp_seq
+			, trans_seq 
+			, transname_kr, transname_en, transname_jp, transname_cn
+			, use_yn
+			, trans_cd
+<!-- 			, air_yn -->
+			, order_num, note, del_yn
+			, create_seq, create_dt			
+		)
+		VALUES (
+			#{groupSeq}, #{compSeq}
+			, (SELECT ifnull(max(a.trans_seq + 1), 1) FROM DJ_AT_TRIP_TRANSPORT a JOIN (SELECT 1 FROM DUAL) b)
+			, #{transnameKr}, #{transnameEn}, #{transnameJp}, #{transnameCn}
+			, #{useYn}
+<!-- 			, #{airYn} -->
+			, #{transCd}
+			, #{orderNum}, #{note}, 'N'
+			, #{empSeq}, SYSDATE()
+		) 					
+    </insert>
+    
+    <!-- 교통수단관리 수정 -->
+    <update id="updateTripTrans" parameterType="java.util.Map">
+    	UPDATE DJ_AT_TRIP_TRANSPORT SET
+    		transname_kr = #{transnameKr}
+    		, transname_en = #{transnameEn}
+    		, transname_jp = #{transnameJp}
+    		, transname_cn = #{transnameCn}
+    		, use_yn = #{useYn}
+    		, trans_cd = #{transCd}
+<!--     		, air_yn = #{airYn} -->
+    		, order_num = #{orderNum}
+    		, note = #{note}
+    		, modify_seq = #{empSeq}
+    		, modify_dt = SYSDATE()
+    	WHERE group_seq = #{groupSeq}
+    	AND comp_seq = #{compSeq}
+    	AND trans_seq = #{transSeq}
+    </update>
+    
+    <!-- 교통수단관리 삭제 -->
+    <delete id="deleteTripTrans" parameterType="java.util.Map">
+    	UPDATE DJ_AT_TRIP_TRANSPORT SET
+    		del_yn = 'Y'
+    		, modify_seq = #{empSeq}
+    		, modify_dt = SYSDATE()
+    	WHERE group_seq = #{groupSeq}
+    	AND comp_seq = #{compSeq}
+    	AND trans_seq = #{transSeq}
+    </delete>
+    
+    <!-- 출장비단가관리 목록조회 -->
+    <select id="selectTripCostList" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT SQL_CALC_FOUND_ROWS *
+		FROM (
+		    	SELECT		    			
+		    			TC.group_seq AS groupSeq, TC.comp_seq AS compSeq, TC.domestic_div AS domesticDiv
+		    			, TC.cost_div AS costDiv, TC.cost_seq AS costSeq, TC.pgroup_seq AS pgroupSeq, TC.area_seq AS areaSeq
+		    			, TC.standard_date AS standardDate, FORMAT(TC.cost, 0) AS cost, TC.cost_type AS costType, TC.note
+		    			, TC.create_seq AS createSeq, TC.create_dt AS createDt, TC.modify_seq AS modifySeq, TC.modify_dt AS modifyDt
+		    			, CASE 
+		    					WHEN #{langCode} = 'kr' THEN TA.areaname_kr
+		    					WHEN #{langCode} = 'en' THEN TA.areaname_en
+		    					WHEN #{langCode} = 'jp' THEN TA.areaname_jp
+		    					WHEN #{langCode} = 'cn' THEN TA.areaname_cn
+		    			  		ELSE TA.areaname_kr
+		    			  END AS areaname	
+		    			, TA.areaname_kr AS areanameKr, TA.areaname_en AS areanameEn, TA.areaname_jp AS areanameJp, TA.areaname_cn AS areanameCn		    			
+		    			, CASE 
+		    					WHEN #{langCode} = 'kr' THEN TPG.pgroupname_kr
+		    					WHEN #{langCode} = 'en' THEN TPG.pgroupname_en
+		    					WHEN #{langCode} = 'jp' THEN TPG.pgroupname_jp
+		    					WHEN #{langCode} = 'cn' THEN TPG.pgroupname_cn
+		    			  		ELSE TPG.pgroupname_kr
+		    			  END AS pgroupname		
+		    			, TPG.pgroupname_kr AS pgroupnameKr, TPG.pgroupname_en AS pgroupnameEn, TPG.pgroupname_jp AS pgroupnameJp, TPG.pgroupname_cn AS pgroupnameCn
+		    			, CASE WHEN standard_date = (
+								SELECT MAX(standard_date)
+								FROM DJ_AT_TRIP_COST
+								WHERE group_seq = #{groupSeq}
+								AND comp_seq = #{compSeq}
+								AND cost_div = #{costDiv}
+								AND pgroup_seq = TC.pgroup_seq
+								AND area_seq = TC.area_seq
+								AND del_yn = 'N'
+						) THEN 'Y' ELSE 'N' END newYn
+						, REPLACE(TC.standard_date, '-', '') orderDate
+						, CONVERT(TPG.order_num, INT) AS tpgOrderNum
+						, CONVERT(TA.order_num, INT) AS taOrderNum
+		    	FROM DJ_AT_TRIP_COST TC
+		    		LEFT JOIN DJ_AT_TRIP_AREA TA
+		    			ON TA.group_seq = TC.group_seq
+		    			AND TA.comp_seq = TC.comp_seq
+		    			AND TA.area_seq = TC.area_seq
+		    			AND TA.del_yn = 'N'
+		    		INNER JOIN DJ_AT_TRIP_POSITION_GROUP TPG
+		    			ON TPG.group_seq = TC.group_seq
+		    			AND TPG.comp_seq = TC.comp_seq
+		    			AND TPG.pgroup_seq = TC.pgroup_seq
+		    			AND TPG.del_yn = 'N'
+		    	WHERE TC.group_seq = #{groupSeq}
+		    	AND TC.comp_seq = #{compSeq}
+		    	AND TC.cost_div = #{costDiv}
+		    	AND TC.del_yn = 'N'
+		   	
+		   	<if test="pgroupname != null and pgroupname != ''">
+		    	<choose>
+		    		<when test="langCode.equalsIgnoreCase('kr')">
+		    			AND TPG.pgroupname_kr LIKE '%${pgroupname}%'
+		    		</when>
+		    		<when test="langCode.equalsIgnoreCase('en')">
+		    			AND TA.pgroupname_en LIKE '%${pgroupname}%'
+		    		</when>
+		    		<when test="langCode.equalsIgnoreCase('jp')">
+		    			AND TA.pgroupname_jp LIKE '%${pgroupname}%'
+		    		</when>
+		    		<when test="langCode.equalsIgnoreCase('cn')">
+		    			AND TA.pgroupname_cn LIKE '%${pgroupname}%'
+		    		</when>
+		    	</choose>    	
+		   	</if>
+		   	
+		   	<if test="searchOpt != null and searchOpt != ''">
+		    	AND TC.domestic_div = #{searchOpt}
+		   	</if>
+		   	
+		   	<if test="areaname != null and areaname != ''">
+		    	<choose>
+		    		<when test="langCode.equalsIgnoreCase('kr')">
+		    			AND TA.areaname_kr LIKE '%${areaname}%'
+		    		</when>
+		    		<when test="langCode.equalsIgnoreCase('en')">
+		    			AND TA.areaname_en LIKE '%${areaname}%'
+		    		</when>
+		    		<when test="langCode.equalsIgnoreCase('jp')">
+		    			AND TA.areaname_jp LIKE '%${areaname}%'
+		    		</when>
+		    		<when test="langCode.equalsIgnoreCase('cn')">
+		    			AND TA.areaname_cn LIKE '%${areaname}%'
+		    		</when>
+		    	</choose>    	
+		   	</if>		   	
+		) LIST
+		<if test='newYn == "Y"'>
+			WHERE newYn = #{newYn}
+		</if>
+		<choose>
+	   		<when test='sortType == "1"'>
+	   			ORDER BY orderDate DESC, domesticDiv, tpgOrderNum, taOrderNum
+	   		</when>
+	   		<when test='sortType == "2"'>
+	   			ORDER BY tpgOrderNum, orderDate DESC, domesticDiv, taOrderNum
+	   		</when>
+	   		<when test='sortType == "3"'>
+	   			ORDER BY taOrderNum, orderDate DESC, domesticDiv, tpgOrderNum 
+	   		</when>
+	   		<when test='sortType == "4"'>
+	   			ORDER BY domesticDiv, taOrderNum, orderDate DESC, tpgOrderNum 
+	   		</when>
+	   	</choose>
+    </select>
+    
+    <!-- 출장비단가관리 목록조회 카운트 -->
+    <select id="selectTripCostListCount" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT FOUND_ROWS() AS TOTAL
+    </select>
+    
+    <!-- 출장비단가관리 상세조회 -->
+    <select id="selectTripCostDetail" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT
+    			TC.group_seq AS groupSeq, TC.comp_seq AS compSeq, TC.domestic_div AS domesticDiv
+    			, TC.cost_div AS costDiv, TC.cost_seq AS costSeq, TC.pgroup_seq AS pgroupSeq, TC.area_seq AS areaSeq
+    			, TC.standard_date AS standardDate, TC.cost, TC.cost_type AS costType, TC.note
+    			, TC.create_seq AS createSeq, TC.create_dt AS createDt, TC.modify_seq AS modifySeq, TC.modify_dt AS modifyDt
+    			, TC.cost_seq AS costSeq
+    			, CASE 
+    					WHEN #{langCode} = 'kr' THEN TA.areaname_kr
+    					WHEN #{langCode} = 'en' THEN TA.areaname_en
+    					WHEN #{langCode} = 'jp' THEN TA.areaname_jp
+    					WHEN #{langCode} = 'cn' THEN TA.areaname_cn
+    			  		ELSE TA.areaname_kr
+    			  END AS areaname	
+    			, TA.areaname_kr AS areanameKr, TA.areaname_en AS areanameEn, TA.areaname_jp AS areanameJp, TA.areaname_cn AS areanameCn
+    			, CASE 
+    					WHEN #{langCode} = 'kr' THEN TPG.pgroupname_kr
+    					WHEN #{langCode} = 'en' THEN TPG.pgroupname_en
+    					WHEN #{langCode} = 'jp' THEN TPG.pgroupname_jp
+    					WHEN #{langCode} = 'cn' THEN TPG.pgroupname_cn
+    			  		ELSE TPG.pgroupname_kr
+    			  END AS pgroupname		
+    			, TPG.pgroupname_kr AS pgroupnameKr, TPG.pgroupname_en AS pgroupnameEn, TPG.pgroupname_jp AS pgroupnameJp, TPG.pgroupname_cn AS pgroupnameCn
+    			, TC.ATTCH_DIR AS attchDir, TC.ATTCH_FILE AS attchFile    			
+    	FROM DJ_AT_TRIP_COST TC
+    		LEFT JOIN DJ_AT_TRIP_AREA TA
+    			ON TA.group_seq = TC.group_seq
+    			AND TA.comp_seq = TC.comp_seq
+    			AND TA.area_seq = TC.area_seq
+    			AND TA.domestic_div = (CASE WHEN TC.domestic_div = 'S' THEN 'L' ELSE TC.domestic_div END)
+    		INNER JOIN DJ_AT_TRIP_POSITION_GROUP TPG
+    			ON TPG.group_seq = TC.group_seq
+    			AND TPG.comp_seq = TC.comp_seq
+    			AND TPG.pgroup_seq = TC.pgroup_seq
+    			AND TPG.domestic_div = (CASE WHEN TC.domestic_div = 'S' THEN 'L' ELSE TC.domestic_div END)
+    	WHERE TC.group_seq = #{groupSeq}
+    	AND TC.comp_seq = #{compSeq}
+    	AND TC.cost_div = #{costDiv}
+    	AND TC.cost_seq = #{costSeq}    	
+    </select>
+    
+    <!-- 직급그룹선택 팝업 -->
+    <select id="selectTripPositionGroupListPop" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT    			
+    			TPG.group_seq AS groupSeq, TPG.comp_seq AS compSeq, TPG.domestic_div AS domesticDiv, TPG.pgroup_seq AS pgroupSeq
+    	<choose>
+    		<when test="langCode = 'kr'">
+    			, TPG.pgroupname_kr AS pgroupname
+    		</when>
+    		<when test="langCode = 'en'">
+    			, TPG.pgroupname_en AS pgroupname
+    		</when>
+    		<when test="langCode = 'jp'">
+    			, TPG.pgroupname_jp AS pgroupname
+    		</when>
+    		<when test="langCode = 'cn'">
+    			, TPG.pgroupname_cn AS pgroupname
+    		</when>
+    	</choose>    
+    			, TPG.order_num AS orderNum, TPG.note
+    	FROM DJ_AT_TRIP_POSITION_GROUP TPG
+    	WHERE TPG.group_seq = #{groupSeq}
+    	AND TPG.comp_seq = #{compSeq}
+    	AND TPG.domestic_div = #{domesticDiv}
+    	AND TPG.del_yn = 'N'
+    	
+    <if test="pgroupname != null and pgroupname != ''">
+    	<choose>
+    		<when test="langCode.equalsIgnoreCase('kr')">
+    			AND TPG.pgroupname_kr LIKE '%${pgroupname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('en')">
+    			AND TPG.pgroupname_en LIKE '%${pgroupname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('jp')">
+    			AND TPG.pgroupname_jp LIKE '%${pgroupname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('cn')">
+    			AND TPG.pgroupname_cn LIKE '%${pgroupname}%'
+    		</when>
+    	</choose>    	
+   	</if>   	
+   		<choose>
+    		<when test="langCode.equalsIgnoreCase('kr')">
+    			ORDER BY TPG.order_num, TPG.pgroupname_kr
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('en')">
+    			ORDER BY TPG.order_num, TPG.pgroupname_en
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('jp')">
+    			ORDER BY TPG.order_num, TPG.pgroupname_jp
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('cn')">
+    			ORDER BY TPG.order_num, TPG.pgroupname_cn
+    		</when>
+    	</choose>
+    </select>
+    
+    <!-- 출장지선택 팝업 -->
+    <select id="selectTripAreaListPop" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT
+    			TA.group_seq AS groupSeq, TA.comp_seq AS compSeq, TA.domestic_div AS domesticDiv, TA.area_seq  AS areaSeq
+    	<choose>
+    		<when test="langCode = 'kr'">
+    			, TA.areaname_kr AS areaname
+    		</when>
+    		<when test="langCode = 'en'">
+    			, TA.areaname_en AS areaname
+    		</when>
+    		<when test="langCode = 'jp'">
+    			, TA.areaname_jp AS areaname
+    		</when>
+    		<when test="langCode = 'cn'">
+    			, TA.areaname_cn AS areaname
+    		</when>
+    	</choose>
+    			, TA.direct_input_yn AS directInputYn, TA.local_yn AS localYn, TA.use_yn AS useYn, TA.order_num AS orderNum, TA.note
+    	FROM DJ_AT_TRIP_AREA TA
+    	WHERE TA.group_seq = #{groupSeq}
+    	AND TA.comp_seq = #{compSeq}
+    	AND TA.domestic_div = #{domesticDiv}
+    	AND TA.use_yn = 'Y'
+    	AND TA.del_yn = 'N'
+    
+   	<if test='domesticDiv == "L"'>
+   		AND TA.local_yn = #{localYn}
+    </if>
+    	
+   	<if test="areaname != null and areaname != ''">
+    	<choose>
+    		<when test="langCode.equalsIgnoreCase('kr')">
+    			AND TA.areaname_kr LIKE '%${areaname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('en')">
+    			AND TA.areaname_en LIKE '%${areaname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('jp')">
+    			AND TA.areaname_jp LIKE '%${areaname}%'
+    		</when>
+    		<when test="langCode.equalsIgnoreCase('cn')">
+    			AND TA.areaname_cn LIKE '%${areaname}%'
+    		</when>
+    	</choose>    	
+   	</if>
+   	
+   	<choose>
+   		<when test="langCode.equalsIgnoreCase('kr')">
+   			ORDER BY TA.order_num, TA.areaname_kr
+   		</when>
+   		<when test="langCode.equalsIgnoreCase('en')">
+   			ORDER BY TA.order_num, TA.areaname_en
+   		</when>
+   		<when test="langCode.equalsIgnoreCase('jp')">
+   			ORDER BY TA.order_num, TA.areaname_jp
+   		</when>
+   		<when test="langCode.equalsIgnoreCase('cn')">
+   			ORDER BY TA.order_num, TA.areaname_cn
+   		</when>
+   	</choose>
+    </select>
+    
+    <!-- 출장비단가관리 기존 동일단가 존재여부 조회 -->
+    <select id="selectExistCost" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT
+    			TC.group_seq AS groupSeq, TC.comp_seq AS compSeq, TC.domestic_div AS domesticDiv, TC.cost_div AS costDiv, TC.cost_seq AS costSeq
+    			, TC.pgroup_seq AS pgroupSeq, TC.area_seq AS areaSeq, TC.standard_date AS standardDate
+    	FROM DJ_AT_TRIP_COST TC
+    <if test='!(costDiv == "1" or costDiv == "2")'>
+    		INNER JOIN DJ_AT_TRIP_AREA TA
+    			ON TA.group_seq = TC.group_seq
+    			AND TA.comp_seq = TC.comp_seq
+    			AND TA.area_seq = TC.area_seq
+    			AND TA.del_yn = 'N'
+    </if>
+    		INNER JOIN DJ_AT_TRIP_POSITION_GROUP TPG
+    			ON TPG.group_seq = TC.group_seq
+    			AND TPG.comp_seq = TC.comp_seq
+    			AND TPG.pgroup_seq = TC.pgroup_seq
+    			AND TPG.del_yn = 'N'
+    	WHERE TC.group_seq = #{groupSeq}
+    	AND TC.comp_seq = #{compSeq}
+    	AND TC.cost_div = #{costDiv}
+    	AND TC.pgroup_seq = #{pgroupSeq}
+    	AND TC.area_seq = #{areaSeq}
+    	AND TC.standard_date = #{standardDate}
+    	AND TC.del_yn = 'N'
+    	<if test="costSeq != null and costSeq != ''">
+    		AND TC.cost_seq != #{costSeq}
+    	</if>
+    	LIMIT 1
+    </select>
+    
+    <!-- 출장비단가관리 등록 -->
+	<insert id="insertTripCost" parameterType="java.util.Map">
+		INSERT INTO DJ_AT_TRIP_COST (
+			group_seq, comp_seq, domestic_div, cost_div, pgroup_seq, area_seq
+			, cost_seq
+			, standard_date, cost, cost_type, note, del_yn
+			, create_seq, create_dt			
+		)
+		VALUES (
+			#{groupSeq}, #{compSeq}, #{domesticDiv}, #{costDiv}, #{pgroupSeq}, #{areaSeq}
+			, (SELECT ifnull(max(a.cost_seq + 1), 1) FROM DJ_AT_TRIP_COST a JOIN (SELECT 1 FROM DUAL) b)
+			, #{standardDate}, #{cost}, #{costType}, #{note}, 'N'
+			, #{empSeq}, SYSDATE()
+		) 					
+    </insert>
+    
+    <!-- 출장비단가관리 수정 -->
+    <update id="updateTripCost" parameterType="java.util.Map">
+    	UPDATE DJ_AT_TRIP_COST SET
+    		cost = #{cost}
+    		, domestic_div = #{domesticDiv}
+    		, standard_date = #{standardDate}
+    		, cost_type = #{costType}
+    		, note = #{note}
+    		, modify_seq = #{empSeq}
+    		, modify_dt = SYSDATE()
+    	WHERE group_seq = #{groupSeq}
+    	AND comp_seq = #{compSeq}
+    	AND cost_div = #{costDiv}
+    	AND cost_seq = #{costSeq}
+    </update>
+    
+    <!-- 출장비단가관리 삭제 -->
+    <delete id="deleteTripCost" parameterType="java.util.Map">
+    	UPDATE DJ_AT_TRIP_COST SET
+    		del_yn = 'Y'
+    		, modify_seq = #{empSeq}
+    		, modify_dt = SYSDATE()
+    	WHERE group_seq = #{groupSeq}
+    	  AND comp_seq  = #{compSeq}
+    	  AND cost_div  = #{costDiv}
+    	  AND cost_seq  = #{costSeq}
+    </delete>
+</mapper>

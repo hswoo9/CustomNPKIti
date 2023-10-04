@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="longVacSet">
+	
+	
+	<select id="getLongVacSetList" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.LnglbcCnwkVcatnSetupDTO">
+		/* 장기근속휴가설정 리스트 */
+		SELECT
+			*
+		FROM
+			cust_klti.lnglbc_cnwk_vcatn_setup
+		WHERE
+			USE_YN = 'Y'
+		ORDER BY
+			CREAT_DT DESC
+	</select>
+	
+	<select id="getLongVacSetCount" parameterType="map" resultType="int">
+		/* 장기근속휴가설정 리스트 카운트 */
+		SELECT
+			COUNT(*)
+		FROM
+			cust_klti.lnglbc_cnwk_vcatn_setup
+		WHERE
+			USE_YN = 'Y'
+	</select>
+	
+	<select id="getLongVacSetMax" parameterType="map" resultType="int">
+		/* 장기근속휴가설정 정렬순번 값 가져오기 */
+		SELECT
+			CASE 
+				WHEN MAX(SORT_SN) IS NULL THEN '0'
+				ELSE CONCAT(MAX(SORT_SN)+1)
+            END as sortSn
+		FROM
+			cust_klti.lnglbc_cnwk_vcatn_setup
+	</select>
+	
+	<insert id="longVacSetSave" parameterType="com.duzon.custom.egov_cms.dto.LnglbcCnwkVcatnSetupDTO">
+		/* 장기근속휴가설정 저장 */
+		INSERT INTO
+			cust_klti.lnglbc_cnwk_vcatn_setup
+		(
+			VCATN_KND_SN
+			, CNWK_YYCNT
+			, ALWNC_VCATN
+			, ATMC_CREAT_YN
+			, SORT_SN
+			, RMK
+			, USE_YN
+			, CRTR_EMPL_SN
+			, CREAT_DT
+		)VALUES(
+			#{vcatnKndSn}
+			, #{cnwkYycnt}
+			, #{alwncVcatn}
+			, #{atmcCreatYn}
+			, #{sortSn}
+			, #{rmk}
+			, #{useYn}
+			, #{crtrEmplSn}
+			, NOW()
+			
+		)
+	</insert>
+	
+	<update id="longVacSetUpdate" parameterType="com.duzon.custom.egov_cms.dto.LnglbcCnwkVcatnSetupDTO">
+		/* 장기근속휴가설정 업데이트 */
+		UPDATE
+			cust_klti.lnglbc_cnwk_vcatn_setup
+		SET
+			CNWK_YYCNT = #{cnwkYycnt}
+			, ALWNC_VCATN = #{alwncVcatn}
+			, ATMC_CREAT_YN = #{atmcCreatYn}
+			, RMK = #{rmk}
+			, ATMC_CREAT_YN = #{atmcCreatYn}
+			, UPDT_DT = NOW()
+		WHERE
+			LNGLBC_CNWK_VCATN_SETUP_SN = #{lnglbcCnwkVcatnSetupSn}
+	</update>
+	
+	<update id="longVacSetDelete" parameterType="string">
+		/* 장기근속휴가설정 삭제(use_yn => N) */
+		UPDATE
+			cust_klti.lnglbc_cnwk_vcatn_setup
+		SET
+			USE_YN = 'N'
+		WHERE
+			LNGLBC_CNWK_VCATN_SETUP_SN = #{lnglbcCnwkVcatnSetupSn}
+	</update>
+	
+	<select id="getLongVacSet" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.LnglbcCnwkVcatnSetupDTO">
+		/* 장기근속휴가설정 단일객체 */
+		SELECT
+			*
+		FROM	
+			cust_klti.lnglbc_cnwk_vcatn_setup
+		WHERE
+			USE_YN = 'Y'
+		AND
+			LNGLBC_CNWK_VCATN_SETUP_SN = #{lnglbcCnwkVcatnSetupSn}
+	</select>
+	
+	<select id="selectEmpAllList" parameterType="map" resultType="map">
+		SELECT
+			b.dept_seq,
+			c.dept_name,
+		    em.emp_seq,
+			em.emp_name,
+			a.join_day,
+		    (SELECT
+				sA.ALWNC_VCATN 
+			FROM
+				cust_klti.lnglbc_cnwk_vcatn_setup sA
+			WHERE sA.ATMC_CREAT_YN = 'Y'
+			AND sA.USE_YN = 'Y' 
+		    AND  sA.CNWK_YYCNT = TIMESTAMPDIFF(YEAR, a.join_day, date_format(NOW(), '%Y-%m-%d'))) as ALWNC_VCATN,
+			TIMESTAMPDIFF(YEAR, a.join_day, date_format(NOW(), '%Y-%m-%d'))as CNWK_YYCNT
+		FROM
+			neos.t_co_emp a
+		LEFT JOIN
+			neos.t_co_emp_multi em
+		ON (a.emp_seq = em.emp_seq AND em.lang_code = "kr")
+		LEFT JOIN
+			neos.t_co_comp_duty_position_multi p
+		ON a.position_code = p.dp_seq
+		LEFT JOIN
+			neos.t_co_emp_dept b
+		ON a.emp_seq = b.emp_seq
+		LEFT JOIN
+			neos.t_co_dept_multi c
+		ON b.dept_seq = c.dept_seq
+		LEFT JOIN
+			neos.t_co_dept d
+		ON c.dept_seq = d.dept_seq
+		WHERE
+			a.use_yn = "Y"
+		GROUP BY a.emp_seq
+	</select>
+	
+	<select id="checkVcatn" resultType="com.duzon.custom.egov_cms.dto.VcatnDTO" parameterType="map">
+		SELECT
+			*
+		FROM
+			cust_klti.v_vcatn
+		WHERE
+			EMP_SEQ = #{emp_seq}
+		AND
+			USE_YN = 'Y'
+		AND
+			APPLY_YR = #{applyYr}
+	</select>
+	
+</mapper>

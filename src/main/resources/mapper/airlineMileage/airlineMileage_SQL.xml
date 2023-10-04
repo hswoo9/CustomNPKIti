@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="airlineMileage">
+
+	<insert id="setMileageSave" parameterType="map">
+	
+		INSERT INTO dj_mileage_detail
+			(			
+				emp_seq, 
+				emp_name,
+				dept_seq,
+				dept_name,
+				sdate,
+				edate,
+				area,
+				division,
+				use_mileage,
+				save_mileage,
+				lose_mileage,
+				total_mileage,
+				flight,
+				remark,
+				create_emp_seq, 
+				create_date
+			)	
+		VALUES
+			(
+				#{emp_seq}, 
+				#{emp_name},
+				#{dept_seq}, 
+				#{dept_name},
+				#{sdate},
+				#{edate},
+				#{area},
+				#{division},
+				#{use_mileage},
+				#{save_mileage},
+				#{lose_mileage},
+				#{total_mileage},
+				#{flight},
+				#{remark},
+				#{create_emp_seq}, 
+				NOW()
+			)
+	
+	</insert>
+	
+	<select id="mileageListSearch"  parameterType="map" resultType="map">
+		SELECT 
+		    A.*,
+		    C.total_mileage AS master_mileage,
+            FORMAT(C.total_mileage , 0) AS master_mileage_view,
+		    IFNULL(B.use_yn, 'N' ) AS use_yn,
+		    FORMAT(A.use_mileage , 0) AS use_mileage_view,
+		    FORMAT(A.lose_mileage , 0) AS lose_mileage_view,
+   			FORMAT(A.save_mileage , 0) AS save_mileage_view,
+			FORMAT(A.total_mileage , 0) AS total_mileage_view,
+			FORMAT(A.daily_expenses , 0) AS daily_expenses_view,
+			FORMAT(A.food_expenses , 0) AS food_expenses_view,
+			FORMAT(A.room_expenses , 0) AS room_expenses_view,
+			FORMAT(A.air_expenses , 0) AS air_expenses_view,
+			FORMAT(A.travel_expenses , 0) AS travel_expenses_view,
+			FORMAT(A.etc_expenses , 0) AS etc_expenses_view
+		FROM
+    		cust_klti.dj_mileage_detail A
+    	LEFT JOIN
+			(select * FROM v_emp_info group by emp_seq) B ON A.emp_seq = B.emp_seq
+		LEFT JOIN
+			dj_mileage_master C ON A.emp_seq = C.emp_seq
+    	WHERE 
+    	<![CDATA[
+    		A.sdate >= #{startDt}
+    		AND A.edate <= #{endDt} 
+    		AND A.active = 'Y'
+    	]]>	
+		<if test="empSeq != '' and empSeq != null">
+	   		AND A.emp_seq = #{empSeq}
+		</if>
+		<if test="empName != '' and empName != null">
+	   		AND A.emp_name = #{empName}
+		</if>
+		<if test="deptSeq != '' and deptSeq != null">
+	   		AND A.dept_seq  = #{deptSeq}
+		</if>
+		<if test="deptName != '' and deptName != null">
+	   		AND A.dept_name  = #{deptName}
+		</if>
+		<if test="up_dept_name != '' and up_dept_name != null">
+	   		AND B.up_dept_name  = #{up_dept_name}
+		</if>
+		<if test="parent_dept_seq != '' and parent_dept_seq != null">
+	   		AND B.parent_dept_seq  = #{parent_dept_seq}
+		</if>
+		<if test="leaveDivision != '' and leaveDivision != null">
+	   		AND B.use_yn  = #{leaveDivision}
+		</if>
+    	ORDER BY
+    		emp_name , sdate
+		LIMIT ${skip} , ${pageSize}
+    </select>  
+    
+    <select id="mileageListSearchTotal" resultType="int" parameterType="map">
+	    SELECT COUNT(1) 
+			FROM(SELECT 
+					    A.*,
+					    C.total_mileage AS master_mileage,
+            			FORMAT(C.total_mileage , 0) AS master_mileage_view,
+					    IFNULL(B.use_yn, 'N' ) AS use_yn,
+					    FORMAT(A.use_mileage , 0) AS use_mileage_view,
+					    FORMAT(A.lose_mileage , 0) AS lose_mileage_view,
+			   			FORMAT(A.save_mileage , 0) AS save_mileage_view,
+						FORMAT(A.total_mileage , 0) AS total_mileage_view,
+						FORMAT(A.daily_expenses , 0) AS daily_expenses_view,
+						FORMAT(A.food_expenses , 0) AS food_expenses_view,
+						FORMAT(A.room_expenses , 0) AS room_expenses_view,
+						FORMAT(A.air_expenses , 0) AS air_expenses_view,
+						FORMAT(A.travel_expenses , 0) AS travel_expenses_view,
+						FORMAT(A.etc_expenses , 0) AS etc_expenses_view
+					FROM
+			    		cust_klti.dj_mileage_detail A
+			    	LEFT JOIN
+						(select * from v_emp_info group by emp_seq) B ON A.emp_seq = B.emp_seq
+					LEFT JOIN
+						dj_mileage_master C ON A.emp_seq = C.emp_seq
+			    	WHERE 
+			    	<![CDATA[
+			    		sdate >= #{startDt}
+			    		AND edate <= #{endDt}
+			    		AND A.active = 'Y'
+			    	]]>	
+					<if test="empSeq != '' and empSeq != null">
+				   		AND A.emp_seq = #{empSeq}
+					</if>
+					<if test="empName != '' and empName != null">
+				   		AND A.emp_name = #{empName}
+					</if>
+					<if test="deptSeq != '' and deptSeq != null">
+				   		AND A.dept_seq  = #{deptSeq}
+					</if>
+					<if test="deptName != '' and deptName != null">
+				   		AND A.dept_name  = #{deptName}
+					</if>
+					<if test="up_dept_name != '' and up_dept_name != null">
+				   		AND B.up_dept_name  = #{up_dept_name}
+					</if>
+					<if test="parent_dept_seq != '' and parent_dept_seq != null">
+				   		AND B.parent_dept_seq  = #{parent_dept_seq}
+					</if>
+					<if test="leaveDivision != '' and leaveDivision != null">
+				   		AND B.use_yn  = #{leaveDivision}
+					</if>
+		)T
+    </select>
+    
+    <insert id="fileSave" parameterType="map" useGeneratedKeys="true" keyProperty="attach_file_id">
+
+		INSERT INTO cust_klti.dj_attach_file
+		(
+			target_table_name, 
+			target_id,
+			file_seq
+		)
+		VALUES
+		(
+			#{tableName},
+			#{targetKey},
+			#{file_seq}
+		)
+		
+	</insert>
+	
+	<update id="fileUpload" parameterType="map" >
+
+		UPDATE 
+			cust_klti.dj_attach_file 
+		SET 
+			file_name = #{attach_file_id},
+			real_file_name = #{fileNm},		
+			file_extension = #{ext},
+			file_path = #{filePath},
+			file_size = #{fileSize}
+		WHERE 
+			attach_file_id = #{attach_file_id}
+			
+	</update>
+	
+	<select id="masterSearchMember" parameterType="map" resultType="map">
+		
+		SELECT
+			*
+		FROM
+			cust_klti.dj_mileage_master
+		WHERE 
+			emp_seq = #{emp_seq}
+
+	</select>
+	
+	<insert id="mileageMasterInsert" parameterType="map">
+
+		INSERT INTO cust_klti.dj_mileage_master
+		(
+			emp_seq,
+			emp_name,
+			total_mileage,
+	        create_date
+		)
+		VALUES
+		(
+			#{emp_seq},
+			#{emp_name},
+			#{sum_mileage},
+			now()
+		)
+		
+	</insert>
+	
+	<insert id="mileageDetailInsert" parameterType="map" useGeneratedKeys="true" keyProperty="dj_mileage_detail_id">
+
+		INSERT INTO dj_mileage_detail
+			(			
+				emp_seq, 
+				emp_name,
+				dept_seq,
+				dept_name,
+				sdate,
+				edate,
+				area,
+				division,
+				use_mileage,
+				save_mileage,
+				lose_mileage,
+				total_mileage,
+				flight,
+				daily_expenses,
+				food_expenses,
+				room_expenses,
+				air_expenses,
+				travel_expenses,
+				etc_expenses,
+				create_emp_seq, 
+				create_date
+			)	
+		VALUES
+			(
+				#{emp_seq}, 
+				#{emp_name},
+				#{dept_seq}, 
+				#{dept_name},
+				#{startDt},
+				#{endDt},
+				#{area},
+				#{division},
+				#{use_mileage},
+				#{save_mileage},
+				#{lose_mileage},
+				#{sum_mileage},
+				#{flight},
+				#{daily_expenses},
+				#{food_expenses},
+				#{room_expenses},
+				#{air_expenses},
+				#{travel_expenses},
+				#{etc_expenses},
+				#{req_emp_seq}, 
+				NOW()
+			)
+		
+	</insert>
+	
+		<insert id="mileageDetailInsert2" parameterType="map" useGeneratedKeys="true" keyProperty="dj_mileage_detail_id">
+
+		INSERT INTO dj_mileage_detail
+			(			
+				emp_seq, 
+				emp_name,
+				dept_seq,
+				dept_name,
+				sdate,
+				edate,
+				area,
+				division,
+				use_mileage,
+				save_mileage,
+				lose_mileage,
+				total_mileage,
+				flight,
+				daily_expenses,
+				food_expenses,
+				room_expenses,
+				air_expenses,
+				travel_expenses,
+				etc_expenses,
+				create_emp_seq, 
+				create_date
+			)	
+		VALUES
+			(
+				#{emp_seq}, 
+				#{emp_name},
+				#{dept_seq}, 
+				#{dept_name},
+				#{startDt},
+				#{endDt},
+				#{area},
+				#{division},
+				#{use_mileage},
+				#{save_mileage},
+				#{lose_mileage},
+				#{total_mileage},
+				#{flight},
+				#{daily_expenses},
+				#{food_expenses},
+				#{room_expenses},
+				#{air_expenses},
+				#{travel_expenses},
+				#{etc_expenses},
+				#{req_emp_seq},
+				NOW()
+			)
+		
+	</insert>
+	
+	<update id="mileageMasterUpdate" parameterType="map">
+
+		UPDATE 
+			cust_klti.dj_mileage_master
+		SET 
+			total_mileage = total_mileage + #{sum_mileage}
+		WHERE 
+			emp_seq = #{emp_seq}
+			
+	</update>
+	
+	<update id="deleteMileageMasterUpdate" parameterType="map">
+
+		UPDATE 
+			cust_klti.dj_mileage_master
+		SET 
+			total_mileage = total_mileage - #{sum_mileage}
+		WHERE 
+			emp_seq = #{emp_seq}
+			
+	</update>
+	
+	<update id="deleteMileageUpdate" parameterType="map">
+
+		UPDATE 
+			cust_klti.dj_mileage_detail
+		SET 
+			active = 'N'
+		WHERE 
+			dj_mileage_detail_id = #{dj_mileage_detail_id}
+			
+	</update>
+	
+	<select id="fileList" resultType="Map" parameterType="Map">
+
+		SELECT 
+			* 
+		FROM 
+			cust_klti.dj_attach_file
+		WHERE 
+			target_id = #{keyId}
+
+
+	</select>
+	
+	<select id="fileDown" parameterType="map" resultType="map">
+		
+		SELECT
+			attach_file_id,
+			target_id,
+			real_file_name,
+			file_extension,
+			file_path,
+			file_name
+		FROM
+			cust_klti.dj_attach_file
+		WHERE 
+			attach_file_id = #{attach_file_id}
+
+	</select>
+</mapper>

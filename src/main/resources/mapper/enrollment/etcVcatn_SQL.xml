@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="etcVcatn">
+
+	<select id="etcVacSetList" resultType="map">
+		SELECT
+			a.*
+		    ,b.VCATN_KND_NAME
+		FROM
+			cust_klti.specl_vcatn_setup a
+		LEFT JOIN
+			cust_klti.vcatn_knd b
+		ON
+			a.VCATN_KND_SN = b.VCATN_KND_SN
+		WHERE
+			a.USE_YN = 'Y'
+		AND
+			b.VCATN_TYPE != 'V001'
+		AND
+			b.VCATN_TYPE != 'V004'
+		ORDER BY
+			a.CREAT_DT DESC
+	</select>
+	
+	<select id="etcVacCode" parameterType="map" resultType="com.duzon.custom.egov_cms.dto.VcatnKndDTO">
+		SELECT *
+		FROM cust_klti.vcatn_knd
+		WHERE USE_YN = "Y"
+		AND VCATN_TYPE != "V001"
+		AND VCATN_TYPE != "V004"
+	</select>
+	
+	<select id="getEtcVcatnList" parameterType="map" resultType="map">
+	
+		/* 특별휴가 리스트 조회 */
+		SELECT
+			a.*
+			,DATE_FORMAT(a.CREAT_DT, '%Y%m%d') as APPLY_YR
+	        ,c.VCATN_KND_NAME
+	        ,c.VALID_PD_YN
+	        ,c.VALID_PD
+	        ,c.VALID_PD_UNIT
+	        ,c.BRMK
+	        ,c.PAY_YN
+	        ,(
+				SELECT
+					IFNULL(SUM(AA.USE_DAY),0)
+				FROM
+					cust_klti.v_vcatn_use_hist AA
+				WHERE
+					AA.SPECL_SN = a.SPECL_SN
+				AND
+					AA.USE_YN = 'Y'
+			) as useDate
+	        ,(
+			CASE
+				WHEN (
+					SELECT 
+						DD.VALID_PD_YN 
+					FROM 
+						cust_klti.specl_vcatn_setup DD
+					WHERE 
+						DD.SPECL_VCATN_SETUP_SN = a.SPECL_VCATN_SETUP_SN) = 'Y'
+	            THEN (
+					SELECT 
+						CASE
+							WHEN (DD.VALID_PD_UNIT) = 'DAY'
+	                        THEN DATE_ADD(a.CREAT_DT, INTERVAL DD.VALID_PD DAY)
+	                        WHEN (DD.VALID_PD_UNIT) = 'MONTH'
+	                        THEN DATE_ADD(a.CREAT_DT, INTERVAL DD.VALID_PD MONTH)
+	                        WHEN (DD.VALID_PD_UNIT) = 'TIME'
+	                        THEN DATE_ADD(a.CREAT_DT, INTERVAL DD.VALID_PD HOUR)
+						END
+					FROM 
+						cust_klti.specl_vcatn_setup DD
+					WHERE 
+						DD.SPECL_VCATN_SETUP_SN = a.SPECL_VCATN_SETUP_SN
+					)
+				
+				ELSE '-'
+			END
+			) as maxDay
+		FROM
+			cust_klti.v_specl a
+		LEFT JOIN
+			cust_klti.v_vcatn_use_hist b
+		ON
+			a.SPECL_SN = b.SPECL_SN
+		LEFT JOIN
+			(
+				SELECT
+					AA.*
+	                ,BB.VCATN_KND_NAME
+	                ,BB.RMK as BRMK
+				FROM
+					cust_klti.specl_vcatn_setup AA
+				LEFT JOIN
+					cust_klti.vcatn_knd BB
+				ON
+					AA.VCATN_KND_SN = BB.VCATN_KND_SN
+				WHERE
+					AA.USE_YN = 'Y'
+				AND BB.VCATN_TYPE != 'V004'
+	        )as c
+		ON
+			a.SPECL_VCATN_SETUP_SN = c.SPECL_VCATN_SETUP_SN
+		WHERE
+			a.USE_YN = 'Y'
+		AND
+			c.SPECL_VCATN_SETUP_SN IS NOT NULL
+		<if test="empSeq != null and empSeq != ''">
+		AND
+			a.EMP_SEQ = #{empSeq}
+		</if>
+			
+		<if test="empNameSearch != null and empNameSearch != ''">
+		AND
+			a.EMP_NAME = #{empNameSearch}
+		</if>
+		<if test="deptName != null and deptName != ''">
+		AND
+			a.DEPT_NAME = #{deptName}
+		</if>
+		<if test="speclVcatnSetupSn != null and speclVcatnSetupSn != ''">
+		AND
+			a.SPECL_VCATN_SETUP_SN = #{speclVcatnSetupSn}
+		</if>
+		<if test="year != null and year != ''">
+		AND
+			a.CREAT_DT LIKE CONCAT(#{year},'%')
+		</if>
+		GROUP BY
+			a.SPECL_SN
+		ORDER BY a.CREAT_DT DESC
+	</select>
+	
+	<select id="getEtcVcatnMyList" parameterType="map" resultType="map">
+		SELECT
+			a.*
+			,DATE_FORMAT(a.CREAT_DT, '%Y%m%d') as APPLY_YR
+            ,c.VCATN_KND_NAME
+            ,c.VALID_PD_YN
+            ,c.VALID_PD
+            ,c.VALID_PD_UNIT
+            ,c.VCATN_KND_NAME as dataView
+            ,a.SPECL_SN as dataValue
+            ,c.CN as cn
+            ,(
+				SELECT
+					SUM(AA.USE_DAY)
+				FROM
+					cust_klti.v_vcatn_use_hist AA
+				WHERE
+					AA.SPECL_SN = a.SPECL_SN
+				AND
+					AA.USE_YN = 'Y'
+			) as useDate
+		FROM
+			cust_klti.v_specl a
+		LEFT JOIN
+			cust_klti.v_vcatn_use_hist b
+		ON
+			a.SPECL_SN = b.SPECL_SN
+		LEFT JOIN
+			(
+				SELECT
+					AA.*
+                    ,BB.VCATN_KND_NAME
+				FROM
+					cust_klti.specl_vcatn_setup AA
+				LEFT JOIN
+					cust_klti.vcatn_knd BB
+				ON
+					AA.VCATN_KND_SN = BB.VCATN_KND_SN
+				WHERE
+					AA.USE_YN = 'Y'
+				AND BB.VCATN_TYPE != 'V004'
+            )as c
+		ON
+			a.SPECL_VCATN_SETUP_SN = c.SPECL_VCATN_SETUP_SN
+		WHERE
+			a.USE_YN = 'Y'
+		AND
+			c.SPECL_VCATN_SETUP_SN IS NOT NULL
+		AND
+			a.EMP_SEQ = #{empSeq}
+		GROUP BY
+			a.SPECL_SN
+		ORDER BY a.CREAT_DT DESC
+	</select>
+	
+	<insert id="etc1" parameterType="map">
+		INSERT INTO cust_klti.V_VCATN_USE_HIST
+			(
+			VCATN_SN,
+			SPECL_SN,
+			VCATN_KND_SN,
+			VCATN_USE_STDT,
+			VCATN_USE_ENDT,
+			USE_DAY,
+			APPRO_KEY,
+			SORT_SN,
+			RMK,
+			USE_YN,
+			CRTR_EMPL_SN,
+			CREAT_DT,
+			TARGET_EMP_SEQ
+			)VALUES(
+			#{etc1_1},							
+			#{etc1_2},
+			#{etc1_3},
+			'0000-01-01 00:00:00',
+			'0000-01-01 00:00:00',
+			#{etc1_4},							
+			'',
+			'0',
+			'',
+			'Y',
+			#{etc1_5},				
+			NOW(),
+			#{etc1_5}				
+			);
+	</insert>
+	
+	<update id="etc2" parameterType="map">
+		UPDATE
+			cust_klti.v_vcatn
+		SET
+			LNGLBC_LAST_DT = #{etc2_2}
+		WHERE
+			EMP_SEQ = #{etc2_1}
+	</update>
+	
+	<select id="toDayAnnvList" parameterType="map" resultType="map">
+	<![CDATA[
+	SELECT
+		date_format(A.VCATN_USE_STDT, '%Y-%m-%d') as start_dt,
+		date_format(A.VCATN_USE_ENDT, '%Y-%m-%d') as end_dt,
+		(CASE
+			WHEN A.SPECL_SN = '0'
+            THEN 
+				(CASE 
+					WHEN A.VCATN_KND_SN = '0' THEN '장기근속휴가'
+					WHEN A.VCATN_KND_SN != '0' THEN
+					(CASE
+						WHEN A.USE_DAY = 0.125 THEN '외출(1시간)'
+                        WHEN A.USE_DAY = 0.250 THEN '외출(2시간)'
+                        WHEN A.USE_DAY = 0.375 THEN '외출(3시간)'
+                        WHEN A.USE_DAY = 0.5 THEN
+                        (CASE
+							WHEN DATE_FORMAT(A.VCATN_USE_STDT, '%H') < 14 THEN '반차(오전)'
+                            ELSE '반차(오후)'
+						END)
+                        ELSE '연가'
+					END)
+				END)
+			WHEN
+				A.SPECL_SN != 0 THEN (SELECT sB.VCATN_KND_NAME FROM cust_klti.v_specl sA
+                LEFT JOIN	 cust_klti.specl_vcatn_setup sC ON sA.SPECL_VCATN_SETUP_SN = sC.SPECL_VCATN_SETUP_SN
+                LEFT JOIN cust_klti.vcatn_knd sB ON sC.VCATN_KND_SN = sB.VCATN_KND_SN WHERE sA.SPECL_SN = A.SPECL_SN)
+				
+		END) as att_div_name_kr,
+        (CASE
+			WHEN A.SPECL_SN = '0'
+            THEN 
+				(CASE 
+					WHEN A.VCATN_KND_SN = '0' THEN '장기근속휴가'
+					WHEN A.VCATN_KND_SN != '0' THEN
+					(CASE
+						WHEN A.USE_DAY = 0.125 THEN '외출(1시간)'
+                        WHEN A.USE_DAY = 0.250 THEN '외출(2시간)'
+                        WHEN A.USE_DAY = 0.375 THEN '외출(3시간)'
+                        WHEN A.USE_DAY = 0.5 THEN
+                        (CASE
+							WHEN DATE_FORMAT(A.VCATN_USE_STDT, '%H') < 14 THEN '반차(오전)'
+                            ELSE '반차(오후)'
+						END)
+                        ELSE '연가'
+					END)
+				END)
+			WHEN
+				A.SPECL_SN != 0 THEN (SELECT sB.VCATN_KND_NAME FROM cust_klti.v_specl sA
+                LEFT JOIN	 cust_klti.specl_vcatn_setup sC ON sA.SPECL_VCATN_SETUP_SN = sC.SPECL_VCATN_SETUP_SN
+                LEFT JOIN cust_klti.vcatn_knd sB ON sC.VCATN_KND_SN = sB.VCATN_KND_SN WHERE sA.SPECL_SN = A.SPECL_SN)
+				
+		END) as att_item_name,
+		(select dept_name from neos.v_interlock_dept where dept_seq = B.DEPT_SEQ) as dept_name,
+		(select emp_name from neos.v_interlock_user where emp_seq = A.TARGET_EMP_SEQ and main_dept_yn = 'Y'	
+		) as emp_name FROM cust_klti.v_vcatn_use_hist A
+		LEFT JOIN
+			cust_klti.v_vcatn B
+		ON
+			A.TARGET_EMP_SEQ = B.EMP_SEQ
+		WHERE date_format(A.VCATN_USE_STDT,'%Y-%m-%d')  <= date_format(NOW(),'%Y-%m-%d') 
+		AND date_format(A.VCATN_USE_ENDT,'%Y-%m-%d')  >= date_format(NOW(),'%Y-%m-%d') 
+		AND A.use_yn = 'Y' 
+	]]>
+	</select>
+	
+	
+	<!-- <select id="toDayAnnvList" parameterType="map" resultType="map">
+	<![CDATA[
+	SELECT
+		date_format(A.VCATN_USE_STDT, '%Y-%m-%d') as start_dt,
+		date_format(A.VCATN_USE_ENDT, '%Y-%m-%d') as end_dt,
+		
+        CONCAT('휴가') as att_div_name_kr,
+        CONCAT('휴가') as att_item_name,
+        
+		(select dept_name from neos.v_interlock_dept where dept_seq = B.DEPT_SEQ) as dept_name,
+		(select emp_name from neos.v_interlock_user where emp_seq = A.TARGET_EMP_SEQ and main_dept_yn = 'Y'	
+		) as emp_name FROM cust_klti.v_vcatn_use_hist A
+		LEFT JOIN
+			cust_klti.v_vcatn B
+		ON
+			A.TARGET_EMP_SEQ = B.EMP_SEQ
+		WHERE date_format(A.VCATN_USE_STDT,'%Y-%m-%d')  <= date_format(NOW(),'%Y-%m-%d') 
+		AND date_format(A.VCATN_USE_ENDT,'%Y-%m-%d')  >= date_format(NOW(),'%Y-%m-%d') 
+		AND A.use_yn = 'Y' 
+	]]>
+	</select> -->
+</mapper>

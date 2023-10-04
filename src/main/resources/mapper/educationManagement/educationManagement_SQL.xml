@@ -1,0 +1,1018 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="educationManagement">    
+    
+    <insert id="educationManagement.groupEduReg" parameterType="map" useGeneratedKeys="true" keyProperty="education_id">
+		insert into dj_education
+		(
+		education_type_code_id		
+		,education_type
+		,education_name
+		,education_start_date
+		,education_end_date
+		,education_start_time
+		,education_end_time
+		,education_hour
+		,required_yn
+		,required_code
+		,required_code_id
+		,education_agency
+		,education_place
+		,enforcement_dept_name
+		,manager_emp_seq
+		,online_education_type
+		,main_category
+		,middle_category
+		,small_category
+		,education_process_code
+		,education_cost
+		,education_step_code_id
+		,education_step
+		,return_cause
+		,remark
+		,write_emp_seq
+		,write_emp_ip
+		,write_date	
+		,enroll_date			
+		)
+		values
+		(
+		#{education_type_code_id}	 		
+		,#{education_type}
+		,#{education_name}
+		,#{education_start_date}
+		,#{education_end_date}
+		,#{education_start_time}
+		,#{education_end_time}
+		,#{education_hour}
+		,#{required_yn}
+		,#{required_code}	
+		,#{required_code_id}						
+		,#{education_agency}
+		,#{education_place}
+		,#{enforcement_dept_name}		
+		,#{manager_emp_seq}
+		,#{online_education_type}		
+		,#{main_category}	
+		,#{middle_category}	
+		,#{small_category}	
+		,#{education_process_code}	
+		,#{education_cost}	
+		,#{education_step_code_id}	
+		,#{education_step}	
+		,#{return_cause}
+		,#{remark}
+		,#{userId}
+		,#{localIp}	
+		,now()
+		,#{enroll_date}	
+		)
+	</insert>
+     
+     <insert id="educationManagement.groupEduPersonReg" parameterType="map">
+		insert into dj_education_PERSON
+		(
+		education_id
+		,education_emp_seq
+		,education_dept_seq
+		,education_dept_name
+		,education_position
+		,education_duty
+		,education_cost_support_yn
+		,education_cost
+		,complete_hour
+		,complete_state_code_id
+		,complete_state
+		,score
+		,remark
+		,write_emp_seq
+		,write_emp_ip
+		,write_date
+		,enroll_date
+		)
+		values
+		(
+		#{education_id}	 
+		,#{education_emp_seq}
+		,#{education_dept_seq}
+		,#{education_dept_name}
+		,#{education_position}
+		,#{education_duty}
+		,#{education_cost_support_yn}
+		,#{education_cost}
+		,#{education_hour}
+		,#{complete_state_code_id}
+		,#{complete_state}
+		,#{score}
+		,#{remark}
+		,#{userId}					
+		,#{localIp}
+		,now()
+		,#{enroll_date}	
+		)
+	</insert>
+	
+     <select id="educationManagement.eduList" resultType="Map" parameterType="Map">
+   		
+    	SELECT 
+			*,
+		    DATE_FORMAT(education_start_date, '%Y-%m-%d') AS eduStDt,
+		    DATE_FORMAT(education_end_date, '%Y-%m-%d') AS eduEdDt,
+		    (SELECT code_kr FROM dj_common_code WHERE group_code = 'EDUCATION_STEP' AND `code` = education_step_code_id AND active = 'Y') AS eduStep
+		FROM
+    	dj_education
+    		WHERE
+    			ACTIVE = 'Y'
+    		<if test='eduDn == "G"'>
+    			AND education_type_code_id = 'ED01'
+    		</if>  
+    		<if test='eduDn == "P"'>
+    			AND education_type_code_id = 'ED02'
+    		</if>   		
+    		<if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+    			AND (DATE_FORMAT(education_start_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo} OR DATE_FORMAT(education_end_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo})
+    		</if>	
+    		<if test='approval == "Y"'>
+    			AND education_step_code_id != 'ES01'
+    		</if>
+    		<if test="deptName != '전체'">
+    			AND enforcement_dept_name = #{deptName}
+    		</if>
+    		<if test="eduName != null and eduName != ''">
+    			AND education_name LIKE CONCAT ('%',#{eduName},'%')
+    		</if>
+    		ORDER BY education_step_code_id ASC,education_start_date DESC
+    	LIMIT ${skip} , ${pageSize}
+    </select>
+    
+    <select id="educationManagement.eduListTotal" resultType="int" parameterType="Map">
+    	SELECT COUNT(1) FROM 
+    	(
+    	SELECT 
+			*,
+		    DATE_FORMAT(education_start_date, '%Y-%m-%d') AS eduStDt,
+		    DATE_FORMAT(education_end_date, '%Y-%m-%d') AS eduEdDt,
+		    (SELECT code_kr FROM dj_common_code WHERE group_code = 'EDUCATION_STEP' AND `code` = education_step_code_id AND active = 'Y') AS eduStep
+		FROM
+    	dj_education
+    		WHERE
+    			ACTIVE = 'Y'
+    		<if test='eduDn == "G"'>
+    			AND education_type_code_id = 'ED01'
+    		</if> 
+    		<if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+    			AND (DATE_FORMAT(education_start_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo} OR DATE_FORMAT(education_end_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo})
+    		</if>	
+    		<if test='approval == "Y"'>
+    			AND education_step_code_id != 'ES01'
+    		</if>
+    		<if test="deptName != '전체'">
+    			AND enforcement_dept_name = #{deptName}
+    		</if>
+    		<if test="eduName != null and eduName != ''">
+    			AND education_name LIKE CONCAT ('%',#{eduName},'%')
+    		</if>
+    		
+    		ORDER BY education_step_code_id ASC,education_start_date DESC
+    		) 
+    		t
+    </select>
+    
+    <select id="educationManagement.groupEduDetailList" resultType="Map" parameterType="Map">
+   		
+    	SELECT 
+		    *,
+		    (SELECT EMP_NAME FROM NEOS.T_CO_EMP_MULTI WHERE EMP_SEQ = education_emp_seq AND LANG_CODE = 'KR') AS empName
+		FROM
+		    dj_education_PERSON
+		WHERE ACTIVE = 'Y'
+		AND education_id = #{education_id}
+		ORDER BY education_dept_name ASC
+    	LIMIT ${skip} , ${pageSize}
+    </select>
+    
+    <select id="educationManagement.groupEduDetailListTotal" resultType="int" parameterType="Map">
+    	SELECT COUNT(1) FROM 
+    	(
+    	SELECT 
+		    *,
+		    (SELECT EMP_NAME FROM NEOS.T_CO_EMP_MULTI WHERE EMP_SEQ = education_emp_seq AND LANG_CODE = 'KR') AS empName
+		FROM
+		    dj_education_PERSON
+		WHERE ACTIVE = 'Y'
+		AND education_id = #{education_id}
+		ORDER BY education_dept_name ASC
+		) 
+    		t
+    </select>
+    
+    <update id="educationManagement.groupEduApproval" parameterType="Map">
+    	UPDATE dj_education SET
+    	EDUCATION_STEP_CODE_ID = #{education_step_code_id},
+    	EDUCATION_STEP = #{education_step},
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE EDUCATION_ID = #{education_id}
+    
+    </update>
+    
+    <insert id="educationManagement.eduFinFileSave" parameterType="map" useGeneratedKeys="true" keyProperty="attach_file_id">
+		insert into dj_attach_file
+		(
+		target_table_name, 
+		target_id,
+		file_seq
+		)
+		values
+		(
+		#{tableName}
+		,#{targetKey}
+		,#{file_seq}
+		
+		)
+	</insert>
+	
+	<insert id="educationManagement.eduResultFileSave" parameterType="map" useGeneratedKeys="true" keyProperty="education_result_id">
+		insert into dj_education_result_file
+		(
+		education_id, 
+		education_file_seq
+		)
+		values
+		(
+		#{targetKey}
+		,#{education_file_seq}
+		
+		)
+	</insert>
+	
+	<update id="educationManagement.eduFinFileUpload" parameterType="map" >
+		
+			UPDATE dj_attach_file SET 
+		file_name = #{attach_file_id}
+		,real_file_name = #{fileNm}		
+		, file_extension = #{ext}
+		, file_path = #{filePath}
+		, file_size = #{fileSize}
+		WHERE attach_file_id = #{attach_file_id}
+	</update>
+	
+	<update id="educationManagement.eduResultFileUpload" parameterType="map" >
+		
+			UPDATE dj_education_result_file SET 
+		education_file_name = #{education_result_id}
+		,real_file_name = #{fileNm}		
+		, file_extension = #{ext}
+		, file_path = #{filePath}
+		, file_size = #{fileSize}
+		WHERE education_result_id = #{education_result_id}
+	</update>
+	
+	<update id="educationManagement.eduFinApproval" parameterType="map" >
+		
+			UPDATE dj_education SET 
+		education_step_code_id = #{education_step_code_id}
+		,education_step = #{education_step}		
+		,last_update_emp_seq = #{userId}
+		,last_update_emp_ip = #{localIp}
+		,update_date = now()
+		WHERE education_id = #{mainKey}
+	</update>
+	
+	<update id="educationManagement.eduPersonFinApproval" parameterType="map" >
+		
+			UPDATE dj_education_PERSON SET 
+		complete_state_code_id = #{complete_state_code_id}
+		,complete_state = #{complete_state}		
+		,last_update_emp_seq = #{userId}
+		,last_update_emp_ip = #{localIp}
+		,update_date = now()
+		WHERE education_person_id = #{education_person_id}
+	</update>
+	
+	<update id="educationManagement.eduPersonFinReset" parameterType="map" >
+		
+		UPDATE dj_education_PERSON SET 
+		complete_state_code_id = #{complete_state_code_id}
+		,complete_state = #{complete_state}
+		,last_update_emp_seq = #{userId}
+		,last_update_emp_ip = #{localIp}
+		,update_date = now()
+		WHERE education_person_id = #{education_person_id}
+	</update>
+    
+    
+    <select id="educationManagement.privateEduList" resultType="Map" parameterType="Map">
+   		
+    	SELECT 
+	TE.education_id,
+	TE.education_type_code_id,
+	TE.education_type,
+	TE.education_name,
+	TE.education_hour,
+	TE.education_agency,
+	TE.remark,
+	CASE WHEN TE.education_cost IS NULL THEN 0 ELSE TE.education_cost END AS education_cost,
+    DATE_FORMAT(TE.education_start_date, '%Y-%m-%d') AS eduStDt,
+	DATE_FORMAT(TE.education_end_date, '%Y-%m-%d') AS eduEdDt,
+    TEP.education_person_id,
+    (SELECT 
+            EMP_NAME
+        FROM
+            NEOS.T_CO_EMP_MULTI
+        WHERE
+            EMP_SEQ = TEP.EDUCATION_EMP_SEQ
+                AND USE_YN = 'Y'
+                AND LANG_CODE = 'KR') AS EMP_NAME,
+	TEP.education_emp_seq,
+	TEP.complete_state_code_id,
+    (SELECT code_kr FROM dj_common_code WHERE group_code = 'EDU_COMPLETION_STS' AND `code` = TEP.complete_state_code_id AND active = 'Y') AS completeState,
+    TEP.complete_state,
+    TEP.education_cost_support_yn,
+    TEP.education_dept_name,
+    TEP.education_position,
+    TEP.education_duty,
+    TEP.complete_hour,
+    TEP.return_cause
+FROM
+    dj_education TE
+        INNER JOIN
+    dj_education_PERSON TEP ON TE.EDUCATION_ID = TEP.EDUCATION_ID
+        AND TE.ACTIVE = 'Y'
+        AND TEP.ACTIVE = 'Y'
+        WHERE TE.EDUCATION_TYPE_CODE_ID = 'ED02'
+        <if test="education_emp_seq != null and education_emp_seq != ''">
+    			AND TEP.education_emp_seq = #{education_emp_seq}
+    	</if>
+    	<if test="complete_state_code_id != null and complete_state_code_id != ''">
+    			AND TEP.complete_state_code_id = #{complete_state_code_id}
+    	</if>        
+        <if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+    			AND (DATE_FORMAT(TE.education_start_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo} OR DATE_FORMAT(TE.education_end_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo})
+    	</if>	
+        ORDER BY TE.write_date DESC
+    	LIMIT ${skip} , ${pageSize}
+    </select>
+    
+    <select id="educationManagement.privateEduListTotal" resultType="int" parameterType="Map">
+    	SELECT COUNT(1) FROM 
+    	(
+    	SELECT 
+	TE.education_id,
+	TE.education_type_code_id,
+	TE.education_type,
+	TE.education_name,
+	TE.education_hour,
+	TE.education_agency,
+	TE.remark,
+	CASE WHEN TE.education_cost IS NULL THEN 0 ELSE TE.education_cost END AS education_cost,
+    DATE_FORMAT(TE.education_start_date, '%Y-%m-%d') AS eduStDt,
+	DATE_FORMAT(TE.education_end_date, '%Y-%m-%d') AS eduEdDt,
+    TEP.education_person_id,
+    (SELECT 
+            EMP_NAME
+        FROM
+            NEOS.T_CO_EMP_MULTI
+        WHERE
+            EMP_SEQ = TEP.EDUCATION_EMP_SEQ
+                AND USE_YN = 'Y'
+                AND LANG_CODE = 'KR') AS EMP_NAME,
+	TEP.education_emp_seq,
+	TEP.complete_state_code_id,
+    (SELECT code_kr FROM dj_common_code WHERE group_code = 'EDU_COMPLETION_STS' AND `code` = TEP.complete_state_code_id AND active = 'Y') AS completeState,
+    TEP.complete_state,
+    TEP.education_cost_support_yn,
+    TEP.education_dept_name,
+    TEP.education_position,
+    TEP.education_duty,
+    TEP.complete_hour,
+    TEP.return_cause
+FROM
+    dj_education TE
+        INNER JOIN
+    dj_education_PERSON TEP ON TE.EDUCATION_ID = TEP.EDUCATION_ID
+        AND TE.ACTIVE = 'Y'
+        AND TEP.ACTIVE = 'Y'
+        WHERE TE.EDUCATION_TYPE_CODE_ID = 'ED02'
+        <if test="education_emp_seq != null and education_emp_seq != ''">
+    			AND TEP.education_emp_seq = #{education_emp_seq}
+    	</if>
+    	<if test="complete_state_code_id != null and complete_state_code_id != ''">
+    			AND TEP.complete_state_code_id = #{complete_state_code_id}
+    	</if>        
+        <if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+    			AND (DATE_FORMAT(TE.education_start_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo} OR DATE_FORMAT(TE.education_end_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo})
+    	</if>
+        ORDER BY TE.write_date DESC
+    		) 
+    		t
+    </select>
+    
+    <update id="educationManagement.privateFinReject" parameterType="map" >
+		
+		UPDATE dj_education_PERSON SET 
+		complete_state_code_id = #{complete_state_code_id}
+		,complete_state = #{complete_state}
+		,return_cause = #{return_cause}
+		,last_update_emp_seq = #{userId}
+		,last_update_emp_ip = #{localIp}
+		,update_date = now()
+		WHERE education_person_id = #{education_person_id}
+	</update>
+    
+    
+    <select id="educationManagement.privateEduStsList" resultType="Map" parameterType="Map">
+   		SELECT 
+   		T.*
+   		,(SELECT code_val FROM dj_common_code WHERE group_code = 'YEARLY_EDU_TIME' AND `code` = CONCAT('ET', DATE_FORMAT(NOW(), '%Y')) AND active = 'Y') AS yearlyEduTime 
+   		FROM
+		(
+		SELECT
+			COUNT(tep.education_emp_seq) as COUNT,
+			tep.education_emp_seq,
+			tep.education_dept_name,
+            tep.education_position,
+            tep.education_duty,
+			(SELECT EMP_NAME FROM NEOS.T_CO_EMP_MULTI WHERE emp_seq = tep.education_emp_seq AND lang_code = 'kr') AS emp_name,
+		    SUM(IF(te.education_type_code_id = 'ED01' AND tep.complete_state_code_id = 'EC02' ,tep.complete_hour, 0)) AS groupEduTotal,
+		    SUM(IF(te.education_type_code_id = 'ED02' AND tep.complete_state_code_id = 'EC02' ,tep.complete_hour, 0)) AS privateEduTotal,
+		    SUM(IF(te.education_type_code_id = 'ED03' AND tep.complete_state_code_id = 'EC04' ,tep.complete_hour, 0)) AS onlineEduTotal,
+		    SUM(IF(tep.complete_state_code_id = 'EC02' OR tep.complete_state_code_id = 'EC04',tep.complete_hour,0)) AS eduTotal,
+		    <!-- SUM(IF(te.education_type_code_id = 'ED03' AND tep.complete_state_code_id = 'EC04' ,tep.education_cost, 0)) AS onlineEduCostTotal, -->
+		    SUM(IF(te.education_type_code_id = 'ED03' AND tep.complete_state_code_id IN ('EC04', 'EC05') ,tep.education_cost, 0)) AS onlineEduCostTotal,
+		    SUM(IF(te.education_type_code_id = 'ED02' AND tep.complete_state_code_id = 'EC02' ,tep.education_cost, 0)) AS privateEduCostTotal,
+		    CASE WHEN COUNT(CASE WHEN te.required_code_id = 'CE01' AND tep.complete_state_code_id = 'EC02' THEN 1 END) > 0 THEN 'Y' ELSE 'N' END AS antiCorruption,
+            CASE WHEN COUNT(CASE WHEN te.required_code_id = 'CE02' AND tep.complete_state_code_id = 'EC02' THEN 1 END) > 0 THEN 'Y' ELSE 'N' END AS fourViolence,
+            CASE WHEN COUNT(CASE WHEN te.required_code_id = 'CE03' AND tep.complete_state_code_id = 'EC02' THEN 1 END) > 0 THEN 'Y' ELSE 'N' END AS customerService,
+            CASE WHEN COUNT(CASE WHEN te.education_type_code_id = 'ED03' AND te.required_yn = 'Y' AND tep.complete_state_code_id = 'EC04' THEN 1 END) > 0 THEN 'Y' ELSE 'N' END AS requiredOnline
+		FROM
+		    dj_education te
+		        INNER JOIN
+		    dj_education_PERSON tep ON te.education_id = tep.education_id
+		        AND te.active = 'Y'
+		        AND tep.active = 'Y'
+		        <if test="year != null and year != ''">
+    				AND DATE_FORMAT(te.education_start_date, '%Y') = #{year}
+    			</if>
+    			<if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+		    			AND (DATE_FORMAT(te.education_start_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo} OR DATE_FORMAT(te.education_end_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo})
+		    	</if>		        
+		WHERE te.education_step_code_id = 'ES03' OR te.education_step_code_id is null
+		GROUP BY tep.education_emp_seq
+		ORDER BY tep.education_dept_name
+		) T 
+		<where>
+			<if test='education_dept_name != "전체"'>
+		    	AND T.education_dept_name = #{education_dept_name}
+			</if>
+			<if test="education_emp_seq != null and education_emp_seq != ''">
+		    	AND T.education_emp_seq = #{education_emp_seq}
+			</if>
+			<if test="education_duty != null and education_duty != ''">
+		    	AND T.education_position IN
+				<foreach collection="education_duty" item="duty" open="(" close=")" separator="," index="index">
+		    		 #{duty}
+		    	</foreach>
+			</if>
+		</where>
+		
+		LIMIT ${skip} , ${pageSize}
+    </select>
+    
+    <select id="educationManagement.privateEduStsListTotal" resultType="int" parameterType="Map">
+	   		SELECT COUNT(1) FROM 
+	    	(
+	    		SELECT 
+   		T.*
+   		,(SELECT code_val FROM dj_common_code WHERE group_code = 'YEARLY_EDU_TIME' AND `code` = 'ET2018' AND active = 'Y') AS yearlyEduTime 
+   		FROM
+		(
+		SELECT
+			COUNT(tep.education_emp_seq) as COUNT,
+			tep.education_emp_seq,
+			tep.education_dept_name,
+            tep.education_position,
+            tep.education_duty,
+			(SELECT EMP_NAME FROM NEOS.T_CO_EMP_MULTI WHERE emp_seq = tep.education_emp_seq AND lang_code = 'kr') AS emp_name,
+		    SUM(IF(te.education_type_code_id = 'ED01' AND tep.complete_state_code_id = 'EC02' ,tep.complete_hour, 0)) AS groupEduTotal,
+		    SUM(IF(te.education_type_code_id = 'ED02' AND tep.complete_state_code_id = 'EC02' ,tep.complete_hour, 0)) AS privateEduTotal,
+		    SUM(IF(te.education_type_code_id = 'ED03' AND tep.complete_state_code_id = 'EC04' ,tep.complete_hour, 0)) AS onlineEduTotal,
+		    SUM(IF(tep.complete_state_code_id = 'EC02',tep.complete_hour,0)) AS eduTotal,
+		    
+		    <!-- SUM(IF(te.education_type_code_id = 'ED03' AND tep.complete_state_code_id = 'EC04' ,tep.education_cost, 0)) AS onlineEduCostTotal, -->
+		    SUM(IF(te.education_type_code_id = 'ED03' AND tep.complete_state_code_id IN ('EC04', 'EC05') ,tep.education_cost, 0)) AS onlineEduCostTotal,
+		    SUM(IF(te.education_type_code_id = 'ED02' AND tep.complete_state_code_id = 'EC02' ,tep.education_cost, 0)) AS privateEduCostTotal,
+		    CASE WHEN COUNT(CASE WHEN te.required_code_id = 'CE01' AND tep.complete_state_code_id = 'EC02' THEN 1 END) > 0 THEN 'Y' ELSE 'N' END AS antiCorruption,
+            CASE WHEN COUNT(CASE WHEN te.required_code_id = 'CE02' AND tep.complete_state_code_id = 'EC02' THEN 1 END) > 0 THEN 'Y' ELSE 'N' END AS fourViolence,
+            CASE WHEN COUNT(CASE WHEN te.required_code_id = 'CE03' AND tep.complete_state_code_id = 'EC02' THEN 1 END) > 0 THEN 'Y' ELSE 'N' END AS customerService,
+            CASE WHEN COUNT(CASE WHEN te.education_type_code_id = 'ED03' AND te.required_yn = 'Y' AND tep.complete_state_code_id = 'EC04' THEN 1 END) > 0 THEN 'Y' ELSE 'N' END AS requiredOnline
+		FROM
+		    dj_education te
+		        INNER JOIN
+		    dj_education_PERSON tep ON te.education_id = tep.education_id
+		        AND te.active = 'Y'
+		        AND tep.active = 'Y'
+		        <if test="year != null and year != ''">
+    				AND DATE_FORMAT(te.education_start_date, '%Y') = #{year}
+    			</if>
+    			<if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+		    			AND (DATE_FORMAT(te.education_start_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo} OR DATE_FORMAT(te.education_end_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo})
+		    	</if>		        
+		WHERE te.education_step_code_id = 'ES03' OR te.education_step_code_id is null
+		GROUP BY tep.education_emp_seq
+		ORDER BY tep.education_dept_name
+		) T 
+		<where>
+			<if test='education_dept_name != "전체"'>
+		    	AND T.education_dept_name = #{education_dept_name}
+			</if>
+			<if test="education_emp_seq != null and education_emp_seq != ''">
+		    	AND T.education_emp_seq = #{education_emp_seq}
+			</if>
+			<if test="education_duty != null and education_duty != ''">
+		    	AND T.education_position IN
+				<foreach collection="education_duty" item="duty" open="(" close=")" separator="," index="index">
+		    		 #{duty}
+		    	</foreach>
+			</if>
+		</where>
+		
+		
+    		) 
+    		tt
+    </select>
+    
+    <select id="educationManagement.privateEduStsDetailList" resultType="Map" parameterType="Map">
+   		SELECT t.* from
+		(
+		SELECT 
+			tep.education_person_id,
+			tep.education_emp_seq,
+			tep.education_dept_name,
+            tep.education_position,
+            tep.education_duty,
+			(SELECT EMP_NAME FROM NEOS.T_CO_EMP_MULTI WHERE emp_seq = tep.education_emp_seq AND lang_code = 'kr') AS emp_name
+		    ,te.education_type
+		    ,(SELECT code_kr FROM dj_common_code WHERE group_code = 'EDUCATION_DN' AND `code` = te.education_type_code_id AND active = 'Y') AS educationType
+            ,case when te.education_type_code_id = 'ED03' then case when (te.middle_category is null or te.middle_category = '-') and (te.small_category is null or te.small_category = '-') then concat(te.online_education_type, '-', te.main_category)
+                                                              when (te.small_category is null or te.small_category = '-') then concat(te.online_education_type, '-', te.main_category, '-', te.middle_category)
+                                                              else concat(te.online_education_type, '-', te.main_category, '-', te.middle_category, '-', te.small_category)
+                                          end
+                else ''
+         	end onlineEduDiv
+		    ,te.education_type_code_id
+		    ,te.education_id
+		    ,te.enforcement_dept_name
+<!-- 		    ,te.education_name -->
+			,case when te.education_type_code_id = 'ED03' then concat('(', te.education_process_code, ')', te.education_name)
+                else te.education_name
+         	end education_name
+		    ,te.education_place
+		    ,case when tep.complete_state_code_id = 'EC05' THEN tep.complete_state
+                else concat(round(tep.complete_hour, 0), ' 시간')
+         end complete_hour
+		    ,DATE_FORMAT(te.education_start_date, '%Y-%m-%d') AS eduStart
+		    ,DATE_FORMAT(te.education_end_date, '%Y-%m-%d') AS eduEnd
+		    ,te.required_yn
+		    ,tep.score
+		    ,CASE WHEN tep.education_cost IS NULL THEN 0 ELSE tep.education_cost END AS education_cost
+		FROM
+		    dj_education te
+		        INNER JOIN
+		    dj_education_person tep ON te.education_id = tep.education_id
+		        AND te.active = 'Y'
+		        AND tep.active = 'Y'
+		        <if test="year != null and year != ''">
+		    		AND DATE_FORMAT(te.education_start_date, '%Y') = #{year}
+		    	</if>
+		    	<if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+		    			AND (DATE_FORMAT(te.education_start_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo} OR DATE_FORMAT(te.education_end_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo})
+		    	</if>
+		WHERE (TEP.complete_state_code_id = 'EC02' OR TEP.complete_state_code_id = 'EC04' OR TEP.complete_state_code_id = 'EC05' OR TE.education_step_code_id = 'ES03')
+		) t
+			WHERE T.education_emp_seq = #{education_emp_seq}
+			<if test='education_dept_name != "전체"'>
+		    	AND T.education_dept_name = #{education_dept_name}
+			</if>
+<!-- 			<if test="education_emp_seq != null and education_emp_seq != ''"> -->
+<!-- 		    	AND T.education_emp_seq = #{education_emp_seq} -->
+<!-- 			</if> -->
+			<if test="education_duty != null and education_duty != ''">
+		    	AND T.education_position IN
+				<foreach collection="education_duty" item="duty" open="(" close=")" separator="," index="index">
+		    		 #{duty}
+		    	</foreach>
+			</if>
+		ORDER BY t.eduStart DESC
+		LIMIT ${skip} , ${pageSize}
+    </select>
+    
+    <select id="educationManagement.privateEduStsDetailListTotal" resultType="int" parameterType="Map">
+   		SELECT COUNT(1) FROM 
+    	(
+    		SELECT t.* from
+			(
+			SELECT 
+			tep.education_person_id,
+			tep.education_emp_seq,
+			tep.education_dept_name,
+            tep.education_position,
+            tep.education_duty,
+			(SELECT EMP_NAME FROM NEOS.T_CO_EMP_MULTI WHERE emp_seq = tep.education_emp_seq AND lang_code = 'kr') AS emp_name
+		    ,te.education_type
+		    ,(SELECT code_kr FROM dj_common_code WHERE group_code = 'EDUCATION_DN' AND `code` = te.education_type_code_id AND active = 'Y') AS educationType
+		    ,te.education_type_code_id
+		    ,te.education_id
+		    ,te.enforcement_dept_name
+		    ,te.education_name
+		    ,te.education_place
+		    ,tep.complete_hour
+		    ,DATE_FORMAT(te.education_start_date, '%Y-%m-%d') AS eduStart
+		    ,DATE_FORMAT(te.education_end_date, '%Y-%m-%d') AS eduEnd
+		    ,te.required_yn
+		    ,CASE WHEN tep.education_cost IS NULL THEN 0 ELSE tep.education_cost END AS education_cost
+		FROM
+			    dj_education te
+			        INNER JOIN
+			    dj_education_person tep ON te.education_id = tep.education_id
+			        AND te.active = 'Y'
+			        AND tep.active = 'Y'
+			       <if test="year != null and year != ''">
+			    		AND DATE_FORMAT(te.education_start_date, '%Y') = #{year}
+			    	</if>
+			    	<if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+			    			AND (DATE_FORMAT(te.education_start_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo} OR DATE_FORMAT(te.education_end_date, '%Y-%m') BETWEEN #{dateFr} AND #{dateTo})
+			    	</if>
+			WHERE (TEP.complete_state_code_id = 'EC02' OR TEP.complete_state_code_id = 'EC04' OR TEP.complete_state_code_id = 'EC05' OR TE.education_step_code_id = 'ES03')
+			) t
+			
+				WHERE T.education_emp_seq = #{education_emp_seq}
+			<if test='education_dept_name != "전체"'>
+		    	AND T.education_dept_name = #{education_dept_name}
+			</if>
+<!-- 			<if test="education_emp_seq != null and education_emp_seq != ''"> -->
+<!-- 		    	AND T.education_emp_seq = #{education_emp_seq} -->
+<!-- 			</if> -->
+			<if test="education_duty != null and education_duty != ''">
+		    	AND T.education_position IN
+				<foreach collection="education_duty" item="duty" open="(" close=")" separator="," index="index">
+		    		 #{duty}
+		    	</foreach>
+			</if>
+			ORDER BY t.eduStart DESC
+    		) 
+    		tt
+    </select>
+        
+	<update id="educationManagement.onlineEduReset" parameterType="onlineEduVO">
+		UPDATE dj_education SET
+    	active = 'N',
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE enroll_date = #{enroll_date}
+	</update>
+		
+	<update id="educationManagement.onlineEduPersonReset" parameterType="onlineEduVO">
+		UPDATE dj_education_PERSON SET
+    	active = 'N',
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE enroll_date = #{enroll_date}
+	</update>
+	
+	<select id="educationManagement.onlineEduExcelList" resultType="Map" parameterType="Map">
+   		
+    	SELECT 
+    em.education_id,
+    em.online_education_type,
+    em.main_category,
+    em.middle_category,
+    em.small_category,
+    em.education_process_code,
+    em.education_name,
+    em.education_hour,
+    em.education_cost,
+    em.education_start_date,
+    em.education_end_date,
+    es.education_dept_seq,
+    es.education_erp_emp_num,
+    es.education_login_id,
+    es.education_emp_name,
+    es.education_person_id,
+    es.education_emp_seq,
+    (SELECT emp_name FROM neos.t_co_emp_multi where lang_code = 'kr' and use_yn = 'Y' and emp_seq = es.education_emp_seq) AS emp_name,
+    (SELECT login_id FROM neos.t_co_emp where use_yn = 'Y' and emp_seq = es.education_emp_seq) as login_id,
+    es.education_dept_name,
+    es.score,
+    CASE WHEN es.complete_state_code_id = 'EC04' THEN 'Y' ELSE 'N' END AS complete_yn
+FROM
+    dj_education em INNER JOIN dj_education_person es ON em.education_id = es.education_id AND em.active = 'Y' AND es.active = 'Y'
+    WHERE em.enroll_date = #{date}
+    </select>
+	
+	<update id="educationManagement.onlineEduUpdate" parameterType="Map">
+    	UPDATE dj_education SET
+    	education_type_code_id = #{education_type_code_id},
+    	education_type = #{education_type},
+    	education_name = #{education_name},
+    	education_start_date = #{education_start_date},
+    	education_end_date = #{education_end_date},
+    	education_hour = #{education_hour},
+    	online_education_type = #{online_education_type},
+    	main_category = #{main_category},
+    	middle_category = #{middle_category},
+    	small_category = #{small_category},
+    	education_process_code = #{education_process_code},
+    	education_cost = #{education_cost},    	
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE EDUCATION_ID = #{education_id}
+    
+    </update>
+    
+    <update id="educationManagement.onlineEduPersonUpdate" parameterType="Map">
+    	UPDATE dj_education_PERSON SET
+    	education_erp_emp_num = #{education_erp_emp_num},
+    	score = #{score},
+    	education_cost = #{education_cost},
+    	complete_hour = #{education_hour},
+    	complete_state_code_id = #{complete_state_code_id},
+    	complete_state = #{complete_state},
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE education_person_id = #{education_person_id}
+    
+    </update>
+	<update id="educationManagement.onlineEduPersonDel" parameterType="Map">
+    	UPDATE dj_education_PERSON SET
+    	active = 'N',
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE education_person_id = #{education_person_id}
+    
+    </update>
+    <update id="educationManagement.onlineEduDel" parameterType="Map">
+    	UPDATE dj_education SET
+    	active = 'N',
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE education_id = #{education_id}
+    
+    </update>
+    
+    <update id="educationManagement.eduReqDel" parameterType="Map">
+    	UPDATE dj_education SET
+    	active = 'N',
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE education_id IN  (${data})
+    
+    </update>
+    
+    
+    <update id="educationManagement.groupEduCancle" parameterType="Map">
+    	UPDATE dj_education SET
+    	education_step_code_id = #{education_step_code_id},
+    	education_step = #{education_step},
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE education_id IN  (${data})
+    
+    </update>
+    
+    <update id="educationManagement.eduReqPersonDel" parameterType="Map">
+    	UPDATE dj_education_PERSON SET
+    	active = 'N',
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE education_id IN  (${data})
+    
+    </update>
+    
+    
+    <select id="educationManagement.getResultFileSeq" parameterType="map" resultType="int">
+		SELECT 
+		CASE WHEN
+	    MAX(education_file_seq+0) IS NULL THEN 0
+       ELSE MAX(education_file_seq+0)+1
+       END AS education_file_seq
+	FROM
+    dj_education_result_file
+	WHERE 
+		education_id = #{targetKey}
+	</select>
+    
+    <update id="educationManagement.privateEduUpdate" parameterType="Map">
+    	UPDATE dj_education SET
+    	education_name = #{education_name},
+    	education_agency = #{education_agency},
+    	education_hour = #{education_hour},
+    	education_start_date = #{education_start_date},
+    	education_end_date = #{education_end_date},
+    	education_cost = #{education_cost},
+    	remark = #{remark},
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE EDUCATION_ID = #{education_id}
+    
+    </update>
+    
+    <update id="educationManagement.privateEduPersonUpdate" parameterType="Map">
+    	UPDATE dj_education_PERSON SET
+    	education_cost = #{education_cost},
+    	education_cost_support_yn = #{education_cost_support_yn},
+    	complete_hour = #{education_hour},
+    	remark = #{remark},
+    	LAST_UPDATE_EMP_SEQ = #{userId},
+    	LAST_UPDATE_EMP_IP = #{localIp},
+    	UPDATE_DATE = NOW()
+    	WHERE EDUCATION_ID = #{education_id}
+    
+    </update>
+    
+    <select id="educationManagement.eduResultFileList" resultType="Map" parameterType="Map">
+   		 
+    	select * from dj_education_result_file where education_id = #{keyId}
+    	
+    	
+    </select>
+    
+    <select id="educationManagement.fileDown" parameterType="map" resultType="map">
+		select 
+		education_result_id,
+		real_file_name, 
+		file_extension,
+		file_path
+		from 
+		dj_education_result_file 
+		WHERE education_result_id = #{education_result_id}
+		
+		</select>
+		
+    <select id="educationManagement.getOnlineMonthYn" resultType="String" parameterType="Map">
+   		 
+    	SELECT 
+    CASE
+        WHEN COUNT(*) = 0 THEN 'N'
+        ELSE 'Y'
+    END
+FROM
+    dj_education
+WHERE
+    EDUCATION_TYPE_CODE_ID = 'ED03'
+        AND ENROLL_DATE = #{month}
+        AND ACTIVE = 'Y'
+    	
+    	
+    </select>
+    
+    <insert id="educationManagement.onlineEduSave" parameterType="onlineEduVO" useGeneratedKeys="true" keyProperty="education_id">
+		insert into dj_education
+		(
+		education_type_code_id		
+		,education_type
+		,education_name
+		,education_start_date
+		,education_end_date
+		,education_hour
+		,required_yn
+		,online_education_type
+		,enroll_date
+		,main_category
+		,middle_category
+		,small_category
+		,education_process_code
+		,education_cost
+		,write_emp_seq
+		,write_emp_ip
+		,write_date	
+		)
+		values
+		(
+		#{education_type_code_id}	 		
+		,#{education_type}
+		,#{education_name}
+		,#{education_start_date}
+		,#{education_end_date}
+		,#{education_hour}
+		,#{required_yn}
+		,#{online_education_type}
+		,#{enroll_date}			
+		,#{main_category}	
+		,#{middle_category}	
+		,#{small_category}	
+		,#{education_process_code}	
+		,#{education_cost}	
+		,#{userId}
+		,#{localIp}	
+		,now()
+		
+		)
+	</insert>
+    
+    <insert id="educationManagement.onlineEduPersonSave" parameterType="onlineEduVO">
+		insert into dj_education_PERSON
+		(
+		education_id		
+		,education_emp_seq
+		,education_dept_seq
+		,education_erp_emp_num
+		,education_login_id
+		,education_emp_name
+		,education_dept_name
+		,education_position
+		,education_duty
+		,score
+		,education_cost_support_yn
+		,education_cost
+		,complete_hour
+		,complete_state_code_id
+		,complete_state
+		,enroll_date
+		,write_emp_seq
+		,write_emp_ip
+		,write_date
+		)
+		values
+		(
+		#{education_id}	 		
+		,#{education_emp_seq}
+		,#{education_dept_seq}
+		,#{education_erp_emp_num}
+		,#{education_login_id}
+		,#{education_emp_name}
+		,#{education_dept_name}
+		,#{education_position}
+		,#{education_duty}			
+		,#{score}	
+		,#{education_cost_support_yn}	
+		,#{education_cost}	
+		,#{education_hour}	
+		,#{complete_state_code_id}	
+		,#{complete_state}	
+		,#{enroll_date}	
+		,#{userId}
+		,#{localIp}	
+		,now()
+		
+		)
+	</insert>
+	
+	<update id="groupEduReject" parameterType="map" >
+		
+		UPDATE dj_education SET 
+		education_step_code_id = #{education_step_code_id}
+		,education_step = #{education_step}
+		,return_cause = #{return_cause}
+		,last_update_emp_seq = #{userId}
+		,last_update_emp_ip = #{localIp}
+		,update_date = now()
+		WHERE education_id = #{education_id}
+	</update>
+    
+    <update id="groupEduPersonReject" parameterType="map" >
+		
+		UPDATE dj_education_PERSON SET 
+		complete_state_code_id = #{complete_state_code_id}
+		,complete_state = #{complete_state}
+		,return_cause = #{return_cause}
+		,last_update_emp_seq = #{userId}
+		,last_update_emp_ip = #{localIp}
+		,update_date = now()
+		WHERE education_id = #{education_id}
+	</update>
+	
+	<select id="getGroupMainMap" resultType="Map" parameterType="Map">
+   		
+   		SELECT * FROM dj_education WHERE EDUCATION_ID = #{data} AND active = 'Y'
+   		
+    </select>
+    
+    <select id="getGroupEmpList" resultType="Map" parameterType="Map">
+   		
+   		SELECT * FROM dj_education_PERSON WHERE EDUCATION_ID = #{data} AND active = 'Y'
+   		
+    </select>
+    
+    <update id="updateSchmSeq" parameterType="Map">
+    	UPDATE dj_education SET SCH_SEQ = #{schmSeq} WHERE EDUCATION_ID = #{eduKey}
+    
+    </update>
+    
+    <insert id="insertCalendarEmp" parameterType="Map">
+    	INSERT INTO NEOS.T_SC_SCH_USER VALUES (#{schm_seq},#{sch_seq},#{user_type},#{comp_seq},#{org_type},#{education_emp_seq},#{group_seq},#{education_dept_seq},#{sub_org_seq},'Y',#{create_seq},NOW(),NULL,NULL)
+    
+    </insert>
+    
+</mapper>    

@@ -1,0 +1,75 @@
+package com.duzon.custom.subHoliday.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+public interface SubHolidayService {
+	Map<String, Object> overHoliWorkSelect();
+	int overHoliWorkUpdate(Map<String, Object> map);
+	List<Map<String, Object>> empInformationAdmitList(Map<String, Object> map);
+	int empInformationAdmitTotal(Map<String, Object> map);
+	int empSetAdmitInsert(List<Map<String, Object>> list);
+	int empSetAdminDeactivate(List<Map<String, Object>> list);
+	List<Map<String, Object>> gridOverWkEmpSetList(Map<String, Object> map);
+	int gridOverWkEmpSetListTotal(Map<String, Object> map);
+	int holidaySet(Map<String, Object> map);
+	int holidaySetDeactivate(List<Map<String, Object>> list);
+	List<Map<String, Object>> gridHoliTypeList(Map<String, Object> map);
+	List<Map<String, Object>> gridHoliTypeList();
+	int gridHoliTypeListTotal(Map<String, Object> map);
+	Map<String, Object> getWorkTime(Map<String, Object> map);
+	String fn_chkOverHoliApply(Map<String, Object> map);
+	int overWkReqInsert(Map<String, Object> map, MultipartHttpServletRequest multi);
+	Map<String, Object> getApplyMinMonthSum(Map<String, Object> map);
+	List<Map<String, Object>> gridOverWkMonthList(Map<String, Object> map);
+	int gridOverWkMonthListTotal(Map<String, Object> map);
+	Map<String, Object> getWeekAgreeMin(Map<String, Object> map);
+	int getTypeCode(Map<String, Object> map);
+	Map<String, Object> getWeekHoliday(Map<String, Object> map);
+	List<Map<String, Object>> getCommCodeList(Map<String, Object> map);
+	List<Map<String, Object>> gridOverWkReqList(Map<String, Object> map);
+	int gridOverWkReqListTotal(Map<String, Object> map);
+	int overWkApprovalUpdate(List<Map<String, Object>> list);
+	int holiWkApprovalUpdate(Map<String, Object> map, MultipartHttpServletRequest multi);
+	int fileUploadService(int fileSeq, MultipartFile mFile, Map<String, Object> map);
+	Map<String, Object> getFileInfo(Map<String, Object> map);
+	int subHolidayReqInsert(Map<String, Object> map);
+	int subHolidayCompare(Map<String, Object> map);
+	List<Map<String, Object>> gridSubHolidayReqList(Map<String, Object> map);
+	int gridSubHolidayReqListTotal(Map<String, Object> map); 
+	List<Map<String, Object>> gridSubHolidayReqListToday(Map<String, Object> map);
+	int gridSubHolidayReqListTotalToday(Map<String, Object> map); 
+	int subHolidayReqDeactivate(Map<String, Object> map);
+	int getWeekendHolidayCnt(Map<String, Object> map);
+	Map<String, Object> getAgreeUseRestMinSum(Map<String, Object> map);
+	List<Map<String, Object>> gridSubHolidayOccurList(Map<String, Object> map);
+	int gridSubHolidayOccurListTotal(Map<String, Object> map);
+	int subHoliApprovalUpdate(List<Map<String, Object>> list);
+	Map<String, Object> getOverHoliRestMin(Map<String, Object> map);
+	List<Map<String, Object>> gridSubHolidayUseRestList(Map<String, Object> map);
+	int gridSubHolidayUseRestListTotal(Map<String, Object> map);
+	List<Map<String, Object>> overWkExcelList(Map<String, Object> map);
+	List<Map<String, Object>> upExcelDown(Map<String, Object> map);
+	List<Map<String, Object>> downExcelDown(Map<String, Object> map);
+	List<Map<String, Object>> allExcelDown(Map<String, Object> map);
+	List<Map<String, Object>> overWkTimeList(Map<String, Object> map);
+	Map<String, Object> overWkList(Map<String, Object> map);
+	void otApplyCancel(Map<String, Object> map);
+	Map<String, Object> checkHoliTime(Map<String, Object> map);
+	Map<String, Object> replaceHoliCheck(Map<String, Object> map);
+	Map<String, Object> getWorkTypeCode(Map<String, Object> map);
+	int inputAgreeMin(Map<String, Object> map);
+	Map<String, Object> getAgreeMin(Map<String, Object> map);
+	int updateAgreeMin(Map<String, Object> map);
+	int getAllAdmin(Map<String, Object> map);
+	List<Map<String, Object>> defaultIframeReqList(Map<String, Object> map);
+	List<Map<String, Object>> subHolidayReqDaySelect(Map<String, Object> map);
+	List<Map<String, Object>> SearchAttReqMainMgrList(Map<String, Object> map);
+	int SearchAttReqMainMgrListTotal(Map<String, Object> map); 
+	
+	List<Map<String, Object>> subHolidayReqList(Map<String, Object> map);
+	int subHolidayReqListTotal(Map<String, Object> map);
+}

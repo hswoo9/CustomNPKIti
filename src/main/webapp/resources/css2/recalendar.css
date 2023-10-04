@@ -1,0 +1,40 @@
+@charset "utf-8";
+
+/**************************************************
+  fullcalendar customize css
+  **************************************************/
+
+#calendar{background:none;margin-top:20px;}
+.fc-toolbar{}
+.fc-toolbar .fc-center h2{font-size:18px;}
+.fc-toolbar button {background:#fff; border-radius:0px; box-shadow:none; padding:0px 12px !important; height:24px; line-height:24px;border:1px solid #c9cac9;outline:0; color:#4a4a4a !important; font-size:12px !important; border-radius:0px !important;}
+.fc-toolbar button:hover {border:1px solid #1088e3;background:#fff;}
+.fc-toolbar button:active {border:1px solid #1088e3;background:#f4f9fe;}
+.fc-toolbar button:focus {box-shadow:none;}
+
+
+/*삭제하기*/
+.controll_btn button {background:#fff; border-radius:0px; box-shadow:none; padding:0px 12px; height:24px; line-height:24px;border:1px solid #c9cac9;outline:0; color:#4a4a4a !important;}
+.controll_btn button:hover {border:1px solid #1088e3;background:#fff;}
+.controll_btn button:active {border:1px solid #1088e3;background:#f4f9fe;}
+.controll_btn button:focus {box-shadow:none;}
+
+/*달력*/
+div.fc-today-button {background:#fff;;height:22px; border:1px solid #a9a9a9;border-radius:0px;margin:0 5px !important;}
+div.fc-today-button img {padding:4px;;}
+.fc-state-default.fc-corner-right {border-radius:0px;}
+img.ui-datepicker-trigger {border:1px solid #c3c3c3; padding:4px; margin-left:-1px;}
+
+
+#calType {margin-left:10px;padding:0px;}
+#calType button {background: #1088e3;height: 24px;padding: 0 11px;color: #fff !important;border: none;font-weight: bold;border-radius: 0px;}
+#calType button:hover {background:#0876c9;}
+
+.fc th {height:28px;vertical-align:middle;background:#f9f9f9;}
+.fc th span {font-size:14px;}
+
+.fc-content-skeleton table td a{font-weight:bold; margin:4px 4px 0 0;}
+.fc-sun a {color:#f33e51;}
+.fc-sun span {color:#f33e51;}
+.fc-sat a {color:#058df5;}
+.fc-sat span {color:#058df5;}
