@@ -38,7 +38,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.security.SecureRandom;
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;
 
 public class EgovStringUtil {
     /**
