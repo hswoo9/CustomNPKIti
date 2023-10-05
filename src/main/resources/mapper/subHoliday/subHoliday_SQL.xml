@@ -2743,7 +2743,7 @@
 	</select>
 	
 	<select id="SearchAttReqMainMgrList" resultType="map" parameterType="map">
-	SELECT DISTINCT
+	SELECT
                         taa.comp_seq AS compSeq
                         , taa.req_date AS reqDate
                         , taa.req_sqno AS reqSqno
@@ -2879,8 +2879,6 @@
 
 
 
-
-				group by empName
                 ORDER BY taard.start_dt DESC, tcem.emp_name, taard.end_dt DESC, taar.req_date, tcdm.dept_name, tced.order_text
 	</select>
 	
