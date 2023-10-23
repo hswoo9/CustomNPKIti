@@ -2884,7 +2884,7 @@
 	
 	<select id="SearchAttReqMainMgrListTotal" resultType="int" parameterType="map">
 	SELECT COUNT(*) FROM (
-		SELECT DISTINCT
+		SELECT
                         taa.comp_seq AS compSeq
                         , taa.req_date AS reqDate
                         , taa.req_sqno AS reqSqno
@@ -3018,9 +3018,6 @@
                         AND taa.approve_yn NOT IN ('R', 'K', 'S')
 						AND c21.detail_name = '결재종결'
 
-
-
-				group by empName
 		) T
 	</select>
 	
