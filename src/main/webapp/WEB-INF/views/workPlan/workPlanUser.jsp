@@ -338,6 +338,7 @@ table tr td {text-align: center;}
 			<c:when test="${workType.work_type_code == 632 and list.work_type_id == 2 }">
 			<option selected value="${list.work_type_id }" data-s="${list.attend_time }" data-e="${list.leave_time }" data-m="${list.work_min }" data-b="${list.break_min }">${list.work_type }</option>
 			</c:when>
+
 			<c:otherwise>
 			<option value="${list.work_type_id }" data-s="${list.attend_time }" data-e="${list.leave_time }" data-m="${list.work_min }" data-b="${list.break_min }">${list.work_type }</option>
 			</c:otherwise>
@@ -919,6 +920,7 @@ function dataGrid(data, val, planType){
 				color = 'red';
 				stsBackColor = 'bisque';
 				btnHtml = '<input type="button" onclick="saveBtn();" class="btnClass" style="float: right" value="유연근무 신청">';
+				$('#default_work_type').data('kendoDropDownList').value(result.status.WORK_TYPE);
 				$('#defaultBtn').css({'display':'none'});
 				$("#planTypeSelect").show();
 				$('.approvalDiv').show();
@@ -1140,7 +1142,8 @@ function dataGrid(data, val, planType){
 				if(work_type_code === '633'){//반일제
 					$('#default_work_type').data('kendoDropDownList').value("15");
 				}else{
-					$('#default_work_type').data('kendoDropDownList').value("2");
+					/*$('#default_work_type').data('kendoDropDownList').value("2");*/
+					$('#default_work_type').data('kendoDropDownList').value(result.status.WORK_TYPE);
 				}
 				
 				// 유연근무 신규
@@ -1238,6 +1241,7 @@ function dataGrid(data, val, planType){
 							workMin[ii] = $(this).attr('data-m');
 							breakMin[ii] = $(this).attr('data-b');
 							workId[ii] = $(this).val();
+
 						}); 
 						select.kendoDropDownList();
 						
@@ -1255,6 +1259,14 @@ function dataGrid(data, val, planType){
 							$(row).find('#break_min').val('0');
 							$(select).data('kendoDropDownList').value('6');
 							
+						} else if(v.HOLIDAY_STATUS == 'N'){
+
+							$(select).data('kendoDropDownList').value(result.status.WORK_TYPE);
+							$(row).find('#rStart').text($(row).find('select option:selected').attr("data-s"));
+							$(row).find('#rEnd').text($(row).find('select option:selected').attr("data-e"));
+							$(row).find('#work_min').val($(row).find('select option:selected').attr("data-m"));
+							$(row).find('#break_min').val($(row).find('select option:selected').attr("data-b"));
+
 						} else {
 							var wId = $('#addWorkPlanType select option:selected').val();
 							for(var j = 0; j < workId.length; j++){
@@ -1262,12 +1274,12 @@ function dataGrid(data, val, planType){
 									$(row).find('#rStart').text(sTime[0]);
 									$(row).find('#rEnd').text(eTime[0]);
 									$(row).find('#work_min').val(workMin[0]); 
-									$(row).find('#break_min').val(breakMin[0]); 
+									$(row).find('#break_min').val(breakMin[0]);
 								}
 							}
 						}
 						$(row).find('#work_type_id').val($(select).data('kendoDropDownList').value());
-						
+
 						if ( v.NOWSTS == 'N' ) {
 							$( select ).kendoDropDownList({
 								  enable: false
@@ -1278,7 +1290,7 @@ function dataGrid(data, val, planType){
 				});
 			}
 		}
-	});
+	});  // 시간표 생성
 }
 
 function workPlanTypeChange(){

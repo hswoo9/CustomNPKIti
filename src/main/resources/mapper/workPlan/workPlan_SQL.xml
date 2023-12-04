@@ -192,8 +192,8 @@
 						AND request_emp_seq = #{empSeq} 
 						AND active = 'Y'
 				)
-		ELSE 
-			IFNULL((SELECT default_work_type FROM dj_work_plan WHERE apply_month = #{searchDt} AND request_emp_seq = #{empSeq} AND active = 'Y'), 0) 
+		ELSE
+				IFNULL((SELECT default_work_type FROM dj_work_plan WHERE active = 'Y' AND request_emp_seq = #{empSeq} ORDER BY create_date DESC LIMIT 1),0)
 		END AS WORK_TYPE
 		,CASE
 			WHEN (
@@ -337,7 +337,7 @@
 		        WHEN DAYOFWEEK(a.Date) = '7' THEN 'Y'
 		        ELSE 'N'
 		    END AS HOLIDAY_STATUS,
-		    '' AS work_type_id,
+		    (SELECT default_work_type FROM dj_work_plan WHERE active = 'Y' AND request_emp_seq = #{empSeq} ORDER BY create_date DESC LIMIT 1) AS work_type_id,
 		    '' AS status,
 		    '' AS remark,
             CASE WHEN C.ot_work_apply_id <>'' THEN 'Y' ELSE 'N' END AS ot_yn
@@ -363,7 +363,7 @@
 	    	</otherwise>
 	    </choose>
 		ORDER BY A.DATE
-	
+
     </select>
     
     <select id="getWorkPlanType" resultType="map">
