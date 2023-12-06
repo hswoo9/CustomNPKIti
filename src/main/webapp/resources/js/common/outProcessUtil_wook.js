@@ -60,14 +60,14 @@ function outProcessLogOn(params){
 				if(data.resultCode == "SUCCESS"){
 					var url = $('#outProcessFormData').attr("action") + urlParams;
 					win = window.open(url, "outProcessLogOn", "scrollbars=yes, width=1000px, height=900px, resizable=no, status=no, top=50, left=50", "newWindow");
-					form.submit();
+					//form.submit();
 				}
 			}
 		});
 	}else{
 		var url = form.prop("action") + "?compSeq=" + params.compSeq + "&empSeq=" + params.empSeq + "&docId=" + params.docId + "&outProcessCode=" + params.outProcessCode +"&mod=" + params.mod;
 		win = window.open(url, "outProcessLogOn", "scrollbars=yes, width=1000px, height=900px, resizable=no, status=no, top=50, left=50", "newWindow");
-		form.submit();
+		//form.submit();
 	}
 	
 	return win;
