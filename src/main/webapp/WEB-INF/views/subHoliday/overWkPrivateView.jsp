@@ -101,9 +101,9 @@ $(document).ready(function() {
 			formData.append('update_emp_seq', "${userInfo.empSeq}");
 			//formData.append('update_emp_seq', "${empInfo.empSeq}");
 			//formData.append('approval_status', '5');/* [0:변경신청, 1:신청, 2:승인, 4:반려, 5:휴일근무승인대기] */
-			//formData.append('approval_status', '1');/* 한국문학번역원: 초과근무보고서 올리기 전에 승인절차 진행하고, 초과근무보고서는 사후에 볼 수 있도록 */
-			//formData.append('remark', '초과근무보고서업로드');
-			/*$.ajax({
+			formData.append('approval_status', '1');/* 한국문학번역원: 초과근무보고서 올리기 전에 승인절차 진행하고, 초과근무보고서는 사후에 볼 수 있도록 */
+			formData.append('remark', '초과근무보고서업로드');
+			$.ajax({
 				url: _g_contextPath_ + '/subHoliday/holiWkApprovalUpdate',
 				type: 'post',
 				dataType: 'json',
@@ -122,7 +122,7 @@ $(document).ready(function() {
 						alert("서버 저장 실패..");
 					}
 				}
-			})*/
+			})
 		});
 	}); 
 	myWindow2.kendoWindow({
@@ -608,8 +608,7 @@ function mainGrid(){
 	<div class="pop_head">
 		<h1>파일 첨부</h1>
 	</div>
-	<form method="post" name="fileUploadFrm" enctype="multipart/form-data"
-	action="${pageContext.request.contextPath }/subHoliday/fileUpload">
+	<form method="post" name="fileUploadFrm" enctype="multipart/form-data" action="${pageContext.request.contextPath}/subHoliday/fileUpload">
 		<div class="pop_con">
 			<div class="com_ta">
 				<div id="fileDiv">

@@ -11,7 +11,7 @@
     
     <bean id="dataSourceSpied" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
 		<property name="driverClassName" value="org.mariadb.jdbc.Driver" />
-		<property name="url" value="jdbc:mariadb://127.0.0.1:3399/cust_klti" />
+		<property name="url" value="jdbc:mariadb://10.12.0.40:10005/cust_klti" />
 		<property name="username" value="root" />
 		<property name="password" value="mysql@1234" />
 		

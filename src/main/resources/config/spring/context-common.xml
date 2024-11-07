@@ -34,9 +34,9 @@
     <bean name="jsonConfig" class="net.sf.json.JsonConfig">
         <property name="cycleDetectionStrategy" ref="lenient" />
      </bean>
-    <bean class="org.springframework.web.servlet.view.json.MappingJacksonJsonView" id="jsonData">
+    <bean class="net.sf.json.spring.web.servlet.view.JsonView" id="jsonData">
         <property name="contentType" value="application/json;charset=UTF-8"/>
-    </bean> 
+    </bean>
     <bean id="jsonView" class="net.sf.json.spring.web.servlet.view.JsonView">
         <property name="contentType" value="application/json;charset=UTF-8"/>
         <property name="jsonConfig" ref="jsonConfig" /> 
