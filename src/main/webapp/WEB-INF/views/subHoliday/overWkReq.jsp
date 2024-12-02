@@ -383,6 +383,10 @@
 							if(workTypeId === 13 || workTypeId === 14 || workTypeId === 15 || workTypeId === 20 || workTypeId === 58 ){
 								$('#isHalf').val('none');
 							}else if(workTypeId === 22){
+								//반일제(14-18)
+								$('#isHalf').val('none');
+							}else if(workTypeId === 60){
+								//육아기단축(9-4)
 								$('#isHalf').val('none');
 							}else{
 								$('#isHalf').val('false');
