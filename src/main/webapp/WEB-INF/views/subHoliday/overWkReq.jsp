@@ -461,8 +461,8 @@
 			//console.log('isHalf', isHalf);
 			if(isHalf === 'true'){
 				startMin = (workEndHour + 1) + ":00";
-			}else if( isHalf === 'false') {
-				startMin = (workEndHour) + ':00';
+				/*}else if( isHalf === 'false') {
+                    startMin = (workEndHour) + ':00';*/
 			}else if( isHalf === 'none'){
 				startMin = (workEndHour) + ':00';
 			}
