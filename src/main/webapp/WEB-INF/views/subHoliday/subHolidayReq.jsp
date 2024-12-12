@@ -322,9 +322,9 @@
 				myWindow2.data("kendoWindow").close();
 			});
 		}
-		/*
+		/*/!*
 			대체휴무 신청 - 신청 팝업("#subHolidayReqPop")
-		*/
+		*!/
 		var myWindow3 = $("#subHolidayReqPop"),
 			undo3 = $("#subHolidayReqPopBtn");
 		undo3.click(function(){
@@ -356,15 +356,15 @@
 				myWindow3.data("kendoWindow").open();
 				undo3.fadeOut();
 			}
-			/*
+			/!*
 				잔여시간 - 시간외근무 + 휴일근무 & disapear_yn != 'Y'
-			*/
+			*!/
 			$.getJSON(_g_contextPath_ + '/subHoliday/getOverHoliRestMin',
 					{'apply_emp_seq':$("[name='use_emp_seq']").val()},
 					function(json){
-						var restMin = parseInt(json.holiwk_rest_min_sum) 
+						var restMin = parseInt(json.holiwk_rest_min_sum)
 									+ parseInt(json.overwk_rest_min_sum);
-						var allMin = parseInt(json.holiwk_agree_min_sum) 
+						var allMin = parseInt(json.holiwk_agree_min_sum)
 									+ parseInt(json.overwk_agree_min_sum);
 						$("#restMin_hide").val(restMin);
 						$("#allMin_hide").val(allMin);
@@ -389,10 +389,10 @@
 				undo3.fadeIn();
 			}
 		}).data("kendoWindow").center();
-		
-		/*
+
+		/!*
 			신청구분 - KendoComboBox(#applyType)
-		*/
+		*!/
 		var work_type_select = '';
 		if('${workType.work_type_code}'=='632'){
 			work_type_select = [{applyType: 'early', applyType_kr: '2시간(조퇴)'}, {applyType: 'hour', applyType_kr: '4시간(반차)'}, {applyType: 'day', applyType_kr: '8시간(연차)'}];
@@ -498,9 +498,9 @@
 				    }
 				});
 		        $(".datePickerInput_dynamic").attr("readonly", true);
-		        
+
 		        dateSetUp(record.applyType);
-		        
+
 		        $(".time_picker").kendoTimePicker({
 					culture: "kr-KR",
 					format: "HH:mm",
@@ -531,7 +531,7 @@
 							var start_min = startTime_hr*60 + startTime_mm;
 							var apply_min = end_min - start_min;
 							if(startTime_hr <= 12 && endTime_hr >= 13){
-								apply_min -= 60;	
+								apply_min -= 60;
 							}
 							//var rest_min = $("#overHoliRestMin").val();
 							var rest_min = $("#restMin_sum").val();
@@ -596,10 +596,10 @@
 				});
 			}
 		}).data("kendoComboBox");
-		
-		/*
+
+		/!*
 			신청일자 - kendoDatePicker(#startDt, #endDt)
-		*/
+		*!/
 		var dateSetUp = function(applyType){
 			if(applyType === 'hour' || applyType === 'early'){
 				$("#startDt").data("kendoDatePicker").setOptions({
@@ -645,8 +645,181 @@
 			    	$("[name='apply_end_date']").val(str);
 				});
 			}
+		}*/
+		/*
+    대체휴무 신청 - 신청 팝업("#subHolidayReqPop")
+*/
+		var myWindow3 = $("#subHolidayReqPop"),
+				undo3 = $("#subHolidayReqPopBtn");
+
+		undo3.click(function() {
+			var ch = $('.checkbox:checked');
+			if (ch.length < 1) {
+				alert('보상휴가 발생현황 목록을 체크해주세요');
+				return;
+			} else {
+				var data = {};
+				var restMin_sum = 0;
+				var selected_date = '';
+				var select_result_id = '';
+				$.each(ch, function(i, v) {
+					var index = i;
+					var tem = {};
+					tem['ot_work_result_id'] = $(v).attr("id").substring(6);
+					select_result_id += tem['ot_work_result_id'] + '/';
+					tem['rest_min'] = $(v).attr("name").split('/')[0];
+					restMin_sum += (tem['rest_min'] - 0);
+					selected_date += $(v).attr("name").split('/')[1].substring(0, 4) + '.' + $(v).attr("name").split('/')[1].substring(4, 6) + '.' + $(v).attr("name").split('/')[1].substring(6, 8) + ' ';
+					data[index] = tem;
+				});
+				$('#selected_date').val(selected_date);
+				$('#restMin_sum').html(parseInt((restMin_sum / 60)) + '시간 ' + restMin_sum % 60 + '분');
+				$('#restMin_sum').val(restMin_sum);
+				$('#select_result_id').val(select_result_id);
+
+				// 시간 선택 템플릿 추가
+				$("#applyTypeTemplate").empty();
+				var html = document.querySelector("#applyTypeHourTemplate").innerHTML;
+				$("#applyTypeTemplate").append(html);
+
+				// DatePicker 초기화
+				initializeDatePicker();
+
+				// TimePicker 초기화
+				initializeTimePicker();
+
+				myWindow3.data("kendoWindow").open();
+				undo3.fadeOut();
+			}
+
+			// 잔여시간 조회
+			$.getJSON(_g_contextPath_ + '/subHoliday/getOverHoliRestMin', {
+				'apply_emp_seq': $("[name='use_emp_seq']").val()
+			}, function(json) {
+				var restMin = parseInt(json.holiwk_rest_min_sum) + parseInt(json.overwk_rest_min_sum);
+				var allMin = parseInt(json.holiwk_agree_min_sum) + parseInt(json.overwk_agree_min_sum);
+				$("#restMin_hide").val(restMin);
+				$("#allMin_hide").val(allMin);
+				$("#restMin").html(parseInt((restMin / 60)) + '시간 ' + restMin % 60 + '분');
+				$("#overHoliRestMin").val(restMin);
+				$("#useMin_hide").val((allMin - 0) - (restMin - 0));
+			});
+		});
+
+		myWindow3.kendoWindow({
+			width: "1000px",
+			visible: false,
+			modal: true,
+			actions: ["Close"],
+			close: function() {
+				$("#applyTypeTemplate").empty();
+				$("#applyBtn").prop('disabled', true);
+				$("#applyBtn").css("background", "silver");
+				undo3.fadeIn();
+			}
+		}).data("kendoWindow").center();
+
+		function initializeDatePicker() {
+			$('.datePickerInput_dynamic').kendoDatePicker({
+				culture: "ko-KR",
+				format: "yyyy-MM-dd",
+				change: function() {
+					var picker = this;
+					var selectedDate = kendo.toString(picker.value(), 'yyyyMMdd');
+
+					// 휴일 체크
+					$.getJSON(_g_contextPath_ + '/subHoliday/getWeekHoliday', {
+						'work_date': selectedDate
+					}, function(data) {
+						var week = data.week;
+						var holiday = data.holiday;
+						if (holiday >= 1 || week >= 5) {
+							alert("휴일에 보상휴가를 신청할 수 없습니다.");
+							picker.value('');
+							return;
+						}
+					});
+
+					// 선택된 날짜 hidden input에 설정
+					if (picker.value()) {
+						$("[name='apply_start_date']").val(selectedDate);
+
+						// TimePicker 초기화
+						resetTimePickers();
+					}
+				}
+			});
+
+			// DatePicker를 읽기 전용으로 설정
+			$(".datePickerInput_dynamic").attr("readonly", true);
 		}
-		
+
+		function initializeTimePicker() {
+			$(".time_picker").kendoTimePicker({
+				culture: "kr-KR",
+				format: "HH:mm",
+				interval: 60,
+				min: "08:00",
+				max: "19:00",
+				change: function() {
+					var start_time_picker = $("#start_time_picker").data("kendoTimePicker");
+					var end_time_picker = $("#end_time_picker").data("kendoTimePicker");
+
+					calculateTime(start_time_picker, end_time_picker);
+				}
+			});
+		}
+
+		function calculateTime(start_time_picker, end_time_picker) {
+			var start_time = start_time_picker.value();
+			var end_time = end_time_picker.value();
+
+			if (start_time && end_time) {
+				var endTime_hr = parseInt(kendo.toString(end_time, "HH"));
+				var endTime_mm = parseInt(kendo.toString(end_time, "mm"));
+				var end_min = endTime_hr * 60 + endTime_mm;
+				var startTime_hr = parseInt(kendo.toString(start_time, "HH"));
+				var startTime_mm = parseInt(kendo.toString(start_time, "mm"));
+				var start_min = startTime_hr * 60 + startTime_mm;
+				var apply_min = end_min - start_min;
+
+				if (startTime_hr <= 12 && endTime_hr >= 13) {
+					apply_min -= 60; // 점심시간 제외
+				}
+
+				var rest_min = $("#restMin_sum").val();
+				if (apply_min > rest_min) {
+					alert("선택된 시간을 초과하였습니다.");
+					resetTimePickers();
+					return;
+				}
+
+				updateTimeDisplay(apply_min);
+			}
+		}
+
+		function resetTimePickers() {
+			$("#start_time_picker").data("kendoTimePicker").value("");
+			$("#end_time_picker").data("kendoTimePicker").value("");
+			$("#apply_show_hour").html("");
+			$("#apply_show_min").html("");
+			$("[name='use_min']").val("");
+			$("#applyBtn").prop('disabled', true);
+			$("#applyBtn").css("background", "silver");
+		}
+
+		function updateTimeDisplay(apply_min) {
+			$("#apply_show_hour").html(parseInt(apply_min / 60));
+			$("#apply_show_min").html(apply_min % 60);
+			$("[name='use_min']").val(apply_min);
+
+			var startDt = $("#startDt").data("kendoDatePicker").value();
+			if (startDt !== null) {
+				$("#applyBtn").prop('disabled', false);
+				$("#applyBtn").css("background", "#1088e3");
+			}
+		}
+
 		/*
 			대체휴무 신청(subHoliday/subHolidayReqInsert)
 		*/
@@ -767,7 +940,7 @@
 					}
 				}
 			});
-			
+
 			/*
 			전자결재연동용
 		*/
@@ -783,21 +956,21 @@
 			//params.loginid = "admin"
 			win = outProcessLogOn(params);
 		}
-		
+
 		/* 여기 서버에 패치하고 되는거 확인해야됨 */
 		function makeContentsStr(approKey){
 			var html = document.querySelector('#EDIcontents').innerHTML;
-			
+
 			var apply_start = '';
 			var apply_end = '';
-			
-			
+
+
 			if(!apply_end_date) {
 				apply_start = apply_start_date.substring(0,4)+'.'+apply_start_date.substring(4,6)+'.'+apply_start_date.substring(6,8) + '<br>' + apply_start_time;
 				apply_end = apply_start_date.substring(0,4)+'.'+apply_start_date.substring(4,6)+'.'+apply_start_date.substring(6,8) + '<br>' + apply_end_time;
 			}else{
 				apply_start = apply_start_date.substring(0,4)+'.'+apply_start_date.substring(4,6)+'.'+apply_start_date.substring(6,8);
-				apply_end = apply_end_date.substring(0,4)+'.'+apply_end_date.substring(4,6)+'.'+apply_end_date.substring(6,8); 
+				apply_end = apply_end_date.substring(0,4)+'.'+apply_end_date.substring(4,6)+'.'+apply_end_date.substring(6,8);
 			}
 			/* $.ajax({
 				url: _g_contextPath_ + '/subHoliday/subHolidayReqDaySelect',
@@ -1472,7 +1645,7 @@
 							<span id="restMin_sum"></span>
 						</dd>
 					</dl>
-					<dl class="next2">
+					<%--<dl class="next2">
 						<dt style="width:80px;">
 							<img src="<c:url value='/Images/ico/ico_check01.png'/>" alt="" />
 							신청구분
@@ -1480,10 +1653,10 @@
 						<dd>
 							<input id="applyType" class="select-box">
 						</dd>
-					</dl>
-					
-					<div id="applyTypeTemplate"></div>	
-								
+					</dl>--%>
+
+					<div id="applyTypeTemplate"></div>
+
 					<!-- <dl class="next2">
 						<dt style="width:80px;">신청사유</dt>
 						<dd><input type="text" name="remark" id="remark" style="width: 800px" />
