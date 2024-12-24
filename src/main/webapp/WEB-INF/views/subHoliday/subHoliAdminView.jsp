@@ -97,14 +97,14 @@
 			조회기간 - 년/월 단위 설정(kendoDataPicker)
 		*/
 		$("#startDt").data("kendoDatePicker").setOptions({
-			format: "yyyy-MM",
-			depth: "year",
-			start: "year"
+			format: "yyyy-MM-dd",
+			depth: "month",
+			start: "month"
 		});
 		$("#endDt").data("kendoDatePicker").setOptions({
-			format: "yyyy-MM",
-			depth: "year",
-			start: "year"
+			format: "yyyy-MM-dd",
+			depth: "month",
+			start: "month"
 		});
 
 		/*
@@ -271,7 +271,7 @@
 						}
 					}
 				}),
-				height: 218, /*436*/
+				height: 436, /*436*/
 				dataBound: gridDataBound,
 				sortable: true,
 				pageable: {
