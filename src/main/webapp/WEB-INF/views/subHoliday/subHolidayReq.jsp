@@ -758,7 +758,7 @@
 			$(".time_picker").kendoTimePicker({
 				culture: "kr-KR",
 				format: "HH:mm",
-				interval: 60,
+				interval: 30,
 				min: "08:00",
 				max: "19:00",
 				change: function() {
