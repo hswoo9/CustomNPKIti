@@ -1002,8 +1002,8 @@
 		) VALUES
 		(
 			#{ot_work_apply_id}
-		  , (truncate(#{agree_min} * 1.5, 0))
-		  , (truncate(#{agree_min} * 1.5, 0))
+		  , (truncate(#{agree_min} * 2, 0))
+		  , (truncate(#{agree_min} * 2, 0))
 		  ,
 		  	CASE WHEN ((select reward_type from dj_ot_work_apply where ot_work_apply_id = #{ot_work_apply_id})=1) THEN
             (
