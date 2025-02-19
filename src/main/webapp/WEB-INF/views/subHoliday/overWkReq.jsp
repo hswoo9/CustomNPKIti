@@ -380,7 +380,7 @@
 							$("[name='work_type_id']").val(workTypeId);
 							$("[name='work_start_time']").val(data.attend_time);
 							$("[name='work_end_time']").val(data.leave_time);
-							if(workTypeId === 13 || workTypeId === 14 || workTypeId === 15 || workTypeId === 20 || workTypeId === 58 ){
+							if(workTypeId === 13 || workTypeId === 14 || workTypeId === 15 || workTypeId === 20 || workTypeId === 58 || workTypeId === 66){
 								$('#isHalf').val('none');
 							}else if(workTypeId === 22){
 								//반일제(14-18)
