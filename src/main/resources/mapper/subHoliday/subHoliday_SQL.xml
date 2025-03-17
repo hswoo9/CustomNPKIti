@@ -1369,7 +1369,7 @@
 			WHERE
         		a.apply_start_date LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
 			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
-			AND a.str_to_start_date BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31')
+				AND a.str_to_start_date BETWEEN #{startDt} AND #{endDt}
 			</if>
 		) CNT
 	</select>
@@ -1690,10 +1690,10 @@
 			                                    WHERE group_code = 'OT_REWARD_TYPE' and code = 'H'
 			                                    )
 			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
-			WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31')
+				WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN #{startDt} AND #{endDt}
 			</if>
 			<if test="startDt != null and startDt != '' and (endDt == null or endDt == '')">
-			WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') >= CONCAT(#{startDt}, '-01')
+				WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') >= #{startDt}
 			</if>
 		) CNT
 	</select>
@@ -1875,7 +1875,7 @@
 			AND owr.active = 'Y'
 		<where>
 			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
-			AND (STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31'))
+				AND (STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN #{startDt} AND #{endDt})
 			</if>
 			<if test="apply_emp_seq != null and apply_emp_seq != ''">
 			AND ei.emp_seq = #{apply_emp_seq}
