@@ -1006,7 +1006,7 @@
 						.replace('{use2}', $('#use_span_hour').val())
 						/* .replace('{use3}', (($('#useMin_hide').val()-0)/480)+((use_time-0)/480)) */
 						.replace('{use3}', $('#agree_span_hour').val())
-						.replace('{use4}',  (use_time-0)/480)
+						.replace('{use4}',  Math.round(((use_time-0)/480) * 10000) / 10000)
 						.replace('{req_time}', hourStr + ':' + minStr)
 						/* .replace('{rest}', (($('#restMin_hide').val()-0)/480)-((use_time-0)/480)) */
 						.replace('{rest}', $('#rest_span_hour').val())
@@ -1430,7 +1430,7 @@
 						var agree_span = parseInt(((overwk_agree-0) + (holiwk_agree-0))/60) + "시간" + 
 										 parseInt(((overwk_agree-0) + (holiwk_agree-0))%60) + "분";
 						$("#agree_span").html(agree_span);
-						$("#agree_span_hour").val(agree_hour/480);
+						$("#agree_span_hour").val(Math.round((agree_hour/480) * 10000) / 10000);
 						
 						var overwk_use = "${sum.overwk_use_min_sum}";
 						
@@ -1448,7 +1448,7 @@
 						var use_span = parseInt(((overwk_use-0) + (holiwk_use-0))/60) + "시간" + 
 									   parseInt(((overwk_use-0) + (holiwk_use-0))%60) + "분";
 						$("#use_span").html(use_span);
-						$("#use_span_hour").val(use_hour/480);
+						$("#use_span_hour").val(Math.round((use_hour/480) * 10000) / 10000);
 						
 						var overwk_rest = "${sum.overwk_rest_min_sum}";
 						
@@ -1467,7 +1467,7 @@
 						var rest_span = parseInt(((overwk_rest-0) + (holiwk_rest-0))/60) + "시간" + 
 										parseInt(((overwk_rest-0) + (holiwk_rest-0))%60) + "분";
 						$("#rest_span").html(rest_span);
-						$("#rest_span_hour").val(rest_hour/480);
+						$("#rest_span_hour").val(Math.round((rest_hour/480) * 10000) / 10000);
 						
 						
 					});
