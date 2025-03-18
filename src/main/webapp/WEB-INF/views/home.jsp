@@ -114,59 +114,59 @@ table tr td {
 			<td><a href="/enrollment/outReturnInfo.do">outReturnInfo.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>휴가 종류 등록 하나</td>
+			<td><p style="color: red"> * new</p>휴가 종류 등록</td>
 			<td><a href="/enrollment/enrollment.do">enrollment.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>연가 설정 하나</td>
+			<td><p style="color: red"> * new</p>연가 설정</td>
 			<td><a href="/enrollment/vacationSet.do">vacationSet.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>장기근속휴가 설정  하나</td>
+			<td><p style="color: red"> * new</p>장기근속휴가 설정</td>
 			<td><a href="/longVacSet/longVacSet.do">longVacSet.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>특별휴가 설정  하나</td>
+			<td><p style="color: red"> * new</p>특별휴가 설정</td>
 			<td><a href="/enrollment/specialVacSet.do">specialVacSet.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>기타휴가 설정  하나</td>
+			<td><p style="color: red"> * new</p>기타휴가 설정</td>
 			<td><a href="/etc/specialVacSetEtc.do">specialVacSetEtc.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>연가 생성 지혜</td>
+			<td><p style="color: red"> * new</p>연가 생성</td>
 			<td><a href="/enrollment/vacationCr.do">vactionCr.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>특별휴가 생성 지혜</td>
+			<td><p style="color: red"> * new</p>특별휴가 생성</td>
 			<td><a href="/enrollment/specialVacCr.do">specialVacCr.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>기타휴가 생성 지혜</td>
+			<td><p style="color: red"> * new</p>기타휴가 생성</td>
 			<td><a href="/etc/specialVacCrEtc.do">specialVacCrEtc.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>휴가현황관리 기훈</td>
+			<td><p style="color: red"> * new</p>휴가현황관리</td>
 			<td><a href="/enrollment/adminVacList.do">adminVacList.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>개인휴가현황(사용자) 기훈</td>
+			<td><p style="color: red"> * new</p>개인휴가현황(사용자)</td>
 			<td><a href="/vcatn/myVacation.do">myVacation.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>개인휴가현황(관리자) 기훈</td>
+			<td><p style="color: red"> * new</p>개인휴가현황(관리자)</td>
 			<td><a href="/vcatn/adminVacation.do">adminVacation.jsp</a></td>
 		</tr>
 		<tr>
-			<td><p style="color: red"> * new</p>장기근속휴가(유효기간) 하나</td>
+			<td><p style="color: red"> * new</p>장기근속휴가(유효기간)</td>
 			<td><a href="/etc/etcJsp.do">etcJsp.jsp</a></td>
 		</tr>
 		<!-- <tr>
-			<td><p style="color: red"> * new</p>휴가 신청 하나</td>
+			<td><p style="color: red"> * new</p>휴가 신청</td>
 			<td><a href="/enrollment/vacationApp.do">vacationApp.jsp</a></td>
 		</tr>  -->
 		<tr>
-			<td><p style="color: red"> * new</p>휴가 신청서 하나</td>
+			<td><p style="color: red"> * new</p>휴가 신청서</td>
 			<td><a href="javascript: fn_popup('/other/online/vacationPop.do');">vacationPop.jsp</a></td>
 			<script>
 				function fn_popup(name){

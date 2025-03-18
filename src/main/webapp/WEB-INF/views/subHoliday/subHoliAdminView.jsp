@@ -327,7 +327,7 @@
 						$("[name='click_use_emp_seq']").val(record.apply_emp_seq);
 						gridReload2();
 						gridReload3();
-						$("[name='use_emp_seq']").val('0');
+						// $("[name='use_emp_seq']").val('0');
 					});
 				}
 			}).data("kendoGrid");
@@ -475,8 +475,8 @@
 			gridReload2();
 			gridReload3();
 			//document.subHolidayReqListFrm.reset();
-			$("[name='use_emp_seq']").val("0");
-			$("[name='apply_dept_name']").val("");
+			// $("[name='use_emp_seq']").val("0");
+			// $("[name='apply_dept_name']").val("");
 		});
 		function mainGrid3(){
 			var grid = $("#gridSubHolidayReqList"/* Mapping3 */).kendoGrid({

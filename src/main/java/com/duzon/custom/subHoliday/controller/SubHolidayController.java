@@ -576,6 +576,18 @@ public class SubHolidayController {
 	public Map<String, Object> gridSubHolidayReqList(@RequestParam Map<String, Object> map){
 		logger.info("gridSubHolidayReqList");
 		Map<String, Object> resultMap = new HashMap<String, Object>();
+
+		if(!map.containsKey("admin")) {
+			if(map.containsKey("startDt") && !map.get("startDt").equals("")) {
+				String startDt = map.get("startDt").toString();
+				map.put("startDt", startDt.split("-")[0] + "-" + startDt.split("-")[1] + "-01");
+			}
+			if(map.containsKey("endDt") && !map.get("endDt").equals("")) {
+				String endDt = map.get("endDt").toString();
+				map.put("endDt", endDt.split("-")[0] + "-" + endDt.split("-")[1] + "-31");
+			}
+		}
+
 		resultMap.put("list", subHolidayService.gridSubHolidayReqList(map));
 		resultMap.put("totalCount", subHolidayService.gridSubHolidayReqListTotal(map));
 		return resultMap;
@@ -656,6 +668,18 @@ public class SubHolidayController {
 	public Map<String, Object> gridSubHolidayOccurList(@RequestParam Map<String, Object> map){
 		logger.info("gridSubHolidayOccurList");
 		Map<String, Object> resultMap = new HashMap<String, Object>();
+
+		if(!map.containsKey("admin")) {
+			if(map.containsKey("startDt") && !map.get("startDt").equals("")) {
+				String startDt = map.get("startDt").toString();
+				map.put("startDt", startDt.split("-")[0] + "-" + startDt.split("-")[1] + "-01");
+			}
+			if(map.containsKey("endDt") && !map.get("endDt").equals("")) {
+				String endDt = map.get("endDt").toString();
+				map.put("endDt", endDt.split("-")[0] + "-" + endDt.split("-")[1] + "-31");
+			}
+		}
+
 		resultMap.put("list", subHolidayService.gridSubHolidayOccurList(map));
 		resultMap.put("totalCount", subHolidayService.gridSubHolidayOccurListTotal(map));
 		return resultMap;
