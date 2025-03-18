@@ -15,7 +15,7 @@
 		<maven.test.skip>true</maven.test.skip>
 		<egovframework.rte.version>3.5.0</egovframework.rte.version>
 	</properties>
-
+	
 	<repositories>
 		<repository>
 			<id>java.net</id>
@@ -23,7 +23,7 @@
 		</repository>
 		<repository>
 			<id>mvn2</id>
-			<url>https://repo1.maven.org/maven2/</url>
+			<url>http://repo1.maven.org/maven2/</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
@@ -33,7 +33,7 @@
 		</repository>
 		<repository>
 			<id>egovframe</id>
-			<url>https://www.egovframe.go.kr/maven/</url>
+			<url>http://www.egovframe.go.kr/maven/</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
@@ -454,7 +454,7 @@
 			<artifactId>commons-configuration</artifactId>
 			<version>1.9</version>
 		</dependency>
-
+		
 		<!--  pdf handler api start -->
 		<dependency>
 		    <groupId>org.apache.pdfbox</groupId>
@@ -480,7 +480,7 @@
 		  <groupId>xmpbox</groupId>
 		  <artifactId>xmpbox</artifactId>
 		  <version>1.8.1</version>
-		</dependency>
+		</dependency>	
 		<dependency>
 		  <groupId>jempbox</groupId>
 		  <artifactId>jempbox</artifactId>
