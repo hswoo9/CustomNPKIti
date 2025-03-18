@@ -1837,10 +1837,10 @@ input.k-checkbox+label {margin-left:-4px !important;}
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">외출</SPAN></P>';
 			bodyHtml +=	'</TD>';
 			bodyHtml +=	'<TD valign="middle" style="width:84px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
-			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].reqStartDate + " " + e.dataList[i].startTime + ":00"+'</SPAN></P>';
+			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].reqStartDate + " " + e.dataList[i].startTime + ":" + e.dataList[i].startMin +'</SPAN></P>';
 			bodyHtml += '</TD>';
 			bodyHtml += '<TD colspan="2" valign="middle" style="width:83px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
-			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].reqEndDate + " " + e.dataList[i].endTime +":00  "+'</SPAN></P>';
+			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].reqEndDate + " " + e.dataList[i].endTime +":" + e.dataList[i].endMin +'</SPAN></P>';
 			bodyHtml += '</TD>';
 			bodyHtml += '<TD colspan="2" valign="middle" style="width:76px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].attReqDayCnt+'</SPAN></P>';
