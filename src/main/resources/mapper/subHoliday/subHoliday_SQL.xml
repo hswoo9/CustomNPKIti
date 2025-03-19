@@ -1051,9 +1051,9 @@
 			) VALUES
 			(
 				#{ot_work_apply_id}
-			  , #{agree_min} 
-			  , (truncate(#{agree_min} * 1.5, 0))
-			  , (truncate(#{agree_min} * 1.5, 0))
+			  , #{occur_min}
+			  , (truncate(#{agree_min}, 0))
+			  , (truncate(#{agree_min}, 0))
 			  , #{break_min}
 			  ,
 			CASE WHEN ((select reward_type from dj_ot_work_apply where ot_work_apply_id = #{ot_work_apply_id})=1) THEN
@@ -1091,16 +1091,19 @@
 	<update id="updateAgreeMin" parameterType="map">
 		UPDATE dj_ot_work_result
 		SET occur_min = #{occur_min}
-		  , agree_min = #{agree_min}
+		  , agree_min = (truncate(#{agree_min}, 0))
 		  , rest_min = #{rest_min}
+		  , break_min = #{break_min}
 		  , update_date = NOW()
 		  , update_emp_seq = #{create_emp_seq}
 		WHERE ot_work_apply_id = #{ot_work_apply_id} 
 	</update>
 	<select id="getAgreeMin" parameterType="map" resultType="map">
-		SELECT IFNULL(MAX(agree_min), '') AS agree_min
+		SELECT IFNULL(MAX(occur_min), '') AS occur_min
+		     , IFNULL(MAX(agree_min), '') AS agree_min
 			 , IFNULL(MAX(use_min), 0) AS use_min
 			 , IFNULL(MAX(rest_min), '') AS rest_min
+			 , IFNULL(MAX(break_min), '') AS break_min
 		FROM dj_ot_work_result
 		WHERE ot_work_apply_id = #{ot_work_apply_id}
 	</select>

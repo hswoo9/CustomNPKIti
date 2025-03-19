@@ -190,6 +190,7 @@
 			}else if($(this).val() === '초과근무보고서'){
 				target_table_name = "after_action_report_id";
 			}
+			$("[name='weekday']").val(row.weekday);
 			myWindow.data("kendoWindow").open();
 			$.getJSON(_g_contextPath_ + '/subHoliday/getFileInfo',
 					{'target_table_name': target_table_name, 'target_id': json.ot_work_apply_id},
@@ -211,11 +212,15 @@
 										var requestURL = "";
 										if(jj.min.agree_min !== ''){
 											$("#fileDownloadDiv").find('tr[class="updateFrm"]').show();
+											$("[name='occur_min']").val(jj.min.occur_min);
 											$("[name='agree_min']").val(jj.min.agree_min);
 											$("[name='use_min']").val(jj.min.use_min);
 											$("[name='rest_min']").val(jj.min.rest_min);
 											$("#start_time_picker").data("kendoTimePicker").value(jj.time.work_start_time);
 											$("#end_time_picker").data("kendoTimePicker").value(jj.time.work_end_time);
+											$("#occur_min_show").val(
+												parseInt(jj.min.occur_min/60) + "시간" + parseInt(jj.min.occur_min%60) + "분(휴게시간: " + jj.min.break_min + "분)"
+											);
 											$("#agree_min_show").val(
 												parseInt(jj.min.agree_min/60) + "시간" + parseInt(jj.min.agree_min%60) + "분"
 											);
@@ -232,7 +237,7 @@
 											e.preventDefault();
 											var formData = new FormData($(this).get(0));
 											formData.append('ot_work_apply_id', json.ot_work_apply_id);
-											formData.append('occur_min', json.apply_min);
+											// formData.append('occur_min', json.apply_min);
 											formData.append('apply_start_date', json.apply_start_date);
 											formData.append('create_emp_seq', "${empInfo.empSeq}");
 											$.ajax({
@@ -323,19 +328,30 @@
 						console.log('근무시간: ' + result.work_min + ' 휴게시간: ' + result.rest_min);
 						var work_min = parseInt(result.work_min);
 						var agreed_min = $("[name='agree_min']").val();
-						$("#agree_min_show").val(parseInt(work_min/60) + "시간" + parseInt(work_min%60) + "분(휴게시간: " + result.rest_min + "분)");
-						$("[name='agree_min']").val(work_min);
+						$("#occur_min_show").val(parseInt(result.total_work_min/60) + "시간" + parseInt(result.total_work_min%60) + "분(휴게시간: " + result.rest_min + "분)");
+
+						var over_min = 0;
+						if($("[name='weekday']").val() != "토" && work_min > 480) {
+							over_min = work_min - 480;
+							agreed_min = parseInt(480 * 1.5) + parseInt(over_min * 2);
+						} else {
+							agreed_min = parseInt(work_min * 1.5);
+						}
+						$("#agree_min_show").val(parseInt(agreed_min/60) + "시간" + parseInt(agreed_min%60) + "분");
+
+						$("[name='occur_min']").val(result.total_work_min);
+						$("[name='agree_min']").val(agreed_min);
 						$("[name='break_min']").val(result.rest_min);
 						if($("#is_use_rest").val() !== ""){
 							var rest_min = parseInt($("[name='rest_min']").val()); //위에서 구한 휴게시간이랑 다름...잔여시간임!!!
-							var rest_change_min = rest_min + (work_min - parseInt(agreed_min));
+							var rest_change_min = (agreed_min - $("[name='use_min']").val());
 							$("[name='rest_min']").val(rest_change_min);
 							$("#chagen_use_rest_show").val(
-								'인정: ' + work_min + '분/사용: ' + $("[name='use_min']").val() + '분/잔여: ' + rest_change_min + '분' 		
+								'인정: ' + agreed_min + '분/사용: ' + $("[name='use_min']").val() + '분/잔여: ' + rest_change_min + '분'
 							);
 						}else{
 							$("#use_rest_show").val(
-									'인정: ' + work_min + '분/사용: 0분/잔여: ' + work_min + '분' 		
+									'인정: ' + agreed_min + '분/사용: 0분/잔여: ' + agreed_min + '분'
 								);
 						}
 					}
@@ -731,6 +747,7 @@
 	<div class="pop_foot">
 		<div class="btn_cen pt12">
 			<input type="button" class="gray_btn" value="닫기"/>
+			<input type="hidden" id="weekday" name="weekday">
 		</div>
 	</div>
 </div>
@@ -761,6 +778,14 @@
 		<td class="le">
 			<span style="display:block;" class="mr20">
 				<input id="end_time_picker" name="leave_time" class="time_picker">
+			</span>
+		</td>
+	</tr>
+	<tr class="inputFrm">
+		<th style="width: 85px;">발생시간</th>
+		<td class="le">
+			<span style="display:block;" class="mr20">
+				<input type="text" id="occur_min_show" value="" readonly style="width: 95%;">
 			</span>
 		</td>
 	</tr>
@@ -796,6 +821,7 @@
 			</div>
 		</td>
 	</tr>
+	<input type="hidden" name="occur_min" value="">
 	<input type="hidden" name="agree_min" value="">
 	<input type="hidden" name="use_min" value="">
 	<input type="hidden" name="rest_min" value="">

@@ -616,13 +616,17 @@ $(document).ready(function() {
 									if(jj.min.agree_min !== ''){
 										var agree__min = jj.min.agree_min;
 										$("#fileDownloadDiv").find('tr[class="updateFrm"]').show();
+										$("[name='occur_min']").val(jj.min.occur_min);
 										$("[name='agree_min']").val(agree__min);
 										$("[name='agree_min_old']").val(agree__min);
 										$("[name='use_min']").val(jj.min.use_min);
-										$("[name='rest_min']").val(agree__min);
+										$("[name='rest_min']").val(jj.min.break_min);
 										$("[name='rest_min_old']").val(agree__min);
 										$("#start_time_picker").data("kendoTimePicker").value(jj.time.work_start_time);
 										$("#end_time_picker").data("kendoTimePicker").value(jj.time.work_end_time);
+										$("#occur_min_show").val(
+												parseInt(jj.min.occur_min/60) + "시간" + parseInt(jj.min.occur_min%60) + "분(휴게시간: " + jj.min.break_min + "분)"
+										);
 										$("#agree_min_show").val(
 											parseInt(agree__min/60) + "시간" + parseInt(agree__min%60) + "분"
 										);
@@ -740,17 +744,18 @@ $(document).ready(function() {
 				success: function(result){
 					console.log('근무시간: ' + result.work_min + ' 휴게시간: ' + result.rest_min);
 					//var work_min = parseInt((result.work_min*1.5)-(result.work_min*1.5)%30);
-					var work_min = parseInt((result.work_min)-(result.work_min)%30);	//1.5배 뺌
+					var work_min = parseInt((result.work_min * 1.5));
 					var agreed_min_old = $("[name='agree_min_old']").val();
-					$("#agree_min_show").val(parseInt(work_min/60) + "시간" + parseInt(work_min%60) + "분(휴게시간: " + result.rest_min + "분)");
+					$("#occur_min_show").val(parseInt(result.total_work_min/60) + "시간" + parseInt(result.total_work_min%60) + "분(휴게시간: " + result.rest_min + "분)");
+					$("#agree_min_show").val(parseInt(work_min/60) + "시간" + parseInt(work_min%60) + "분");
 					$("[name='agree_min']").val(work_min);
-					$("[name='occur_min']").val(result.work_min);
+					$("[name='occur_min']").val(result.total_work_min);
 					temp_occur_min = result.work_min;
 					$("[name='break_min']").val(result.rest_min);
 					if($("#is_use_rest").val() !== ""){
 						var rest_min = parseInt($("[name='rest_min']").val()); //위에서 구한 휴게시간이랑 다름...잔여시간임!!!
-						var rest_change_min = rest_min + (work_min - parseInt(agreed_min_old));
-						$("[name='rest_min']").val(work_min);
+						var rest_change_min = (work_min - $("[name='use_min']").val());
+						$("[name='rest_min']").val(rest_change_min);
 						$("#chagen_use_rest_show").val(
 							'인정: ' + work_min + '분'
 						);///사용: ' + $("[name='use_min']").val() + '분/잔여: ' + rest_change_min + '분'
@@ -939,6 +944,14 @@ $(document).ready(function() {
 		</td>
 	</tr>
 	<tr class="inputFrm">
+		<th style="width: 85px;">발생시간</th>
+		<td class="le">
+			<span style="display:block;" class="mr20">
+				<input type="text" id="occur_min_show" value="" readonly style="width: 95%;">
+			</span>
+		</td>
+	</tr>
+	<tr class="inputFrm">
 		<th style="width: 85px;">인정시간</th>
 		<td class="le">
 			<span style="display:block;" class="mr20">
@@ -972,6 +985,7 @@ $(document).ready(function() {
 	</tr>
 	<input type="hidden" name="agree_min_old" value="">
 	<input type="hidden" name="agree_min" value="">
+	<input type="hidden" name="occur_min" value="">
 	<input type="hidden" name="use_min" value="">
 	<input type="hidden" name="rest_min_old" value="">
 	<input type="hidden" name="rest_min" value="">
