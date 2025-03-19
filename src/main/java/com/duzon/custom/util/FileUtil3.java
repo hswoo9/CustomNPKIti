@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import com.duzon.custom.common.utiles.ConfigProperties;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
@@ -46,12 +47,12 @@ public class FileUtil3 {
 	
 	
 	//private String ADDRESS = "1.233.95.140";
-	private String ADDRESS = "211.199.189.176";
+	private String ADDRESS;
 	//private int PORT = 34555;
-	private int PORT = 20022;
-	private String USERNAME = "root";
-	//private String PASSWORD = "epqmwlttn1q2w3e";
-	private String PASSWORD = "siwon12!@";
+	private int PORT;
+	private String USERNAME;
+	// 보안 취약점 수정: 하드코드된 비밀번호 제거
+	private String PASSWORD;
 	private static Session session = null;
 	private static Channel channel = null;
 	private static ChannelSftp channelSftp = null;
@@ -107,7 +108,11 @@ public class FileUtil3 {
 			this.thumbnailWidth = (properties.getProperty("thumbnail.width") == null ? 0 : Integer.parseInt(properties.getProperty("thumbnail.width")));
 			this.thumbnailHeight = (properties.getProperty("thumbnail.height") == null ? 0 : Integer.parseInt(properties.getProperty("thumbnail.height")));
 			
-			
+			// 보안 취약점 수정: 설정 파일에서 SFTP 접속 정보 읽어오기
+			this.ADDRESS = ConfigProperties.getProperty("sftp.address", "211.199.189.176");
+			this.PORT = Integer.parseInt(ConfigProperties.getProperty("sftp.port", "20022"));
+			this.USERNAME = ConfigProperties.getProperty("sftp.username", "root");
+			this.PASSWORD = ConfigProperties.getProperty("sftp.password");
 			
             session = jsch.getSession(USERNAME, ADDRESS, PORT);
             session.setPassword(PASSWORD);

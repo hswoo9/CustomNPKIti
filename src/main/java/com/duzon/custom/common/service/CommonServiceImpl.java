@@ -30,7 +30,11 @@ import com.duzon.custom.subHoliday.dao.SubHolidayDAO;
 
 import bizbox.orgchart.service.vo.LoginVO;
 
-
+/**
+ * 
+ * @author duzon
+ *
+ */
 @Service
 public class CommonServiceImpl implements CommonService {
 	
@@ -100,7 +104,9 @@ public class CommonServiceImpl implements CommonService {
 		  loginVo.setClassNm("주임");
 		  loginVo.setDeptname("정보기술부");
 		  loginVo.setDept_seq("1327");
-		  loginVo.setPasswd("1111");
+		  // 보안 취약점 수정: 하드코드된 비밀번호 제거
+		  // loginVo.setPasswd("1111");
+		  loginVo.setPasswd(ConfigProperties.getProperty("default.password"));
 		 }
 		 result.put("organNm", loginVo.getOrganNm()); /*부서 명*/
 		 result.put("orgnztNm", loginVo.getOrgnztNm()); /*부서 명*/
@@ -125,24 +131,8 @@ public class CommonServiceImpl implements CommonService {
 		 result.put("classNm", loginVo.getClassNm());/*직책 명*/
 		 result.put("deptname", loginVo.getDeptname());//부서 명*/
 		 result.put("deptSeq", loginVo.getDept_seq());//부서 명*/
-		 result.put("passWd", loginVo.getPassword());
-		 
-//		 System.out.println("=========================================================> Session Info");
-//		 System.out.println( "groupSeq   : " + loginVo.getGroupSeq()); /* 그룹시퀀스 */
-//		 System.out.println( "compSeq    : " + loginVo.getCompSeq()); /* 회사시퀀스 */
-//		 System.out.println( "bizSeq     : " + loginVo.getBizSeq()); /* 사업장시퀀스 */
-//		 System.out.println( "deptSeq    : " + loginVo.getOrgnztId()); /* 부서시퀀스 */
-//		 System.out.println( "empSeq     : " + loginVo.getUniqId()); /* 사원시퀀스 */
-//		 System.out.println( "langCode   : " + loginVo.getLangCode()); /* 사용언어코드 */
-//		 System.out.println( "userSe     : " + loginVo.getUserSe()); /* 사용자접근권한 */
-//		 System.out.println( "erpEmpSeq  : " + loginVo.getUniqId()); /* ERP사원번호 */
-//		 System.out.println( "erpCompSeq : " + loginVo.getErpCoCd()); /* ERP회사코드 */
-//		 System.out.println( "eaType     : " + loginVo.getEaType()); /* 연동 전자결재 구분 */
-//		 System.out.println( "eaType     : " + loginVo.getEaType()); /* 연동 전자결재 구분 */
-//		 System.out.println( "email      : " + loginVo.getEmail() + "@" + loginVo.getEmailDomain()); /* 연동 이메일 */
-//		 System.out.println( "id         : " + loginVo.getId()); /* 연동 id*/
-//		 System.out.println( "empName         : " + loginVo.getEmpname()); /*이름*/
-//		 System.out.println( "erpEmpName         : " + loginVo.getErpEmpNm()); /*이름*/
+		 // 보안 취약점 수정: 비밀번호 평문 노출 방지
+		 // result.put("passWd", loginVo.getPassword());
 		 return result;
 
 	}
