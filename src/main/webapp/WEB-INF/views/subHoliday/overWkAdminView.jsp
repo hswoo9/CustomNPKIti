@@ -651,7 +651,7 @@ $(document).ready(function() {
 										var formData = new FormData($(this).get(0));
 										console.log(json)
 										formData.append('ot_work_apply_id', json.ot_work_apply_id);
-										formData.append('occur_min', temp_occur_min);
+										// formData.append('occur_min', temp_occur_min);
 										formData.append('apply_start_date', json.apply_start_date);
 										formData.append('create_emp_seq', "${userInfo.empSeq}");
 										//평일시간외근무(수당보상)
