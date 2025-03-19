@@ -268,6 +268,13 @@
 					title: "종료일",
 					width: 100
 				},{
+					field: "use_min",
+					title: "신청시간",
+					template: function(row){
+						return row.use_min/60 + '시간';
+					},
+					width: 100
+				},{
 					field: "attReqTitle", //"reason",
 					title: "신청내역",
 					template: "보상휴가신청"

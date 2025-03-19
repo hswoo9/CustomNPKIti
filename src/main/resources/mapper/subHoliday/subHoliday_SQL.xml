@@ -2563,7 +2563,7 @@
             WHERE HAD.replace_day_off_use_id = #{replace_day_off_use_id}
 	</select>
 	<select id="gridSubHolidayReqListToday" resultType="map" parameterType="map">
-	select rha.use_dept_name, ei.emp_name, rha.apply_start_date, IFNULL(rha.apply_end_date, rha.apply_start_date) as apply_end_date, rha.remark, oes.work_type_code,wp.default_work_type,
+	select rha.use_dept_name, ei.emp_name, rha.apply_start_date, IFNULL(rha.apply_end_date, rha.apply_start_date) as apply_end_date, rha.remark, oes.work_type_code,wp.default_work_type,rha.use_min,
  	case
  	<![CDATA[
  		when wp.default_work_type = 1
