@@ -1290,6 +1290,12 @@
 					field: "apply_end_time",
 					title: "종료시간"
 				},{
+					field: "use_min",
+					title: "신청시간",
+					template: function(row){
+						return row.use_min/60 + '시간';
+					}
+				},{
 					field: "apply_emp_name",
 					title: "신청자"
 				},{
