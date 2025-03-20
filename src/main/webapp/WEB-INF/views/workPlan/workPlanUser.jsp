@@ -222,8 +222,8 @@ table tr td {text-align: center;}
 					<dd>
 						 <input id="flexType" class="select-box"> 
 					</dd>
-					<input type="hidden" name="flex_code_id">
-					<input type="hidden" name="start_week_no">
+					<%--<input type="hidden" name="flex_code_id">
+					<input type="hidden" name="start_week_no">--%>
 				</dl>
 				<dl id="endMonth" style="display:none;">
 					<dt style="width: 80px;">
@@ -232,10 +232,9 @@ table tr td {text-align: center;}
 					<dd>
 						<input id="workTermType" class="select-box">
 					</dd>
-					<input type="hidden" name="flex_code_id">
-					<input type="hidden" name="start_week_no">
-
 				</dl>
+				<input type="hidden" name="flex_code_id">
+				<input type="hidden" name="start_week_no">
 				<dl id="flexTemplate" style="display:none;">
 				</dl>
 			</div>
@@ -512,7 +511,7 @@ $(function(){
 
 
 
-	var comboBox = $("#workTermType").kendoComboBox({
+	var comboBox1 = $("#workTermType").kendoComboBox({
 		dataSource: new kendo.data.DataSource({
 			transport: {
 				read: {
@@ -534,8 +533,8 @@ $(function(){
 		dataTextField: 'code_kr',
 		dataValueField: 'common_code_id',
 		change: function(e){
-			var rows = comboBox.select();
-			var record = comboBox.dataItem(rows);
+			var rows = comboBox1.select();
+			var record = comboBox1.dataItem(rows);
 			//console.log(record);
 			$("[name='flex_code_id']").val(record.common_code_id);
 
@@ -1837,6 +1836,22 @@ function saveBtn(){
 				}
 			});
 			type = '2주';
+		}else if(flex_code_id == '713'){
+			var start_week_no = $("#start_week_no").val();
+			$.each($('.week_no'), function(i, v){
+				if(this.value == start_week_no || this.value == parseInt(start_week_no) + 1){
+					var work_min =  parseInt($(v).closest('tr').find("#work_min").val());
+					work_min_sum += work_min;
+					if(work_min !== 0){
+						total_work_day++;
+					}
+					var holiday_yn = $(v).closest('tr').find("[name='holiday_yn']").val();
+					if(holiday_yn !== 'Y'){
+						max_work_day++;
+					}
+				}
+			});
+			type = '1주';
 		}
 		//total_max_min = flex_max_min * total_work_day;
 		total_max_min = flex_max_min * max_work_day; //처음 달력상 찍히는 날짜를 기준으로 최대 근무가능 시간 계산
