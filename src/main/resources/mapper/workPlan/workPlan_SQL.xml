@@ -120,6 +120,22 @@
 						AND request_emp_seq = #{empSeq}
 						AND active = 'Y'
 				)
+			WHEN (
+				SELECT IFNULL(MAX(status), 0)
+				FROM dj_work_plan
+				WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 11 MONTH))
+				  AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'WORK_TERM_TYPE' AND code = '12M')
+				  AND request_emp_seq = #{empSeq}
+				  AND active = 'Y'
+			) != 0
+			THEN (
+				SELECT IFNULL(MAX(status), 0)
+				FROM dj_work_plan
+				WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 11 MONTH))
+				  AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'WORK_TERM_TYPE' AND code = '12M')
+				  AND request_emp_seq = #{empSeq}
+				  AND active = 'Y'
+			)
 		ELSE 
 			IFNULL((SELECT status FROM dj_work_plan WHERE (apply_month = #{searchDt}) AND request_emp_seq = #{empSeq} AND active = 'Y'), 0) 
 		END AS STATUS
@@ -156,6 +172,22 @@
 						AND request_emp_seq = #{empSeq} 
 						AND active = 'Y'
 				)
+			WHEN (
+				SELECT IFNULL(MAX(work_plan_id), 0)
+				FROM dj_work_plan
+				WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 11 MONTH))
+				  AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'WORK_TERM_TYPE' AND code = '12M')
+				  AND request_emp_seq = #{empSeq}
+				  AND active = 'Y'
+			) != 0
+			THEN (
+				SELECT IFNULL(MAX(work_plan_id), 0)
+				FROM dj_work_plan
+				WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 11 MONTH))
+				  AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'WORK_TERM_TYPE' AND code = '12M')
+				  AND request_emp_seq = #{empSeq}
+				  AND active = 'Y'
+			)
 		ELSE 
 			IFNULL((SELECT work_plan_id FROM dj_work_plan WHERE apply_month = #{searchDt} AND request_emp_seq = #{empSeq} AND active = 'Y'), 0) 
 		END AS PK
@@ -192,6 +224,22 @@
 						AND request_emp_seq = #{empSeq} 
 						AND active = 'Y'
 				)
+			WHEN (
+				SELECT IFNULL(MAX(default_work_type), 0)
+				FROM dj_work_plan
+				WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 11 MONTH))
+				  AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'WORK_TERM_TYPE' AND code = '12M')
+				  AND request_emp_seq = #{empSeq}
+				  AND active = 'Y'
+			) !=0
+			THEN (
+				SELECT IFNULL(MAX(default_work_type), 0)
+				FROM dj_work_plan
+				WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 11 MONTH))
+				  AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'WORK_TERM_TYPE' AND code = '12M')
+				  AND request_emp_seq = #{empSeq}
+				  AND active = 'Y'
+			)
 		ELSE
 				IFNULL((SELECT default_work_type FROM dj_work_plan WHERE active = 'Y' AND request_emp_seq = #{empSeq} ORDER BY create_date DESC LIMIT 1),0)
 		END AS WORK_TYPE
@@ -212,12 +260,28 @@
 						AND request_emp_seq = #{empSeq} 
 						AND active = 'Y'
 				)
+			WHEN (
+				SELECT IFNULL(MAX(flex_code_id), 0)
+				FROM dj_work_plan
+				WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 11 MONTH))
+				  AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'WORK_TERM_TYPE' AND code = '12M')
+				  AND request_emp_seq = #{empSeq}
+				  AND active = 'Y'
+			) != 0
+			THEN (
+				SELECT IFNULL(MAX(flex_code_id), 0)
+				FROM dj_work_plan
+				WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 11 MONTH))
+				  AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'WORK_TERM_TYPE' AND code = '12M')
+				  AND request_emp_seq = #{empSeq}
+				  AND active = 'Y'
+			)
 			ELSE
 				(
 					SELECT IFNULL(MAX(flex_code_id), 0) 
 					FROM dj_work_plan 
 					WHERE (CONCAT(#{searchDt}, '01') BETWEEN CONCAT(apply_month, '01') AND DATE_ADD(STR_TO_DATE(CONCAT(apply_month, '01'), '%Y%m%d'), INTERVAL 2 MONTH))
-						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M')  
+						AND flex_code_id = (SELECT common_code_id FROM dj_common_code WHERE group_code = 'FLEX_TYPE' AND code = '3M')
 						AND request_emp_seq = #{empSeq} 
 						AND active = 'Y'
 		        )
@@ -399,7 +463,7 @@
 		remark,
 		create_emp_seq,
 		create_date
-		
+
 		)
 		values
 		(
@@ -423,7 +487,15 @@
 		'Y',
 		<choose>
 			<when test="flex_code_id != null and flex_code_id != ''">
-			CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 탄력근무]'),
+				<choose>
+					<when test="flex_code_id == '711'">
+						CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 유연근무]'),
+					</when>
+					 <otherwise>
+						 CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 탄력근무]'),
+					 </otherwise>
+				</choose>
+
 			</when>
 			<otherwise>
 			#{remark},
@@ -490,6 +562,9 @@
 			<when test="flex_code_id != null and flex_code_id != '' and flex_code_id == '629'">
 			CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 탄력근무]', #{remark}),
 			</when>
+			<when test="flex_code_id != null and flex_code_id != '' and flex_code_id == '711'">
+				CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 유연근무]', #{remark}),
+			</when>
 			<otherwise>
 			#{remark},
 			</otherwise>
@@ -554,9 +629,12 @@
 		    END statusKr
 		    ,(SELECT DISTINCT emp_name FROM v_emp_info WHERE emp_seq = request_emp_seq) AS emp_name
 		    ,DATE_FORMAT(request_date, '%Y-%m-%d') AS reqDate
-		    ,DATE_FORMAT(CONCAT(apply_month,'01'), '%Y-%m') AS reqMonth
+		    ,DATE_FORMAT(CONCAT(apply_month,'01'), '%Y-%m') AS reqMonth,
+			IFNULL((SELECT work_type FROM dj_work_type WHERE work_type_id = wp.default_work_type),'')AS default_work_type_kr,
+			IFNULL((SELECT attend_time FROM dj_work_type WHERE work_type_id = wp.default_work_type LIMIT 1),'') AS attend_time,
+			IFNULL((SELECT leave_time FROM dj_work_type WHERE work_type_id = wp.default_work_type LIMIT 1),'') AS leave_time
 		FROM
-		    dj_work_plan
+		    dj_work_plan wp
 		WHERE
 			active = 'Y'
 			<if test="approvalSeq != null and approvalSeq != ''">

@@ -390,6 +390,16 @@ function mainGrid(){
           title: "신청 일자",
            
         },{
+		  field: "default_work_type_kr",
+		  title: "근무유형",
+		},{
+		  field: "attend_time",
+		  title: "출근시간",
+		},
+		{
+		  field: "leave_time",
+		  title: "퇴근시간",
+		},{
             template: '<input type="button" id="" onclick="detailPop(this);" value="보기"/>',
             title: "상세 내역",
              

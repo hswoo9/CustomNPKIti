@@ -332,6 +332,24 @@ select {
                             width : 100
                         }, */
 						{
+							field : "VCATN_OUT_TIME",
+							title : "실제 외출시간",
+							width : 50
+						},
+						{
+							field : "",
+							title : "외출 등록",
+							width : 50,
+							template : function (dataItem) {
+								console.log(dataItem);
+								if (dataItem.VCATN_OUT_TIME != "" && dataItem.VCATN_OUT_TIME != null){
+									return "";
+								} else {
+									return "<div class=\"controll_btn p0\" style=\"text-align: center;\"><button type=\"button\" id=\"btnReturn\" onclick=\"fnSetOut(" + dataItem.ORI_ID + ",'" + dataItem.ORI_OUT_TIME + "','" + dataItem.ORI_RETURN_TIME + "', '" + dataItem.ORI_TARGET_DATE + "')\">외출</button></div>";
+								}
+							}
+						},
+						{
 							field : "VCATN_RET_TIME",
 							title : "실제 복귀시간",
 							width : 50
@@ -525,6 +543,64 @@ select {
 			}
 		});
 	}*/
+
+	function fnSetOut(k, a, b, day){
+		var nowDate = new Date();
+
+		var nowHour = nowDate.getHours();
+		var nowMinute = nowDate.getMinutes();
+
+		var flag = false;
+
+		if(b == '12:00'){
+			if(nowHour == 13) {
+				if (nowMinute < 5) {
+					flag = true;
+				}
+			}else if(nowHour < 13){
+				flag = true;
+			}
+		}
+
+		if(confirm("외출시간을 등록하시겠습니까?")){
+			if(flag != true){if(flag == true){
+				alert("외출 시간이 등록되었습니다.");
+				var data = {
+					key : k,
+					status : "정상"
+				}
+				// 실 외출시간 update
+				$.ajax({
+					url : _g_contextPath_ + "/enrollment/setOutTime",
+					data : data,
+					dateType :"json",
+					type : "post",
+					success : function (rs){
+
+						gridReload();
+					}
+				});
+			} else {
+				alert("외출 시간이 등록되었습니다.");
+				var data = {
+					key : k,
+					status : "정상"
+				}
+				// 실 외출시간 update
+				$.ajax({
+					url : _g_contextPath_ + "/enrollment/setOutTime",
+					data : data,
+					dateType :"json",
+					type : "post",
+					success : function (rs){
+
+						gridReload();
+					}
+				});
+			}
+			}
+		}
+	}
 
 
 

@@ -283,6 +283,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     }
 
 	@Override
+	public void setOutTime(Map<String, Object> params) {
+		enrollmentDAO.setOutTime(params);
+	}
+
+	@Override
 	public Map<String, Object> getOutReturnInfoPop(Map<String, Object> params) {
 		return enrollmentDAO.getOutReturnInfoPop(params);
 	}

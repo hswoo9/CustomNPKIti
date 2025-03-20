@@ -167,6 +167,10 @@ public class EnrollmentDAO extends AbstractDAO {
     public void setReturnTime(Map<String, Object> params) {
         update("enrollment.setReturnTime", params);
     }
+
+	public void setOutTime(Map<String, Object> params) {
+		update("enrollment.setOutTime", params);
+	}
     
     public int returnTimeCheck(Map<String, Object> params) {
 		return (int) selectOne("enrollment.returnTimeCheck", params);

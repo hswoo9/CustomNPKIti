@@ -666,6 +666,20 @@ public class EnrollmentController {
         return "jsonView";
     }
 
+	/**
+	 * 외출시간 등록
+	 * @param params
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/enrollment/setOutTime")
+	public String setOutTime(@RequestParam Map<String, Object> params, Model model){
+		enrollmentService.setOutTime(params);
+
+		model.addAttribute("ms", "외출이 완료되었습니다.");
+		return "jsonView";
+	}
+
 	@RequestMapping("/enrollment/outReturnModPop")
 	public String outReturnModPop(@RequestParam Map<String, Object> params, Model model){
 		model.addAttribute("obj", enrollmentService.getOutReturnInfoPop(params));
