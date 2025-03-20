@@ -566,8 +566,7 @@ select {
 			if(flag != true){if(flag == true){
 				alert("외출 시간이 등록되었습니다.");
 				var data = {
-					key : k,
-					status : "정상"
+					key : k
 				}
 				// 실 외출시간 update
 				$.ajax({

@@ -867,8 +867,7 @@
 		UPDATE
 			CUST_KLTI.V_VCATN_USE_HIST
 		SET
-			VCATN_OUT_TIME = now(),
-			STATUS = #{status}
+			VCATN_OUT_TIME = now()
 		WHERE
 			VCATN_USE_HIST_SN = #{key}
 	</update>
