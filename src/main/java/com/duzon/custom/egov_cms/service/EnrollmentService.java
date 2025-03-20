@@ -62,6 +62,7 @@ public interface EnrollmentService {
     Map<String, Object> returnInfoInsert(Map<String, Object> params);
 
     void setReturnTime(Map<String, Object> params);
+    void setOutTime(Map<String, Object> params);
 
     Map<String, Object> getOutReturnInfoPop(Map<String, Object> params);
 

@@ -181,12 +181,13 @@ table tr td {text-align: center;}
 		<div class="com_ta">
 			<div class="top_box">
 				<dl>
-					<dt style="width: 35px;">
-						년월
+					<dt style="width: 60px;">
+						신청년월
 					</dt>
 					<dd>
 						<input type="text" id="searchDt" style="width: 100px; text-align: center;" onchange="setData();">
 					</dd>
+
 					<dt style="width: 65px; margin-left: 55px;">
 						부서/이름
 					</dt>
@@ -223,6 +224,17 @@ table tr td {text-align: center;}
 					</dd>
 					<input type="hidden" name="flex_code_id">
 					<input type="hidden" name="start_week_no">
+				</dl>
+				<dl id="endMonth" style="display:none;">
+					<dt style="width: 80px;">
+						기간
+					</dt>
+					<dd>
+						<input id="workTermType" class="select-box">
+					</dd>
+					<input type="hidden" name="flex_code_id">
+					<input type="hidden" name="start_week_no">
+
 				</dl>
 				<dl id="flexTemplate" style="display:none;">
 				</dl>
@@ -379,6 +391,7 @@ $(function(){
 				  enable: false
 			});
 			$('#planTypeSelect').hide();
+			$('#endMonth').hide();
 		}, 1500);
 	}
 	$("#work_type_kr").text(work_type_code_kr);
@@ -396,9 +409,11 @@ $(function(){
 		change: function(e){
 			if(this.value() === 'normal'){
 				$("#flexSelect").hide();
+				$("#endMonth").show();
 				setData();
 			}else if(this.value() === 'flex'){
 				$("#flexSelect").show();
+				$("#endMonth").hide();
 			}
 		}
 	});
@@ -455,7 +470,7 @@ $(function(){
 						function(json){
 							var result = parseInt(json.cnt);
 							if(result > 0){
-								var msg = "탄력근무제 신청 대산 기간(" + sYear + "년" + sMonth + "월~" + eYear + "년" + eMonth	+ "월) 중 이미 신청된 건이 존재합니다.";							
+								var msg = "탄력근무제 신청 대상 기간(" + sYear + "년" + sMonth + "월~" + eYear + "년" + eMonth	+ "월) 중 이미 신청된 건이 존재합니다.";
 							}else{
 								var msg = "탄력근무제 신청 대상 기간은 " + sYear + "년" + sMonth + "월~" + eYear + "년" + eMonth + "월입니다. 진행하시겠습니까?" + 
 								  "<input type='button' id='flexOkBtn' class='file_input_button ml4 normal_btn2' value='확인'>";
@@ -492,23 +507,93 @@ $(function(){
 			}
 			$("#flexTemplate").show();
 		}
-	}).data("kendoComboBox"); 
-	
+	}).data("kendoComboBox");
+
+
+
+
+	var comboBox = $("#workTermType").kendoComboBox({
+		dataSource: new kendo.data.DataSource({
+			transport: {
+				read: {
+					url: _g_contextPath_+ '/subHoliday/getCommCodeList',
+					dataType: 'json',
+					type: 'post'
+				},
+				parameterMap: function(data, operation){
+					data.group_code = 'WORK_TERM_TYPE';
+					return data;
+				}
+			},
+			schema: {
+				data: function(response){
+					return response.list;
+				}
+			}
+		}),
+		dataTextField: 'code_kr',
+		dataValueField: 'common_code_id',
+		change: function(e){
+			var rows = comboBox.select();
+			var record = comboBox.dataItem(rows);
+			//console.log(record);
+			$("[name='flex_code_id']").val(record.common_code_id);
+
+			$("#flexTemplate").empty();
+			html = document.querySelector("#flexTypeTemplate").innerHTML;
+			$("#flexTemplate").append(html);
+			if(record.code === '12M'){
+				$("#flexLable").html("진행 확인");
+				var sD = $('#searchDt').val().replace(/-/gi , '');
+				var sYear = parseInt(sD.substring(0, 4));//앞에서 4번째 자리까지 자르기
+				var sMonth = parseInt(sD.substr(sD.length-2, 2));//뒤에서 2번째 자리까지 자르기
+				var eD = 0;
+				var eMonth = sMonth + 11;
+				var eYear = sYear;
+				if(sMonth > 1){
+					eMonth = (sMonth + 11 - 12).toString();
+					eMonth.length > 1 ? eMonth = eMonth : eMonth = '0' + eMonth;
+					eYear = (sYear + 1).toString();
+					eD = eYear + eMonth;
+				}else {
+					eD = parseInt(sD) + 2;
+				}
+
+				$.getJSON(_g_contextPath_ + '/workPlan/checkFlexPlan',
+						{'searchDt': sD, 'empSeq': '${userInfo.empSeq}'},
+						function(json){
+							var result = parseInt(json.cnt);
+							if(result > 0){
+								var msg = "유연근무제 신청 대상 기간(" + sYear + "년" + sMonth + "월~" + eYear + "년" + eMonth	+ "월) 중 이미 신청된 건이 존재합니다.";
+							}else{
+								var msg = "유연근무제 신청 대상 기간은 " + sYear + "년" + sMonth + "월~" + eYear + "년" + eMonth + "월입니다. 진행하시겠습니까?" +
+										"<input type='button' id='flexOkBtn' class='file_input_button ml4 normal_btn2' value='확인'>";
+							}
+							$("#flexInput").html(msg);
+						});
+			}
+			$("#flexTemplate").show();
+		}
+	}).data("kendoComboBox");
+
+
+
+
 	$(document).on('click', "#flexOkBtn", function(e){
 		setFlexData();
 		$(this).fadeOut();
 	});
 	
 	$('#searchDt').kendoDatePicker({
-    	culture : "ko-KR",
-	    format : "yyyy-MM",
-	    start: "year",
-	    depth: "year",
-	    value: new Date(),
-	    change: function(){
-	    	$("#flexSelect").hide();
-	    	$("#planType").data("kendoComboBox").value('');
-	    }
+		culture : "ko-KR",
+		format : "yyyy-MM",
+		start: "year",
+		depth: "year",
+		value: new Date(),
+		change: function () {
+			$("#flexSelect").hide();
+			$("#planType").data("kendoComboBox").value('');
+		}
 	});
 	
 	list = workTypeCodeList('all');
@@ -794,17 +879,28 @@ function setFlexData(){
 	var sMonth = parseInt(sD.substr(sD.length-2, 2));//뒤에서 2번째 자리까지 자르기
 	var eD = 0;
 	var eMonth = '';
-	if(sMonth > 10){
-		eMonth = (sMonth + 2 - 12).toString();
-		eMonth.length > 1 ? eMonth = eMonth : eMonth = '0' + eMonth;
-		eD = (sYear + 1).toString() + eMonth;
+	var yearTerm = '';
+	if($("#planType").val() == "normal"){
+		if(sMonth > 1){
+			eMonth = (sMonth + 11 - 12).toString();
+			eMonth.length > 1 ? eMonth = eMonth : eMonth = '0' + eMonth;
+			eD = (sYear + 1).toString() + eMonth;
+		}else{
+			eD = parseInt(sD) + 11;
+		}
 	}else{
-		eD = parseInt(sD) + 2;
+		if(sMonth > 10){
+			eMonth = (sMonth + 2 - 12).toString();
+			eMonth.length > 1 ? eMonth = eMonth : eMonth = '0' + eMonth;
+			eD = (sYear + 1).toString() + eMonth;
+		}else{
+			eD = parseInt(sD) + 2;
+		}
+		if($("[name='flex_code_id']").val() == '634'){
+			eD = sD;
+		}
 	}
-	if($("[name='flex_code_id']").val() == '634'){
-		eD = sD;
-	}
-	
+
 	
 	var data = {
 		empSeq		: $('#empSeq').val(),
@@ -812,7 +908,8 @@ function setFlexData(){
 		type		: 'normal',
 		flex_code_id : $("[name='flex_code_id']").val(),
 		startMonth  : sD,
-		endMonth : eD
+		endMonth : eD,
+		year_term : yearTerm
 	}
 	
 	dataGrid(data, 'v', 'flex');
@@ -923,6 +1020,7 @@ function dataGrid(data, val, planType){
 				$('#default_work_type').data('kendoDropDownList').value(result.status.WORK_TYPE);
 				$('#defaultBtn').css({'display':'none'});
 				$("#planTypeSelect").show();
+				// $("#endMonth").show();
 				$('.approvalDiv').show();
 				break;
 			case '1':
@@ -934,6 +1032,7 @@ function dataGrid(data, val, planType){
 				$('#default_work_type').data('kendoDropDownList').value(result.status.WORK_TYPE);
 				$('#defaultBtn').css({'display':'none'});
 				$("#planTypeSelect").hide();
+				$('#endMonth').hide();
 				$('.approvalDiv').show();
 				break;
 			case '2':
@@ -955,6 +1054,7 @@ function dataGrid(data, val, planType){
 				$('#default_work_type').data('kendoDropDownList').value(result.status.WORK_TYPE);
 				$('#defaultBtn').css({'display':'inline-block'});
 				$("#planTypeSelect").hide();
+				$('#endMonth').hide();
 				break;
 			default:
 				break;

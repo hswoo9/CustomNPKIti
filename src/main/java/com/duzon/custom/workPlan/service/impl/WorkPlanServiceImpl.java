@@ -16,6 +16,7 @@ import com.duzon.custom.workPlan.dao.WorkPlanDAO;
 import com.duzon.custom.workPlan.service.WorkPlanService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import static jdk.nashorn.internal.runtime.GlobalFunctions.parseInt;
 
 @Service
 public class WorkPlanServiceImpl implements WorkPlanService {
@@ -91,29 +92,36 @@ public class WorkPlanServiceImpl implements WorkPlanService {
 		String worker_duty = (String)map.get("classNm");
 		String flex_code_id = (String)map.get("flex_code_id");
 
-		if ( map.get("pk").equals("0") ) {
-			workPlanDAO.workPlanMasterSave(map);
-			Long work_plan_id = (Long)map.get("work_plan_id");
-			
-			for (Map<String, Object> vo : workPlanList) {
-				
-				vo.put("empSeq", empSeq);
-				vo.put("work_plan_id", work_plan_id);
-				vo.put("status", "1");
-				vo.put("worker_dept_name", worker_dept_name);
-				vo.put("worker_position", worker_position);
-				vo.put("worker_duty", worker_duty);
-				vo.put("flex_code_id", flex_code_id);
-				
-				workPlanDAO.workPlanDetailSave(vo);
-				workPlanDAO.workPlanDetailHistorySave(vo);
-				
+		if (parseInt(map.get("end_month"), 10) > parseInt(map.get("apply_month"), 10)) {
+	 		// apply_month = "202504", end_month="202507" 일 경우 202504, 202505, 202506, 202507 유연근무가 생성되어야함
+
+
+
+		}else{
+			if ( map.get("pk").equals("0") ) {
+				workPlanDAO.workPlanMasterSave(map);
+				Long work_plan_id = (Long)map.get("work_plan_id");
+
+				for (Map<String, Object> vo : workPlanList) {
+
+					vo.put("empSeq", empSeq);
+					vo.put("work_plan_id", work_plan_id);
+					vo.put("status", "1");
+					vo.put("worker_dept_name", worker_dept_name);
+					vo.put("worker_position", worker_position);
+					vo.put("worker_duty", worker_duty);
+					vo.put("flex_code_id", flex_code_id);
+
+					workPlanDAO.workPlanDetailSave(vo);
+					workPlanDAO.workPlanDetailHistorySave(vo);
+
+				}
+
+			} else {
+
 			}
-			
-		} else {
-			
 		}
-		
+
 		
 	}
 

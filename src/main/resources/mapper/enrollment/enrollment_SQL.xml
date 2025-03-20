@@ -809,6 +809,7 @@
 			DATE_FORMAT(VCATN_USE_ENDT,'%H:%i') as ORI_RETURN_TIME,
 			B.EMP_NAME AS EMP_NAME,
 			DATE_FORMAT(SEC_TO_TIME(TIMESTAMPDIFF(second, VCATN_USE_STDT, VCATN_USE_ENDT)), '%H시간 %i분') AS OUT_TIME,
+			DATE_FORMAT(VCATN_OUT_TIME,'%Y-%m-%d %H:%i') as VCATN_OUT_TIME,
 			DATE_FORMAT(VCATN_RET_TIME,'%Y-%m-%d %H:%i') as VCATN_RET_TIME,
 			APPRO_KEY,
 			USE_DAY,
@@ -856,6 +857,17 @@
 			CUST_KLTI.V_VCATN_USE_HIST
 		SET
 			VCATN_RET_TIME = now(),
+			STATUS = #{status}
+		WHERE
+			VCATN_USE_HIST_SN = #{key}
+	</update>
+
+	<update id="setOutTime" parameterType="map">
+		/* setOutTime (New) */
+		UPDATE
+			CUST_KLTI.V_VCATN_USE_HIST
+		SET
+			VCATN_OUT_TIME = now(),
 			STATUS = #{status}
 		WHERE
 			VCATN_USE_HIST_SN = #{key}
