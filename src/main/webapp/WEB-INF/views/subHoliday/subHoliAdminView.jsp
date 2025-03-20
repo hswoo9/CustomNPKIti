@@ -231,7 +231,94 @@
 				myWindow.data("kendoWindow").close();
 			});
 		}
-		
+
+		function timeGridReload(){
+			$('#timeGrid').data('kendoGrid').dataSource.read();
+		}
+
+		function timeGrid(){
+			var grid = $("#timeGrid").kendoGrid({
+				dataSource: new kendo.data.DataSource({
+					serverPaging: false,
+					pageSize: 1,
+					info: false,
+					transport: {
+						read: {
+							url: _g_contextPath_+'/subHoliday/subHolidayTimeTotal',
+							dataType: "json",
+							type: 'post'
+						},
+						parameterMap: function(data, operation){
+							var use_emp_seq = $("[name='use_emp_seq']").val();
+							if(use_emp_seq === "0"){
+								data.apply_emp_seq = '';
+							}else{
+								data.apply_emp_seq = use_emp_seq;
+							}
+							data.apply_dept_name = $("[name='apply_dept_name']").val();
+							data.startDt = $("[name='startDt']").val();
+							data.endDt = $("[name='endDt']").val();
+							return data;
+						}
+					},
+					schema: {
+						data: function(response){
+							return [response.data];
+						}
+					}
+				}),
+				pageable: false,
+				scrollable: false,
+				columns: [
+					{
+						field: "agree_min_sum",
+						title: "인정시간",
+						attributes: {
+							style: "text-align: center;"
+						},
+						template: function(row){
+							var agree_min_sum = row.agree_min_sum;
+							if(agree_min_sum === undefined || agree_min_sum === null){
+								return "";
+							}else{
+								return parseInt(agree_min_sum/60) + "시간" + agree_min_sum%60 + "분";
+							}
+						}
+					},{
+						field: "use_min_sum",
+						title: "사용시간",
+						attributes: {
+							style: "text-align: center;"
+						},
+						template: function(row){
+							var use_min_sum = row.use_min_sum;
+							if(use_min_sum === undefined || use_min_sum === null){
+								return "";
+							}else{
+								return parseInt(use_min_sum/60) + "시간" + use_min_sum%60 + "분";
+							}
+						}
+					},{
+						field: "rest_min_sum",
+						title: "잔여시간",
+						attributes: {
+							style: "text-align: center;"
+						},
+						template: function(row){
+							var rest_min_sum = row.rest_min_sum;
+							if(rest_min_sum === undefined || rest_min_sum === null){
+								return "";
+							}else{
+								return parseInt(rest_min_sum/60) + "시간" + rest_min_sum%60 + "분";
+							}
+						}
+					}
+				]
+			}).data("kendoGrid");
+		}
+
+		timeGrid();
+
 		/*
 			대체휴무 사원별 사용 잔여 현황(subHoliday/gridSubHolidayUseRestList)
 		*/
@@ -327,7 +414,7 @@
 						$("[name='click_use_emp_seq']").val(record.apply_emp_seq);
 						gridReload2();
 						gridReload3();
-						// $("[name='use_emp_seq']").val('0');
+						$("[name='use_emp_seq']").val('0');
 					});
 				}
 			}).data("kendoGrid");
@@ -442,6 +529,20 @@
 				},{
 					field: "holi_start",
 					title: "사용(예정)일",
+					template: function (e) {
+						let txt = "";
+						if(e.holi_group != null) {
+							let holiArr = e.holi_group.split(",");
+							let useMinArr = e.use_min_group.split(",");
+							for(let i = 0; i < holiArr.length; i++){
+								txt += holiArr[i] + " (" + parseInt(useMinArr[i]/60) + "시간 " + parseInt(useMinArr[i]%60) + "분" + ")<br/>";
+							}
+						} else {
+							txt = "";
+						}
+
+						return txt;
+					}
 				},{
 					field: "str_to_disDate",
 					title: "소멸예정일"
@@ -471,12 +572,14 @@
 		}
 		$(document).on('submit', "[name='subHolidayReqListFrm']", function(e){ //발생현황도 한꺼번에처리
 			e.preventDefault();
+			timeGridReload();
 			gridReload();
 			gridReload2();
 			gridReload3();
 			//document.subHolidayReqListFrm.reset();
-			// $("[name='use_emp_seq']").val("0");
-			// $("[name='apply_dept_name']").val("");
+			$("[name='use_emp_seq']").val("0");
+			$("[name='apply_dept_name']").val("");
+			$(".applyEmpName").val("");
 		});
 		function mainGrid3(){
 			var grid = $("#gridSubHolidayReqList"/* Mapping3 */).kendoGrid({
@@ -669,7 +772,10 @@
 				</div>
 			</div>
 		</form>
-		
+
+		<div id="midWrap" style="max-width: 800px; margin: 0 auto">
+			<div class="com_ta2 mt20" id="timeGrid"></div>
+		</div>
 		<div class="com_ta2 mt20" id="gridSubHolidayUseRestList"></div><!-- Mapping1 -->
 		
 		<div class="btn_div">

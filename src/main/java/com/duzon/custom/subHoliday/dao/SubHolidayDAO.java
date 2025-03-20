@@ -197,6 +197,9 @@ public class SubHolidayDAO extends AbstractDAO {
 	public List<Map<String, Object>> gridSubHolidayUseRestList(Map<String, Object> map){
 		return selectList("subHoliday.gridSubHolidayUseRestList", map);
 	}
+	public Map<String, Object> subHolidayTimeTotal(Map<String, Object> map){
+		return (Map<String, Object>)selectOne("subHoliday.subHolidayTimeTotal", map);
+	}
 	public int gridSubHolidayUseRestListTotal(Map<String, Object> map) {
 		return (Integer)selectOne("subHoliday.gridSubHolidayUseRestListTotal", map);
 	}

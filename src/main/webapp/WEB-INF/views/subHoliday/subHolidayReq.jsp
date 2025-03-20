@@ -1099,16 +1099,9 @@
 					title: "인정시간",
 					template: "#= parseInt(agree_min/60) # 시간 #= agree_min%60 # 분"
 				},{
-					field: "real_use_min",
+					field: "use_min",
 					title: "사용시간",
-					template:function(row){
-						console.log(row)
-						if(row.real_use_min>row.agree_min){
-							return Math.floor(row.agree_min/60) + " 시간 " + row.agree_min%60 + " 분";
-						}else{
-							return Math.floor(row.real_use_min/60) + " 시간 " + row.real_use_min%60 + " 분";
-						}
-					}
+					template: "#= parseInt(use_min/60) # 시간 #= use_min%60 #분"
 				},{
 					field: "rest_min",
 					title: "잔여시간",
@@ -1116,6 +1109,21 @@
 				},{
 					field: "holi_start",
 					title: "사용(예정)일",
+						template: function (e) {
+							let txt = "";
+							if(e.holi_group != null) {
+								console.log("e", e.holi_group);
+								let holiArr = e.holi_group.split(",");
+								let useMinArr = e.use_min_group.split(",");
+								for(let i = 0; i < holiArr.length; i++){
+									txt += holiArr[i] + " (" + parseInt(useMinArr[i]/60) + "시간 " + parseInt(useMinArr[i]%60) + "분" + ")<br/>";
+								}
+							} else {
+								txt = "";
+							}
+
+							return txt;
+						}
 				},{
 					field: "str_to_disDate",
 					title: "소멸예정일"

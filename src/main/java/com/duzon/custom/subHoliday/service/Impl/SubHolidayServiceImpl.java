@@ -391,6 +391,10 @@ public class SubHolidayServiceImpl implements SubHolidayService{
 		return subHolidayDAO.gridSubHolidayUseRestList(map);
 	}
 	@Override
+	public Map<String, Object> subHolidayTimeTotal(Map<String, Object> map) {
+		return subHolidayDAO.subHolidayTimeTotal(map);
+	}
+	@Override
 	public int gridSubHolidayUseRestListTotal(Map<String, Object> map) {
 		return subHolidayDAO.gridSubHolidayUseRestListTotal(map);
 	}

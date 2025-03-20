@@ -50,6 +50,7 @@ public interface SubHolidayService {
 	int subHoliApprovalUpdate(List<Map<String, Object>> list);
 	Map<String, Object> getOverHoliRestMin(Map<String, Object> map);
 	List<Map<String, Object>> gridSubHolidayUseRestList(Map<String, Object> map);
+	Map<String, Object> subHolidayTimeTotal(Map<String, Object> map);
 	int gridSubHolidayUseRestListTotal(Map<String, Object> map);
 	List<Map<String, Object>> overWkExcelList(Map<String, Object> map);
 	List<Map<String, Object>> upExcelDown(Map<String, Object> map);

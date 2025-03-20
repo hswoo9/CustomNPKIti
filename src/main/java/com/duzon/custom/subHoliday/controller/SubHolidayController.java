@@ -755,6 +755,15 @@ public class SubHolidayController {
 		resultMap.put("totalCount", subHolidayService.gridSubHolidayUseRestListTotal(map));
 		return resultMap;
 	}
+
+	@RequestMapping("/subHoliday/subHolidayTimeTotal")
+	@ResponseBody
+	public Map<String, Object> subHolidayTimeTotal(@RequestParam Map<String, Object> map){
+		logger.info("subHolidayTimeTotal");
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("data", subHolidayService.subHolidayTimeTotal(map));
+		return resultMap;
+	}
 	
 	/**
 	 * @methodName : overWkExcelList
