@@ -1784,6 +1784,21 @@ function sendBtnValidation (){
 }
 
 function saveBtn(){
+	if($("#planType").val() == ''){
+		alert("신청 유형을 선택해주세요.")
+		return;
+	}else if($("#planType").val() != '' && $("#planType").val() == 'normal'){
+		if($("#workTermType").val() == ''){
+			alert("기간을 선택해주세요.")
+			return;
+		}
+	}else if($("#planType").val() != '' && $("#planType").val() == 'flex'){
+		if($("#flexType").val() == ''){
+			alert("탄력근무제를 선택해주세요.")
+			return;
+		}
+	}
+
 	if(!confirm('신청 하시겠습니까?')){
 		return
 	};
