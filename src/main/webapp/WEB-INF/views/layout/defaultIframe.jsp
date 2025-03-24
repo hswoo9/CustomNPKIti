@@ -275,6 +275,17 @@
 					},
 					width: 100
 				},{
+					field: "use_min",
+					title: "신청시간",
+					template: function(row){
+						if(row.apply_start_time != null && row.apply_end_time != ''){
+							return row.apply_start_time + '~' + row.apply_end_time;
+						}else{
+							return '';
+						}
+					},
+					width: 250
+				},{
 					field: "attReqTitle", //"reason",
 					title: "신청내역",
 					template: "보상휴가신청"
