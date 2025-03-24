@@ -1145,6 +1145,13 @@
 		  , update_date = NOW()
 		WHERE ot_work_apply_id = #{ot_work_apply_id}
 	</update>
+	<update id="holiWkReqActiveY" parameterType="map">
+		UPDATE dj_ot_work_result
+		SET active = 'Y'
+		  , update_emp_seq = #{update_emp_seq}
+		  , update_date = NOW()
+		WHERE ot_work_apply_id = #{ot_work_apply_id}
+	</update>
 	<update id="holiWkApprovalUpdate" parameterType="map">
 		UPDATE dj_ot_work_apply
 		<set>

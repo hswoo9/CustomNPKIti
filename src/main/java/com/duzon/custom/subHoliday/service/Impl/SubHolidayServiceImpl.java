@@ -221,6 +221,8 @@ public class SubHolidayServiceImpl implements SubHolidayService{
 				if(after_action_report_id != null && after_action_report_id != "") {
 					subHolidayDAO.holiWkCancle(map);//파업업로드한 테이블 컬럼 비활성화시키기
 				}
+			} else {
+				subHolidayDAO.holiWkReqActiveY(map);
 			}
 		}
 		return n;

@@ -124,6 +124,9 @@ public class SubHolidayDAO extends AbstractDAO {
 	public int holiWkReqDeactivate(Map<String, Object> map) {
 		return (Integer)update("subHoliday.holiWkReqDeactivate", map);
 	}
+	public int holiWkReqActiveY(Map<String, Object> map) {
+		return (Integer)update("subHoliday.holiWkReqActiveY", map);
+	}
 	public int holiWkApprovalUpdate(Map<String, Object> map) {
 		return (Integer)update("subHoliday.holiWkApprovalUpdate", map);
 	}
