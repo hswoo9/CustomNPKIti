@@ -985,8 +985,8 @@
 					console.log(error);
 				}
 			});	 */
-			var hourStr = (use_time/60 > 9)? use_time/60 : '0' + use_time/60
-			var minStr = (use_time%60 > 9)? use_time : '0' + use_time%60
+			var hourStr = parseInt(use_time/60) > 9 ? parseInt(use_time/60) : '0' + parseInt(use_time/60);
+			var minStr = parseInt(use_time%60) > 9 ? parseInt(use_time%60) : '0' + parseInt(use_time%60);
 			return html.replace('{create_date}', "${nowDateToServer}")
 						.replace('{apply_position}', '${empInfo.classNm}')
 						.replace('{apply_emp_name}', $('#apply_emp_name').val())
