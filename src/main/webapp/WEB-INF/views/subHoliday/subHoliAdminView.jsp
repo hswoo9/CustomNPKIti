@@ -479,16 +479,20 @@
 				columns: [
 				{
 					field: "apply_dept_name",
-					title: "부서"
+					title: "부서",
+					width: 100
 				},{
 					field: "apply_emp_name",
-					title: "신청자"
+					title: "신청자",
+					width: 80
 				},{
 					field: "str_to_applyDate",
-					title: "근무일자"
+					title: "근무일자",
+					width: 80
 				},{
 					field: "weekday",
 					title: "요일",
+					width: 80,
 		            template : function(row){
 		            	var key = '';
 		            	if ( row.weekday == undefined ) {
@@ -504,31 +508,39 @@
 		            }
 				},{
 					field: "apply_start_time",
-					title: "신청시작시간"
+					title: "신청시작시간",
+						width: 80
 				},{
 					field: "apply_end_time",
-					title: "신청종료시간"
+					title: "신청종료시간",
+						width: 80
 				},{
 					field: "work_start_time",
-					title: "출근시간"
+					title: "출근시간",
+						width: 80
 				},{
 					field: "work_end_time",
-					title: "퇴근시간"
+					title: "퇴근시간",
+						width: 80
 				},{
 					field: "agree_min",
 					title: "인정시간",
+					width: 80,
 					template: "#= parseInt(agree_min/60) # 시간 #= agree_min%60 #분"
 				},{
 					field: "use_min",
 					title: "사용시간",
+					width: 80,
 					template: "#= parseInt(use_min/60) # 시간 #= use_min%60 #분"
 				},{
 					field: "rest_min",
 					title: "잔여시간",
+					width: 80,
 					template: "#= parseInt(rest_min/60) # 시간 #= rest_min%60 #분"
 				},{
 					field: "holi_start",
 					title: "사용(예정)일",
+					width: 100,
 					template: function (e) {
 						let txt = "";
 						if(e.holi_group != null) {
@@ -545,7 +557,8 @@
 					}
 				},{
 					field: "str_to_disDate",
-					title: "소멸예정일"
+					title: "소멸예정일",
+					width: 80,
 				}],
 				change: function(e){
 					//codeGridClick();
