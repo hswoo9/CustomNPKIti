@@ -310,6 +310,7 @@ public class SubHolidayServiceImpl implements SubHolidayService{
 
 			if(n == 0) {
 				replaceDayOffUseId = itemMap.get("replace_day_off_use_id").toString();
+				subHolidayDAO.subHolidayReqGroupKeyUpdate(itemMap);
 			}
 
 			ArrayList<String> select_array = new ArrayList<String>();

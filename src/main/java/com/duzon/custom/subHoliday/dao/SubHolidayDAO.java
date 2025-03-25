@@ -146,6 +146,9 @@ public class SubHolidayDAO extends AbstractDAO {
 	public int subHolidayReqInsert(Map<String, Object> map) {
 		return (Integer)insert("subHoliday.subHolidayReqInsert", map);
 	}
+	public void subHolidayReqGroupKeyUpdate(Map<String, Object> map) {
+		update("subHoliday.subHolidayReqGroupKeyUpdate", map);
+	}
 	public void sp_subHoliday_req(Map<String, Object> map) {
 		selectOne("subHoliday.sp_subHoliday_req", map);
 	}

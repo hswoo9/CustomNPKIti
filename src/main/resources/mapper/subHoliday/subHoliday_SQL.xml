@@ -1247,6 +1247,11 @@
 			  , NOW()
 			)
 	</insert>
+	<update id="subHolidayReqGroupKeyUpdate" parameterType="map">
+		update cust_klti.dj_replace_holiday_apply
+		set replace_apply_group_key = #{replace_day_off_use_id}
+		where replace_day_off_use_id = #{replace_day_off_use_id}
+	</update>
 	<select id="sp_subHoliday_req" parameterType="map">
 		CALL SP_SUBHOLIDAY_REQ(
 				#{use_emp_seq}
