@@ -181,7 +181,7 @@ table tr td {text-align: center;}
 		<div class="com_ta">
 			<div class="top_box">
 				<dl>
-					<dt style="width: 60px;">
+					<dt style="width: 80px;">
 						신청년월
 					</dt>
 					<dd>
@@ -362,6 +362,14 @@ table tr td {text-align: center;}
 	</dt>
 	<dd id="flexInput">
 	</dd>
+	<dt id="workTypeLable" style="width: 90px; margin-left: 10px;">
+		근무유형 선택
+	</dt>
+	<dd id="workTypeSelect" style="display: flex;margin-left: 5px">
+		<div class="left_div">
+			<select name="" id="work_type_s" class="" style="width: 160px"></select>
+		</div>
+	</dd>
 </script>
 <script>
 var test = '${userInfo}';
@@ -412,6 +420,8 @@ $(function(){
 				setData();
 			}else if(this.value() === 'flex'){
 				$("#flexSelect").show();
+				$("#workTypeSelect").hide();
+				$("#workTypeLable").hide();
 				$("#endMonth").hide();
 			}
 		}
@@ -542,6 +552,8 @@ $(function(){
 			html = document.querySelector("#flexTypeTemplate").innerHTML;
 			$("#flexTemplate").append(html);
 			if(record.code === '12M'){
+				$("#workTypeSelect").hide();
+				$("#workTypeLable").hide();
 				$("#flexLable").html("진행 확인");
 				var sD = $('#searchDt').val().replace(/-/gi , '');
 				var sYear = parseInt(sD.substring(0, 4));//앞에서 4번째 자리까지 자르기
@@ -570,6 +582,47 @@ $(function(){
 							}
 							$("#flexInput").html(msg);
 						});
+			}else if(record.code === '1W'){
+				$("#work_type_s").kendoDropDownList({
+					dataTextField: "work_type",
+					dataValueField: "work_type_id",
+					dataSource: workTypeCodeList('nAll')
+				});
+
+				var firstDate = $("#searchDt").val() + '-01';
+				var dateObject = new Date(firstDate);
+				var lastDate = new Date(dateObject.getYear(), dateObject.getMonth()+1, 0);
+				var firstWeek = Math.ceil(dateObject.getDate()/7);
+				var lastWeek = Math.ceil(lastDate.getDate()/7)
+				var weeks = lastWeek - firstWeek;
+
+				$.getJSON(_g_contextPath_ + '/workPlan/getWeekNo',
+						{'firstDate': firstDate},
+						function(json) {
+							var firstWeekNo = 0;
+							firstWeekNo = json.week_no;
+							$("#flexLable").html("주차 선택");
+							$("#workTypeSelect").show();
+							$("#workTypeSelect").css("display", "flex");
+							$("#workTypeLable").show();
+
+							var selectObject = document.createElement("select");
+							$(selectObject).addClass("weeks_select");
+							selectObject.id = 'start_week_no';
+							for (var i = 0; i < weeks; i++) {
+								var option = document.createElement("option");
+								option.text = i + 1;
+								option.value = firstWeekNo + i;
+								selectObject.add(option);
+							}
+							$("#flexInput").append(selectObject);
+
+							$("#workTypeSelect").append("<input type='button' id='flexOkBtn' class='file_input_button ml4 normal_btn2' value='확인'>");
+							$(".weeks_select").kendoComboBox();
+						});
+			}else{
+				$("#workTypeSelect").hide();
+				$("#workTypeLable").hide();
 			}
 			$("#flexTemplate").show();
 		}
@@ -582,7 +635,7 @@ $(function(){
 		setFlexData();
 		$(this).fadeOut();
 	});
-	
+
 	$('#searchDt').kendoDatePicker({
 		culture : "ko-KR",
 		format : "yyyy-MM",
@@ -887,6 +940,9 @@ function setFlexData(){
 		}else{
 			eD = parseInt(sD) + 11;
 		}
+		if($("[name='flex_code_id']").val() == '713'){
+			eD = sD;
+		}
 	}else{
 		if(sMonth > 10){
 			eMonth = (sMonth + 2 - 12).toString();
@@ -1125,6 +1181,18 @@ function dataGrid(data, val, planType){
 											);
 						}
 					}
+
+					if(result.status.flex_code_id == '713'){
+						selectHtml = $('#addWorkPlanType').html();
+						if(v.week_no != result.status.start_week_no){
+							selectHtml = selectHtml
+									.replace(/* IE에서 작동 안하는거 해결... 특수문자 - 이거때문인듯 */
+											/* /<option value="11" data-s="" data-e="" data-m="">탄력근무<\/option>/gi */
+											'<option value="11"'
+											, '<option value="11" disabled'
+									);
+						}
+					}
 					
 					if ( v.weekday == '토요일' ) {
 						textColor = 'text_blue';
@@ -1252,6 +1320,7 @@ function dataGrid(data, val, planType){
 					var dayNo = moment(v.WK_DT).day();
 					var start_week_no = $("#start_week_no").val();
 					var week_flex_yn = '';
+					var work_type_s = '';
 					
 
 					if(i == 0){
@@ -1273,6 +1342,22 @@ function dataGrid(data, val, planType){
 							week_flex_yn = 'Y';
 						}
 					}
+
+					if($("[name='flex_code_id']").val() == '713'){
+						selectHtml = $('#addWorkPlanType').html();
+						if(v.week_no != start_week_no){
+							selectHtml = selectHtml
+									.replace(/* IE에서 작동 안하는거 해결... 특수문자 - 이거때문인듯 */
+											/* /<option value="11" data-s="" data-e="" data-m="">탄력근무<\/option>/gi */
+											'<option value="11"'
+											, '<option value="11" disabled'
+									);
+						}else{
+							week_flex_yn = 'Y';
+							work_type_s = $("#work_type_s").data("kendoDropDownList").value()
+
+						}
+					}
 					
 					if ( v.weekday == '토요일' ) {
 						textColor = 'text_blue';
@@ -1283,40 +1368,83 @@ function dataGrid(data, val, planType){
 					} else {
 						textColor = 'text_black';
 					}
-					
-					if (v.NOWSTS == 'Y') {
-						html +='<input type="hidden" id="WK_PN_NO" value="'+v.work_plan_detail_id+'">'
-						+'<td></td>'
-						+'<td><span id="sts" dataYn="Y" nowYn="Y" class="text_blue">신청가능</span></td>'
-						+'<td id="work_date" class="'+v.work_date+'"><input type="hidden" id="WK_PN_NO" class="wkPnNoData" value="'+v.work_plan_detail_id+'"><input type="hidden" id="ot_yn" class="" value="'+v.ot_yn+'">'+v.work_date+'</td>'
-						+'<td id="weekday" class="'+textColor+'">'+v.weekday+'</td>'
-						+'<td>'+selectHtml+'<input type="hidden" id="work_type_id" value="'+$('#addWorkPlanType select option:selected').val()+'"></td>'
-						+'<td id="rStart">'+$('#addWorkPlanType select option:selected').attr('data-s')+'</td>'
-						+'<td id="rEnd">'+$('#addWorkPlanType select option:selected').attr('data-e')+'</td>'
-						+'<td><input type="text" id="MEMO" value="'+v.remark+'" style="width:90%;">'
-						+'<input type="hidden" class="week_no" value="'+v.week_no+'"/>'
-						+'<input type="hidden" id="work_min" value="'+$('#addWorkPlanType select option:selected').attr('data-m')+'"/>'
-						+'<input type="hidden" id="break_min" value="'+$('#addWorkPlanType select option:selected').attr('data-b')+'"/>'
-						+'<input type="hidden" id="week_flex_yn" value="'+ week_flex_yn +'"/>'
-						+'<input type="hidden" name="holiday_yn" value="'+v.HOLIDAY_STATUS+'"/></td>'
-						+'</tr>';
-					} else {
 
-						html += '<td></td>'
-						+'<td><span id="sts" dataYn="Y" nowYn="N" class="text_blue">신청가능</span></td>'
-						+'<td id="work_date" class="'+v.work_date+'"><input type="hidden" id="WK_PN_NO" class="wkPnNoData" value="'+v.work_plan_detail_id+'"><input type="hidden" id="ot_yn" class="" value="'+v.ot_yn+'">'+v.work_date+'</td>'
-						+'<td id="weekday" class="'+textColor+'">'+v.weekday+'</td>'
-						+'<td>'+selectHtml+'<input type="hidden" id="work_type_id" value="'+$('.addWorkPlanType option:selected').val()+'"></td>'
-							//+'<td>'+$('.addWorkPlanType option:selected').text()+'<input type="hidden" id="work_type_id" value="'+$('.addWorkPlanType option:selected').val()+'"></td>'
-						+'<td id="rStart">'+$('#addWorkPlanType select option:selected').attr('data-s')+'</td>'
-						+'<td id="rEnd">'+$('#addWorkPlanType select option:selected').attr('data-e')+'</td>'
-						+'<td><input type="text" id="MEMO" value="'+v.remark+'" style="width:90%;" disabled="disabled">'
-						+'<input type="hidden" class="week_no" value="'+v.week_no+'"/>'
-						+'<input type="hidden" id="work_min" value="'+$('#addWorkPlanType select option:selected').attr('data-m')+'"/>'
-						+'<input type="hidden" id="break_min" value="'+$('#addWorkPlanType select option:selected').attr('data-b')+'"/>'
-						+'<input type="hidden" id="week_flex_yn" value="'+ week_flex_yn +'"/>'
-						+'<input type="hidden" name="holiday_yn" value="'+v.HOLIDAY_STATUS+'"/></td>'
-						+'</tr>';
+					if($("[name='flex_code_id']").val() == '713'){
+						if (v.NOWSTS == 'Y') {
+
+							html +='<input type="hidden" id="WK_PN_NO" value="'+v.work_plan_detail_id+'">'
+									+'<td></td>'
+									+'<td><span id="sts" dataYn="Y" nowYn="Y" class="text_blue">신청가능</span></td>'
+									+'<td id="work_date" class="'+v.work_date+'"><input type="hidden" id="WK_PN_NO" class="wkPnNoData" value="'+v.work_plan_detail_id+'"><input type="hidden" id="ot_yn" class="" value="'+v.ot_yn+'">'+v.work_date+'</td>'
+									+'<td id="weekday" class="'+textColor+'">'+v.weekday+'</td>';
+									if(work_type_s != null && work_type_s != ''){
+										html += '<td>'+selectHtml+'<input type="hidden" class="work_type_id" id="work_type_id" value="'+work_type_s+'"></td>';
+									}else{
+										html += '<td>'+selectHtml+'<input type="hidden" id="work_type_id" value="'+$('#addWorkPlanType select option:selected').val()+'"></td>';
+									}
+									html +=
+									'<td id="rStart">'+$('#work_type_s select option:selected').attr('data-s')+'</td>'
+									+'<td id="rEnd">'+$('#work_type_s select option:selected').attr('data-e')+'</td>'
+									+'<td><input type="text" id="MEMO" value="'+v.remark+'" style="width:90%;">'
+									+'<input type="hidden" class="week_no" value="'+v.week_no+'"/>'
+									+'<input type="hidden" id="work_min" value="'+$('#work_type_s select option:selected').attr('data-m')+'"/>'
+									+'<input type="hidden" id="break_min" value="'+$('#work_type_s select option:selected').attr('data-b')+'"/>'
+									+'<input type="hidden" id="week_flex_yn" value="'+ week_flex_yn +'"/>'
+									+'<input type="hidden" name="holiday_yn" value="'+v.HOLIDAY_STATUS+'"/></td>'
+									+'</tr>';
+						} else {
+
+							html += '<td></td>'
+									+'<td><span id="sts" dataYn="Y" nowYn="N" class="text_blue">신청가능</span></td>'
+									+'<td id="work_date" class="'+v.work_date+'"><input type="hidden" id="WK_PN_NO" class="wkPnNoData" value="'+v.work_plan_detail_id+'"><input type="hidden" id="ot_yn" class="" value="'+v.ot_yn+'">'+v.work_date+'</td>'
+									+'<td id="weekday" class="'+textColor+'">'+v.weekday+'</td>'
+									+'<td>'+selectHtml+'<input type="hidden" id="work_type_id" value="'+work_type_s+'"></td>'
+									//+'<td>'+$('.addWorkPlanType option:selected').text()+'<input type="hidden" id="work_type_id" value="'+$('.addWorkPlanType option:selected').val()+'"></td>'
+									+'<td id="rStart">'+$('#work_type_s select option:selected').attr('data-s')+'</td>'
+									+'<td id="rEnd">'+$('#work_type_s select option:selected').attr('data-e')+'</td>'
+									+'<td><input type="text" id="MEMO" value="'+v.remark+'" style="width:90%;" disabled="disabled">'
+									+'<input type="hidden" class="week_no" value="'+v.week_no+'"/>'
+									+'<input type="hidden" id="work_min" value="'+$('#work_type_s select option:selected').attr('data-m')+'"/>'
+									+'<input type="hidden" id="break_min" value="'+$('#work_type_s select option:selected').attr('data-b')+'"/>'
+									+'<input type="hidden" id="week_flex_yn" value="'+ week_flex_yn +'"/>'
+									+'<input type="hidden" name="holiday_yn" value="'+v.HOLIDAY_STATUS+'"/></td>'
+									+'</tr>';
+						}
+					}else{
+
+						if (v.NOWSTS == 'Y') {
+							html +='<input type="hidden" id="WK_PN_NO" value="'+v.work_plan_detail_id+'">'
+									+'<td></td>'
+									+'<td><span id="sts" dataYn="Y" nowYn="Y" class="text_blue">신청가능</span></td>'
+									+'<td id="work_date" class="'+v.work_date+'"><input type="hidden" id="WK_PN_NO" class="wkPnNoData" value="'+v.work_plan_detail_id+'"><input type="hidden" id="ot_yn" class="" value="'+v.ot_yn+'">'+v.work_date+'</td>'
+									+'<td id="weekday" class="'+textColor+'">'+v.weekday+'</td>'
+									+'<td>'+selectHtml+'<input type="hidden" id="work_type_id" value="'+$('#addWorkPlanType select option:selected').val()+'"></td>'
+									+'<td id="rStart">'+$('#addWorkPlanType select option:selected').attr('data-s')+'</td>'
+									+'<td id="rEnd">'+$('#addWorkPlanType select option:selected').attr('data-e')+'</td>'
+									+'<td><input type="text" id="MEMO" value="'+v.remark+'" style="width:90%;">'
+									+'<input type="hidden" class="week_no" value="'+v.week_no+'"/>'
+									+'<input type="hidden" id="work_min" value="'+$('#addWorkPlanType select option:selected').attr('data-m')+'"/>'
+									+'<input type="hidden" id="break_min" value="'+$('#addWorkPlanType select option:selected').attr('data-b')+'"/>'
+									+'<input type="hidden" id="week_flex_yn" value="'+ week_flex_yn +'"/>'
+									+'<input type="hidden" name="holiday_yn" value="'+v.HOLIDAY_STATUS+'"/></td>'
+									+'</tr>';
+						} else {
+							html += '<td></td>'
+									+'<td><span id="sts" dataYn="Y" nowYn="N" class="text_blue">신청가능</span></td>'
+									+'<td id="work_date" class="'+v.work_date+'"><input type="hidden" id="WK_PN_NO" class="wkPnNoData" value="'+v.work_plan_detail_id+'"><input type="hidden" id="ot_yn" class="" value="'+v.ot_yn+'">'+v.work_date+'</td>'
+									+'<td id="weekday" class="'+textColor+'">'+v.weekday+'</td>'
+									+'<td>'+selectHtml+'<input type="hidden" id="work_type_id" value="'+$('.addWorkPlanType option:selected').val()+'"></td>'
+									//+'<td>'+$('.addWorkPlanType option:selected').text()+'<input type="hidden" id="work_type_id" value="'+$('.addWorkPlanType option:selected').val()+'"></td>'
+									+'<td id="rStart">'+$('#addWorkPlanType select option:selected').attr('data-s')+'</td>'
+									+'<td id="rEnd">'+$('#addWorkPlanType select option:selected').attr('data-e')+'</td>'
+									+'<td><input type="text" id="MEMO" value="'+v.remark+'" style="width:90%;" disabled="disabled">'
+									+'<input type="hidden" class="week_no" value="'+v.week_no+'"/>'
+									+'<input type="hidden" id="work_min" value="'+$('#addWorkPlanType select option:selected').attr('data-m')+'"/>'
+									+'<input type="hidden" id="break_min" value="'+$('#addWorkPlanType select option:selected').attr('data-b')+'"/>'
+									+'<input type="hidden" id="week_flex_yn" value="'+ week_flex_yn +'"/>'
+									+'<input type="hidden" name="holiday_yn" value="'+v.HOLIDAY_STATUS+'"/></td>'
+									+'</tr>';
+						}
 					}
 					
 					$('#addTbody').append(html);
@@ -1360,7 +1488,11 @@ function dataGrid(data, val, planType){
 							
 						} else if(v.HOLIDAY_STATUS == 'N'){
 
-							$(select).data('kendoDropDownList').value(result.status.WORK_TYPE);
+							if ($("[name='flex_code_id']").val() == '713' && $(row).find('#week_flex_yn').val() == 'Y') {
+								$(select).data('kendoDropDownList').value(work_type_s);
+							}else{
+								$(select).data('kendoDropDownList').value(result.status.WORK_TYPE);
+							}
 							$(row).find('#rStart').text($(row).find('select option:selected').attr("data-s"));
 							$(row).find('#rEnd').text($(row).find('select option:selected').attr("data-e"));
 							$(row).find('#work_min').val($(row).find('select option:selected').attr("data-m"));
@@ -1377,7 +1509,9 @@ function dataGrid(data, val, planType){
 								}
 							}
 						}
-						$(row).find('#work_type_id').val($(select).data('kendoDropDownList').value());
+						if($("[name='flex_code_id']").val() != '713') {
+							$(row).find('#work_type_id').val($(select).data('kendoDropDownList').value());
+						}
 
 						if ( v.NOWSTS == 'N' ) {
 							$( select ).kendoDropDownList({
@@ -1851,7 +1985,7 @@ function saveBtn(){
 				}
 			});
 			type = '2주';
-		}else if(flex_code_id == '713'){
+		}/*else if(flex_code_id == '713'){
 			var start_week_no = $("#start_week_no").val();
 			$.each($('.week_no'), function(i, v){
 				if(this.value == start_week_no || this.value == parseInt(start_week_no) + 1){
@@ -1867,7 +2001,7 @@ function saveBtn(){
 				}
 			});
 			type = '1주';
-		}
+		}*/
 		//total_max_min = flex_max_min * total_work_day;
 		total_max_min = flex_max_min * max_work_day; //처음 달력상 찍히는 날짜를 기준으로 최대 근무가능 시간 계산
 		console.log('total_work_day', total_work_day, 'work_min_sum', work_min_sum, 'total_max_min', total_max_min);

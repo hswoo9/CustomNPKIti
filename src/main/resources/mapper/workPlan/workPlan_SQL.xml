@@ -442,68 +442,65 @@
     <insert id="workPlanMasterSave" parameterType="map"  useGeneratedKeys="true" keyProperty="work_plan_id">
     	insert into dj_work_plan
 		(
-		request_emp_seq, 
-		request_dept_name, 
-		request_position, 
-		request_duty, 
-		approval_emp_seq, 
-		request_date, 
-		apply_month,		
- 		default_work_type,
-		<if test="flex_code_id != null and flex_code_id != ''">
-		flex_code_id,
-		work_min_sum,
-		total_work_day,
-		<if test="start_week_no != null and start_week_no != ''">
-		start_week_no,
-		</if>
-		</if>
-		status, 
-		active,
-		remark,
-		create_emp_seq,
-		create_date
-
+			request_emp_seq,
+			request_dept_name,
+			request_position,
+			request_duty,
+			approval_emp_seq,
+			request_date,
+			apply_month,
+			default_work_type,
+			<if test="flex_code_id != null and flex_code_id != ''">
+				flex_code_id,
+				work_min_sum,
+				total_work_day,
+				<if test="start_week_no != null and start_week_no != ''">
+					start_week_no,
+				</if>
+			</if>
+			status,
+			active,
+			remark,
+			create_emp_seq,
+			create_date
 		)
 		values
 		(
-		#{empSeq}, 
-		#{orgnztNm}, 
-		#{positionNm}, 
-		#{classNm}, 
-		#{approval_emp_seq}, 
-		(DATE_FORMAT(NOW(), '%Y%m%d')), 
-		#{apply_month},	
- 		#{default_work_type},
-		<if test="flex_code_id != null and flex_code_id != ''">
-		#{flex_code_id},
-		#{work_min_sum},
-		#{total_work_day},
-		<if test="start_week_no != null and start_week_no != ''">
-		#{start_week_no},
-		</if>
-		</if>
-		'1',
-		'Y',
-		<choose>
-			<when test="flex_code_id != null and flex_code_id != ''">
-				<choose>
-					<when test="flex_code_id == '711'">
-						CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 유연근무]'),
-					</when>
-					 <otherwise>
-						 CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 탄력근무]'),
-					 </otherwise>
-				</choose>
-
-			</when>
-			<otherwise>
-			#{remark},
-			</otherwise>
-		</choose>
-		#{empSeq},
-		NOW()
-		
+			#{empSeq},
+			#{orgnztNm},
+			#{positionNm},
+			#{classNm},
+			#{approval_emp_seq},
+			(DATE_FORMAT(NOW(), '%Y%m%d')),
+			#{apply_month},
+			#{default_work_type},
+			<if test="flex_code_id != null and flex_code_id != ''">
+				#{flex_code_id},
+				#{work_min_sum},
+				#{total_work_day},
+				<if test="start_week_no != null and start_week_no != ''">
+					#{start_week_no},
+				</if>
+			</if>
+			'1',
+			'Y',
+			<choose>
+				<when test="flex_code_id != null and flex_code_id != ''">
+					<choose>
+						<when test="flex_code_id == '711' or flex_code_id == '713' or flex_code_id == '712'">
+							CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 유연근무]'),
+						</when>
+						<otherwise>
+							CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 탄력근무]'),
+						</otherwise>
+					</choose>
+				</when>
+				<otherwise>
+					#{remark},
+				</otherwise>
+			</choose>
+			#{empSeq},
+			NOW()
 		)
     </insert>
     
@@ -564,6 +561,16 @@
 			</when>
 			<when test="flex_code_id != null and flex_code_id != '' and flex_code_id == '711'">
 				CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 유연근무]', #{remark}),
+			</when>
+			<when test="flex_code_id != null and flex_code_id != '' and flex_code_id == '713'">
+				<choose>
+					<when test="week_flex_yn != null and week_flex_yn != ''">
+						CONCAT('[', (SELECT code_kr FROM dj_common_code WHERE common_code_id = #{flex_code_id}), ' 유연근무]', #{remark}),
+					</when>
+					<otherwise>
+						#{remark},
+					</otherwise>
+				</choose>
 			</when>
 			<otherwise>
 			#{remark},
