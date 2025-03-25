@@ -322,7 +322,7 @@ public class SubHolidayServiceImpl implements SubHolidayService{
 				itemMap.put("select_result_id", select_array.get(i));
 				subHolidayDAO.selectCodeUpdate(itemMap);
 			}
-			itemMap.put("replace_day_off_use_id", replaceDayOffUseId);
+//			itemMap.put("replace_day_off_use_id", replaceDayOffUseId);
 			subHolidayDAO.sp_subHoliday_req_select(itemMap);
 			subHolidayDAO.selectCodeUpdateN();
 
@@ -374,7 +374,12 @@ public class SubHolidayServiceImpl implements SubHolidayService{
 			map.put("replace_day_off_use_id", map.get("replace_apply_group_key"));
 		}
 		int n = subHolidayDAO.subHolidayReqDeactivate(map);
-		subHolidayDAO.sp_subHoliday_cancle(map);
+
+		List<Map<String, Object>> list = subHolidayDAO.subHolidayGroupList(map);
+
+		for (Map<String, Object> dt : list){
+			subHolidayDAO.sp_subHoliday_cancle(dt);
+		}
 		return n;
 	}
 	@Override

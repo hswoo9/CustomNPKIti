@@ -335,4 +335,7 @@ public class SubHolidayDAO extends AbstractDAO {
 		selectList("subHoliday.sp_subHoliday_reject", map);
 	}
 
+	public List<Map<String, Object>> subHolidayGroupList(Map<String, Object> map) {
+		return selectList("subHoliday.subHolidayGroupList", map);
+	}
 }
