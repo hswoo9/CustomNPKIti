@@ -1217,6 +1217,9 @@
 			  , apply_start_time
 			  , apply_end_date
 			  , apply_end_time
+		      <if test='replaceDayOffUseId != null and replaceDayOffUseId != ""'>
+				  , replace_apply_group_key
+			  </if>
 			  , remark
 			  , active
 			  , create_emp_seq
@@ -1235,6 +1238,9 @@
 			  , #{apply_start_time}
 			  , #{apply_end_date}
 			  , #{apply_end_time}
+			<if test='replaceDayOffUseId != null and replaceDayOffUseId != ""'>
+				, #{replaceDayOffUseId}
+			</if>
 			  , #{remark}
 			  , 'Y'
 			  , #{create_emp_seq}
@@ -1285,6 +1291,7 @@
 		     , a.str_to_end_date
 			 , a.apply_end_time
 			 , a.weekday
+			 , a.replace_apply_group_key
 			 , a.remark
 		     , a.create_date
 		     , a.date_format_create_date
@@ -1388,7 +1395,7 @@
 		SET active = 'N'
 		  , update_emp_seq = #{update_emp_seq}
 		  , update_date = NOW()
-		WHERE replace_day_off_use_id = #{replace_day_off_use_id}
+		WHERE replace_day_off_use_id = #{replace_day_off_use_id} or replace_apply_group_key = #{replace_day_off_use_id}
 	</update>
 	<update id="subHolidayReqDeactivateReject" parameterType="map">
 		UPDATE dj_replace_holiday_apply
@@ -1562,9 +1569,9 @@
 		(SELECT STR_TO_DATE(rha.apply_start_date, '%Y%m%d') FROM dj_replace_holiday_apply rha WHERE rha.replace_day_off_use_id = MAX(rhad.replace_day_off_use_id) ) AS holi_start,
 		IFNULL((select rha.use_min FROM dj_replace_holiday_apply rha WHERE rha.replace_day_off_use_id = MAX(rhad.replace_day_off_use_id)) ,0) AS real_use_min,
 		IFNULL((select rha.approval_status FROM dj_replace_holiday_apply rha WHERE rha.replace_day_off_use_id = MAX(rhad.replace_day_off_use_id)), 0) AS approval_status,
-		GROUP_CONCAT(STR_TO_DATE(rha.apply_start_date, '%Y%m%d')) as holi_group,
-		GROUP_CONCAT(rhad.use_min) as use_min_group,
-		GROUP_CONCAT(rha.approval_status) as appr_stat_group
+		GROUP_CONCAT(distinct STR_TO_DATE(rha.apply_start_date, '%Y%m%d')) as holi_group,
+		GROUP_CONCAT(distinct rhad.use_min) as use_min_group,
+		GROUP_CONCAT(distinct rha.approval_status) as appr_stat_group
 	FROM
 	(
 		SELECT owr.ot_work_result_id
@@ -1633,7 +1640,7 @@
         LEFT OUTER JOIN dj_replace_holiday_apply_detail rhad
             ON A.ot_work_result_id = rhad.ot_work_result_id
         LEFT OUTER JOIN dj_replace_holiday_apply rha
-			ON rhad.replace_day_off_use_id = rha.replace_day_off_use_id and rha.active = 'Y'
+			ON (rhad.replace_day_off_use_id = rha.replace_day_off_use_id OR rhad.replace_day_off_use_id = rha.replace_apply_group_key) and rha.active = 'Y'
 		WHERE		                                    
 		STR_TO_DATE(A.apply_start_date, '%Y') LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
 		group by ot_work_result_id

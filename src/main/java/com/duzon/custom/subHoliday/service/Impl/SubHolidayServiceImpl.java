@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -283,18 +284,50 @@ public class SubHolidayServiceImpl implements SubHolidayService{
 	}
 	@Override
 	public int subHolidayReqInsert(Map<String, Object> map) {
-		int n = subHolidayDAO.subHolidayReqInsert(map);
-		ArrayList<String> select_array = new ArrayList<String>();
-		for(int i=0; i<((String) map.get("select_result_id")).split("/").length; i++) {
-			select_array.add(((String) map.get("select_result_id")).split("/")[i]);
+
+		int n = 0;
+
+		Gson gson = new Gson();
+		List<Map<String, Object>> itemArr = gson.fromJson((String) map.get("itemArr"), new TypeToken<List<Map<String, Object>>>(){}.getType());
+
+		String replaceDayOffUseId = "";
+		for(Map<String, Object> itemMap : itemArr){
+			itemMap.put("use_emp_seq", map.get("use_emp_seq"));
+			itemMap.put("use_dept_name", map.get("use_dept_name"));
+			itemMap.put("use_position", map.get("use_position"));
+			itemMap.put("use_duty", map.get("use_duty"));
+			itemMap.put("use_min", itemMap.get("use_time"));
+			itemMap.put("approval_status", map.get("approval_status"));
+			itemMap.put("approval_emp_seq", map.get("approval_emp_seq"));
+			itemMap.put("approval_emp_name", map.get("approval_emp_name"));
+			itemMap.put("create_emp_seq", map.get("create_emp_seq"));
+
+			if (n > 0) {
+				itemMap.put("replaceDayOffUseId", replaceDayOffUseId);
+			}
+
+			subHolidayDAO.subHolidayReqInsert(itemMap);
+
+			if(n == 0) {
+				replaceDayOffUseId = itemMap.get("replace_day_off_use_id").toString();
+			}
+
+			ArrayList<String> select_array = new ArrayList<String>();
+			for(int i=0; i<((String) map.get("select_result_id")).split("/").length; i++) {
+				select_array.add(((String) map.get("select_result_id")).split("/")[i]);
+			}
+			for(int i=0; i<select_array.size(); i++) {
+				System.out.println(select_array.get(i));
+				itemMap.put("select_result_id", select_array.get(i));
+				subHolidayDAO.selectCodeUpdate(itemMap);
+			}
+			itemMap.put("replace_day_off_use_id", replaceDayOffUseId);
+			subHolidayDAO.sp_subHoliday_req_select(itemMap);
+			subHolidayDAO.selectCodeUpdateN();
+
+			n++;
 		}
-		for(int i=0; i<select_array.size(); i++) {
-			System.out.println(select_array.get(i));
-			map.put("select_result_id", select_array.get(i));
-			subHolidayDAO.selectCodeUpdate(map);
-		}
-		subHolidayDAO.sp_subHoliday_req_select(map);
-		subHolidayDAO.selectCodeUpdateN();
+
 		return n;
 	}
 	@Override
@@ -336,6 +369,9 @@ public class SubHolidayServiceImpl implements SubHolidayService{
 	}
 	@Override
 	public int subHolidayReqDeactivate(Map<String, Object> map) {
+		if(map.containsKey("replace_apply_group_key")) {
+			map.put("replace_day_off_use_id", map.get("replace_apply_group_key"));
+		}
 		int n = subHolidayDAO.subHolidayReqDeactivate(map);
 		subHolidayDAO.sp_subHoliday_cancle(map);
 		return n;
