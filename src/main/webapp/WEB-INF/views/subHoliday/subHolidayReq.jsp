@@ -762,8 +762,8 @@
 				min: "08:00",
 				max: "19:00",
 				change: function() {
-					var start_time_picker = $("#start_time_picker").data("kendoTimePicker");
-					var end_time_picker = $("#end_time_picker").data("kendoTimePicker");
+					var start_time_picker = $("#start_time_picker_0").data("kendoTimePicker");
+					var end_time_picker = $("#end_time_picker_0").data("kendoTimePicker");
 
 					calculateTime(start_time_picker, end_time_picker);
 				}
@@ -798,26 +798,166 @@
 			}
 		}
 
+		function addCalculateTime(start_time_picker, end_time_picker, idx) {
+			var start_time = start_time_picker.value(); console.log("start_time_picker", start_time)
+			var end_time = end_time_picker.value(); console.log("end_time_picker", end_time)
+			var rest_min = $("#restMin_sum").val();
+			var timeFlag = false;
+
+			if (start_time && end_time) {
+				var endTime_hr = parseInt(kendo.toString(end_time, "HH"));
+				var endTime_mm = parseInt(kendo.toString(end_time, "mm"));
+				var end_min = endTime_hr * 60 + endTime_mm;
+				var startTime_hr = parseInt(kendo.toString(start_time, "HH"));
+				var startTime_mm = parseInt(kendo.toString(start_time, "mm"));
+				var start_min = startTime_hr * 60 + startTime_mm;
+				var apply_min = end_min - start_min;
+
+				if (startTime_hr <= 12 && endTime_hr >= 13) {
+					apply_min -= 60; // 점심시간 제외
+				}
+
+				addUpdateTimeDisplay(apply_min, idx);
+			}
+
+			var apply_min_sum = 0;
+			$.each($('#applyTypeTemplate dl'), function(i, v) {
+				var start_time_l = $(v).find("input[name='apply_start_time']").val();
+				var end_time_l = $(v).find("input[name='apply_end_time']").val();
+
+				if (start_time_l && end_time_l) {
+					var endTime_hr = parseInt(kendo.toString(end_time_l).split(":")[0]);
+					var endTime_mm = parseInt(kendo.toString(end_time_l).split(":")[1]);
+					var end_min = endTime_hr * 60 + endTime_mm;
+					var startTime_hr = parseInt(kendo.toString(start_time_l).split(":")[0]);
+					var startTime_mm = parseInt(kendo.toString(start_time_l).split(":")[1]);
+					var start_min = startTime_hr * 60 + startTime_mm;
+					apply_min_sum += (end_min - start_min);
+
+					if (startTime_hr <= 12 && endTime_hr >= 13) {
+						apply_min_sum -= 60; // 점심시간 제외
+					}
+
+					if (apply_min_sum > rest_min) {
+						timeFlag = true;
+					}
+				}
+			});
+
+			if (timeFlag) {
+				alert("선택된 시간을 초과하였습니다.");
+				addResetTimePickers(idx);
+				return;
+			}
+		}
+
 		function resetTimePickers() {
-			$("#start_time_picker").data("kendoTimePicker").value("");
-			$("#end_time_picker").data("kendoTimePicker").value("");
-			$("#apply_show_hour").html("");
-			$("#apply_show_min").html("");
-			$("[name='use_min']").val("");
+			$("#start_time_picker_0").data("kendoTimePicker").value("");
+			$("#end_time_picker_0").data("kendoTimePicker").value("");
+			$("#apply_show_hour_0").html("");
+			$("#apply_show_min_0").html("");
+			$("#use_min_0").val("");
+			$("#applyBtn").prop('disabled', true);
+			$("#applyBtn").css("background", "silver");
+		}
+
+		function addResetTimePickers(idx) {
+			$("#start_time_picker_" + idx).data("kendoTimePicker").value("");
+			$("#end_time_picker_" + idx).data("kendoTimePicker").value("");
+			$("#apply_show_hour_" + idx).html("");
+			$("#apply_show_min_" + idx).html("");
+			$("#use_min_" + idx).val("");
 			$("#applyBtn").prop('disabled', true);
 			$("#applyBtn").css("background", "silver");
 		}
 
 		function updateTimeDisplay(apply_min) {
-			$("#apply_show_hour").html(parseInt(apply_min / 60));
-			$("#apply_show_min").html(apply_min % 60);
-			$("[name='use_min']").val(apply_min);
+			$("#apply_show_hour_0").html(parseInt(apply_min / 60));
+			$("#apply_show_min_0").html(apply_min % 60);
+			$("#use_min_0").val(apply_min);
 
-			var startDt = $("#startDt").data("kendoDatePicker").value();
+			var startDt = $("#startDt_0").data("kendoDatePicker").value();
 			if (startDt !== null) {
 				$("#applyBtn").prop('disabled', false);
 				$("#applyBtn").css("background", "#1088e3");
 			}
+		}
+
+		function addUpdateTimeDisplay(apply_min, idx) {
+			$("#apply_show_hour_" + idx).html(parseInt(apply_min / 60));
+			$("#apply_show_min_" + idx).html(apply_min % 60);
+			$("#use_min_" + idx).val(apply_min);
+
+			var startDt = $("#startDt_" + idx).data("kendoDatePicker").value();
+			if (startDt !== null) {
+				$("#applyBtn").prop('disabled', false);
+				$("#applyBtn").css("background", "#1088e3");
+			}
+		}
+
+		function addInitializeDatePicker(idx) {
+			$('#startDt_' + idx).kendoDatePicker({
+				culture: "ko-KR",
+				format: "yyyy-MM-dd",
+				change: function() {
+					var picker = this;
+					var selectedDate = kendo.toString(picker.value(), 'yyyyMMdd');
+
+					// 휴일 체크
+					$.getJSON(_g_contextPath_ + '/subHoliday/getWeekHoliday', {
+						'work_date': selectedDate
+					}, function(data) {
+						var week = data.week;
+						var holiday = data.holiday;
+						if (holiday >= 1 || week >= 5) {
+							alert("휴일에 보상휴가를 신청할 수 없습니다.");
+							picker.value('');
+							return;
+						}
+					});
+
+					// 선택된 날짜 hidden input에 설정
+					if (picker.value()) {
+						$("#apply_start_date_" + idx).val(selectedDate);
+
+						// TimePicker 초기화
+						addResetTimePickers(idx);
+					}
+				}
+			});
+
+			// DatePicker를 읽기 전용으로 설정
+			$('#startDt_' + idx).attr("readonly", true);
+		}
+
+		function addInitializeTimePicker(idx) {
+			$("#start_time_picker_" + idx).kendoTimePicker({
+				culture: "kr-KR",
+				format: "HH:mm",
+				interval: 30,
+				min: "08:00",
+				max: "19:00",
+				change: function() {
+					var start_time_picker = $("#start_time_picker_" + idx).data("kendoTimePicker");
+					var end_time_picker = $("#end_time_picker_" + idx).data("kendoTimePicker");
+
+					addCalculateTime(start_time_picker, end_time_picker, idx);
+				}
+			});
+
+			$("#end_time_picker_" + idx).kendoTimePicker({
+				culture: "kr-KR",
+				format: "HH:mm",
+				interval: 30,
+				min: "08:00",
+				max: "19:00",
+				change: function() {
+					var start_time_picker = $("#start_time_picker_" + idx).data("kendoTimePicker");
+					var end_time_picker = $("#end_time_picker_" + idx).data("kendoTimePicker");
+
+					addCalculateTime(start_time_picker, end_time_picker, idx);
+				}
+			});
 		}
 
 		/*
@@ -825,17 +965,39 @@
 		*/
 		var win = '';
 		$(document).on('submit', "[name='subHolidayReqFrm']", function(e){
-			var apply_start_date = $('[name="apply_start_date"]').val();
-			var apply_end_date = $('[name="apply_end_date"]').val();
-			var apply_start_time = $('[name="apply_start_time"]').val();
-			var apply_end_time = $('[name="apply_end_time"]').val();
-			var use_time = ($("[name='use_min']").val()-0);
-			var rest_time = ($("#overHoliRestMin").val()-0) - use_time;
+			// var apply_start_date = $('[name="apply_start_date"]').val();
+			// var apply_end_date = $('[name="apply_end_date"]').val();
+			// var apply_start_time = $('[name="apply_start_time"]').val();
+			// var apply_end_time = $('[name="apply_end_time"]').val();
+			// var use_time = ($("[name='use_min']").val()-0);
+			// var rest_time = ($("#overHoliRestMin").val()-0) - use_time;
 			var replace_day_off_use_id2 = ''
 			var appro_key = '';
 			e.preventDefault();
 			var formData = new FormData($(this).get(0));
 			formData.append('create_emp_seq', "${empInfo.empSeq}");
+
+			var itemArr = [];
+			var use_time_sum = 0;
+			$.each($('#applyTypeTemplate dl'), function(i, v) {
+
+				var data = {
+					apply_start_date : $(v).find("input[name='apply_start_date']").val(),
+					apply_end_date : $(v).find("input[name='apply_end_date']").val(),
+					apply_start_time : $(v).find("input[name='apply_start_time']").val(),
+					apply_end_time : $(v).find("input[name='apply_end_time']").val(),
+					use_time : ($(v).find("input[name='use_min']").val()-0)
+				}
+
+				use_time_sum += data.use_time;
+
+				data.rest_time = ($("#overHoliRestMin").val()-0) - use_time_sum;
+
+				itemArr.push(data);
+			});
+
+			formData.append("itemArr", JSON.stringify(itemArr));
+
 			$.ajax({
 				url: _g_contextPath_ + '/subHoliday/subHolidayReqInsert',
 				type: 'post',
@@ -854,7 +1016,7 @@
 						gridReload2();
 						replace_day_off_use_id2 = json.replace_day_off_use_id;
 						alert("전자결재를 완료해야 보상휴가 신청이 완료됩니다!");
-						appProcess(json.replace_day_off_use_id);
+						appProcess(json.replace_day_off_use_id, itemArr);
 						/*var formData2 = new FormData();
 						formData2.append('appro_key',json.replace_day_off_use_id)
 						formData2.append('update_emp_seq', '${empInfo.empSeq}')
@@ -944,7 +1106,7 @@
 			/*
 			전자결재연동용
 		*/
-		function appProcess(replace_day_off_use_id){
+		function appProcess(replace_day_off_use_id, itemArr){
 			var params = {};
 			params.compSeq = "${empInfo.compSeq}";
 			params.empSeq = $("[name='use_emp_seq']").val();
@@ -952,69 +1114,100 @@
 			params.approKey = params.outProcessCode + replace_day_off_use_id;
 			params.mod = 'W';
 			params.title = '보상휴가신청서';
-			params.contentsStr = makeContentsStr(params.approKey);
+			params.contentsStr = makeContentsStr(params.approKey, itemArr);
+
 			//params.loginid = "admin"
 			win = outProcessLogOn(params);
 		}
 
 		/* 여기 서버에 패치하고 되는거 확인해야됨 */
-		function makeContentsStr(approKey){
-			var html = document.querySelector('#EDIcontents').innerHTML;
+		function makeContentsStr(approKey, itemArr){
 
-			var apply_start = '';
-			var apply_end = '';
+			var html = "";
+			html += '<TR id="applyTr">';
+			html += '	<TD rowspan="' + $("#applyTypeTemplate dl").length + '" valign="middle" style="width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			html += '		<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">${empInfo.orgnztNm}</SPAN></P>';
+			html += '	</TD>';
+			html += '	<TD rowspan="' + $("#applyTypeTemplate dl").length + '" colspan="2" valign="middle" style="width:51px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			html += '		<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">' + $('#apply_emp_name').val() + '</SPAN></P>';
+			html += '	</TD>';
 
+			var use_time_sum = 0;
 
-			if(!apply_end_date) {
-				apply_start = apply_start_date.substring(0,4)+'.'+apply_start_date.substring(4,6)+'.'+apply_start_date.substring(6,8) + '<br>' + apply_start_time;
-				apply_end = apply_start_date.substring(0,4)+'.'+apply_start_date.substring(4,6)+'.'+apply_start_date.substring(6,8) + '<br>' + apply_end_time;
-			}else{
-				apply_start = apply_start_date.substring(0,4)+'.'+apply_start_date.substring(4,6)+'.'+apply_start_date.substring(6,8);
-				apply_end = apply_end_date.substring(0,4)+'.'+apply_end_date.substring(4,6)+'.'+apply_end_date.substring(6,8);
-			}
-			/* $.ajax({
-				url: _g_contextPath_ + '/subHoliday/subHolidayReqDaySelect',
-				type: 'post',
-				dataType: 'json',
-				data: {'replace_day_off_use_id' : replace_day_off_use_id2},
-				success: function(json){
-					console.log("성공성공");
-					console.log(json);
-				},error: function(error){
-					console.log("실패실패");
-					console.log(error);
+			for(var i=0; i<itemArr.length; i++) {
+
+				var apply_start_date = itemArr[i].apply_start_date;
+				var apply_end_date = itemArr[i].apply_end_date;
+				var apply_start_time = itemArr[i].apply_start_time;
+				var apply_end_time = itemArr[i].apply_end_time;
+
+				var apply_start = '';
+				var apply_end = '';
+				var use_time = (itemArr[i].use_time - 0);
+				var use = (use_time - 0) / 480;
+
+				use_time_sum += use_time;
+
+				var hourStr = parseInt(use_time / 60) > 9 ? parseInt(use_time / 60) : '0' + parseInt(use_time / 60);
+				var minStr = parseInt(use_time % 60) > 9 ? parseInt(use_time % 60) : '0' + parseInt(use_time % 60);
+				var req_time = hourStr + ':' + minStr;
+
+				var select_date = $('#selected_date').val() + '발생 보상휴가 사용';
+
+				if(!apply_end_date) {
+					apply_start = apply_start_date.substring(0, 4) + '.' + apply_start_date.substring(4, 6) + '.' + apply_start_date.substring(6, 8) + '<br>' + apply_start_time;
+					apply_end = apply_start_date.substring(0, 4) + '.' + apply_start_date.substring(4, 6) + '.' + apply_start_date.substring(6, 8) + '<br>' + apply_end_time;
+				}else{
+					apply_start = apply_start_date.substring(0, 4) + '.' + apply_start_date.substring(4, 6) + '.' + apply_start_date.substring(6, 8);
+					apply_end = apply_end_date.substring(0, 4) + '.' + apply_end_date.substring(4, 6) + '.' + apply_end_date.substring(6, 8);
 				}
-			});	 */
-			var hourStr = parseInt(use_time/60) > 9 ? parseInt(use_time/60) : '0' + parseInt(use_time/60);
-			var minStr = parseInt(use_time%60) > 9 ? parseInt(use_time%60) : '0' + parseInt(use_time%60);
-			return html.replace('{create_date}', "${nowDateToServer}")
-						.replace('{apply_position}', '${empInfo.classNm}')
-						.replace('{apply_emp_name}', $('#apply_emp_name').val())
-						.replace('{apply_emp_name2}', $('#apply_emp_name').val())
-						.replace('{apply_start}', apply_start)
-						.replace('{apply_end}', apply_end)
-						.replace('{use_time}', use_time)
-						.replace('{rest_time}', rest_time)
-						.replace('{select_date}', $('#selected_date').val() +'발생 보상휴가 사용')
-						.replace('{remark}', $('#remark').val())
-						.replace('{orgnztNm}', '${empInfo.orgnztNm}')
-						.replace('{orgnztNm2}', '${empInfo.orgnztNm}')
-						/* .replace('{all}', ($('#allMin_hide').val()-0)/480) */
-						.replace('{all}', $('#agree_span_hour').val())
-						.replace('{use}', (use_time-0)/480)
-						/* .replace('{use2}', (($('#useMin_hide').val()-0)/480)+((use_time-0)/480)) */
-						.replace('{use2}', $('#use_span_hour').val())
-						/* .replace('{use3}', (($('#useMin_hide').val()-0)/480)+((use_time-0)/480)) */
-						.replace('{use3}', $('#agree_span_hour').val())
-						.replace('{use4}',  Math.round(((use_time-0)/480) * 10000) / 10000)
-						.replace('{req_time}', hourStr + ':' + minStr)
-						/* .replace('{rest}', (($('#restMin_hide').val()-0)/480)-((use_time-0)/480)) */
-						.replace('{rest}', $('#rest_span_hour').val())
-						.replace('{year}', "${nowDateToServer}".substring(0,4))
-						.replace('{month}', "${nowDateToServer}".substring(4,6))
-						.replace('{day}', "${nowDateToServer}".substring(6,8))
-						.replace('{appro_key}', appro_key)
-						;
+
+				html += '	<TD valign="middle" style="width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+				html += '		<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">보상휴가</SPAN></P>';
+				html += '	</TD>';
+				html += '	<TD valign="middle" style="width:84px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+				html += '		<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">' + apply_start + '</SPAN></P>';
+				html += '	</TD>';
+				html += '	<TD colspan="2" valign="middle" style="width:83px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+				html += '		<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">' + apply_end + '</SPAN></P>';
+				html += '	</TD>';
+				html += '	<TD colspan="2" valign="middle" style="width:76px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+				html += '		<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">' + use + '</SPAN></P>';
+				html += '	</TD>';
+				html += '	<TD valign="middle" style="width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+				html += '		<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">' + req_time + '</SPAN></P>';
+				html += '	</TD>';
+				html += '	<TD valign="middle" style="width:106px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+				html += '		<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">' + select_date + '</SPAN></P>';
+				html += '	</TD>';
+
+				if(i != itemArr.length){
+					html += '	</TR>';
+				}
+
+			}
+
+			html += '</TR>';
+
+			var html2 = document.querySelector('#EDIcontents').innerHTML;
+
+			return html2.replace('{create_date}', "${nowDateToServer}")
+					.replace('{apply_position}', '${empInfo.classNm}')
+					.replace('{apply_emp_name}', $('#apply_emp_name').val())
+					.replace('{remark}', $('#remark').val())
+					.replace('{orgnztNm}', '${empInfo.orgnztNm}')
+					.replace('{orgnztNm2}', '${empInfo.orgnztNm}')
+					.replace('{all}', $('#agree_span_hour').val())
+					.replace('{use2}', $('#use_span_hour').val())
+					.replace('{use3}', $('#agree_span_hour').val())
+					.replace('{use4}',  Math.round(((use_time_sum-0)/480) * 10000) / 10000)
+					.replace('{rest}', $('#rest_span_hour').val())
+					.replace('{year}', "${nowDateToServer}".substring(0,4))
+					.replace('{month}', "${nowDateToServer}".substring(4,6))
+					.replace('{day}', "${nowDateToServer}".substring(6,8))
+					.replace('{appro_key}', appro_key)
+					.replace('{applyTr}', html)
+					;
 		}
 		});
 		
@@ -1341,7 +1534,41 @@
 		}
 				
 		mainGrid2();
-		
+
+		var ddIndex = 0;
+		$(document).on("click", "[name='addApplyDl']", function() {
+			ddIndex++;
+			var html = "";
+			html += '<dl class="next2" id="applyDl_' + ddIndex + '" name="applyDl">';
+			html += '<dt style="width:80px;">';
+			html += '	<img src="" alt=""/>';
+			html += '</dt>';
+			html += '<dd>'
+			html += '	<input type="text" id="startDt_' + ddIndex + '" data-type="hour" class="w113 datePickerInput_dynamic"/>'
+			html += '	<input type="hidden" id="apply_start_date_' + ddIndex + '" name="apply_start_date" class="apply_start_date"/>'
+			html += '	<input id="start_time_picker_' + ddIndex + '" name="apply_start_time" class="time_picker apply_start_time" style="width:120px;"/>'
+			html += '&nbsp; ~&nbsp;';
+			html += '	<input id="end_time_picker_' + ddIndex + '" name="apply_end_time" class="time_picker apply_end_time" style="width:120px;"/>';
+			html += '   <input type="button" value="삭제" class="file_input_button ml4 normal_btn2" name="delApplyDl" style="background-color: #f33e51;"/>';
+			html += '	(총&nbsp;<span id="apply_show_hour_' + ddIndex + '"></span>시간&nbsp;<span id="apply_show_min_' + ddIndex + '"></span>분) ※ 점심시간';
+			html += '	(12:00 ~ 13:00)';
+			html += '	<input type="hidden" id="use_min_' + ddIndex + '" name="use_min" class="use_min"/>';
+			html += '</dd>';
+			html += '</dl>';
+
+			$("#applyTypeTemplate").append(html);
+
+			// DatePicker 초기화
+			addInitializeDatePicker(ddIndex);
+
+			// TimePicker 초기화
+			addInitializeTimePicker(ddIndex);
+		});
+
+		$(document).on("click", "[name='delApplyDl']", function() {
+			$(this).closest("dl").remove();
+		});
+
 	});
 </script>
 
@@ -1692,29 +1919,22 @@
 </div>
 
 <script id="applyTypeHourTemplate" type="text/template">
-<dl class="next2">
-	<dt style="width:80px;">
-		<img src="<c:url value='/Images/ico/ico_check01.png'/>" alt="" />
-		신청일자
-	</dt>
-	<dd>
-		<input type="text" id="startDt" data-type="hour" class="w113 datePickerInput_dynamic">
-		<input type="hidden" name="apply_start_date">
-	</dd>
-</dl>
-<dl class="next2">
-	<dt style="width:80px;">
-		<img src="<c:url value='/Images/ico/ico_check01.png'/>" alt="" />
-		신청시간
-	</dt>
-	<dd>
-		<input id="start_time_picker" name="apply_start_time" class="time_picker" style="width:120px;">
-		&nbsp;~&nbsp;
-		<input id="end_time_picker" name="apply_end_time" class="time_picker" style="width:120px;">
-		(총&nbsp;<span id="apply_show_hour"></span>시간&nbsp;<span id="apply_show_min"></span>분) ※ 점심시간 (12:00 ~ 13:00)
-		<input type="hidden" name="use_min">
-	</dd>
-</dl>
+	<dl class="next2" id="applyDl_0" name="applyDl">
+		<dt style="width:80px;">
+			<img src="<c:url value='/Images/ico/ico_check01.png'/>" alt="" />
+			신청일시
+		</dt>
+		<dd>
+			<input type="text" id="startDt_0" data-type="hour" class="w113 datePickerInput_dynamic">
+			<input type="hidden" name="apply_start_date" class="apply_start_date">
+			<input id="start_time_picker_0" name="apply_start_time" class="time_picker apply_start_time" style="width:120px;">
+			&nbsp;~&nbsp;
+			<input id="end_time_picker_0" name="apply_end_time" class="time_picker apply_end_time" style="width:120px;">
+			<input type="button" value="추가" class="file_input_button ml4 normal_btn2" name="addApplyDl" />
+			(총&nbsp;<span id="apply_show_hour_0"></span>시간&nbsp;<span id="apply_show_min_0"></span>분) ※ 점심시간 (12:00 ~ 13:00)
+			<input type="hidden" id="use_min_0" name="use_min" class="use_min">
+		</dd>
+	</dl>
 </script>
 <script id="applyTypeDayTemplate" type="text/template">
 <dl class="next2">
@@ -1902,32 +2122,7 @@ div.HStyle17
 	<P CLASS=HStyle0 STYLE='text-align:center;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:160%'>비고</SPAN></P>
 	</TD>
 </TR>
-<TR>
-	<TD valign="middle" style='width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
-	<P CLASS=HStyle0 STYLE='text-align:center;line-height:130%;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%'>{orgnztNm2}</SPAN></P>
-	</TD>
-	<TD colspan="2" valign="middle" style='width:51px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
-	<P CLASS=HStyle0 STYLE='text-align:center;line-height:130%;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%'>{apply_emp_name2}</SPAN></P>
-	</TD>
-	<TD valign="middle" style='width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
-	<P CLASS=HStyle0 STYLE='text-align:center;line-height:130%;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%'>보상휴가</SPAN></P>
-	</TD>
-	<TD valign="middle" style='width:84px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
-	<P CLASS=HStyle0 STYLE='text-align:center;line-height:130%;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%'>{apply_start}</SPAN></P>
-	</TD>
-	<TD colspan="2" valign="middle" style='width:83px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
-	<P CLASS=HStyle0 STYLE='text-align:center;line-height:130%;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%'>{apply_end}</SPAN></P>
-	</TD>
-	<TD colspan="2" valign="middle" style='width:76px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
-	<P CLASS=HStyle0 STYLE='text-align:center;line-height:130%;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%'>{use}</SPAN></P>
-	</TD>
-	<TD valign="middle" style='width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
-	<P CLASS=HStyle0 STYLE='text-align:center;line-height:130%;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%'>{req_time}</SPAN></P>
-	</TD>
-	<TD valign="middle" style='width:106px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
-	<P CLASS=HStyle0 STYLE='text-align:center;line-height:130%;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%'>{select_date}</SPAN></P>
-	</TD>
-</TR>
+{applyTr}
 <TR>
 	<TD colspan="11" valign="middle" style='width:640px;height:28px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
 	<P CLASS=HStyle0 STYLE='text-align:right;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:160%'>총 보상휴가일수 : &#160;{all} 사용일수 : &#160;{use2} 잔여보상휴가 : &#160;{rest} 보상휴가차감 : &#160;{use4} </SPAN></P>
