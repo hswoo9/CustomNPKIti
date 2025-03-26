@@ -168,10 +168,10 @@
 				},{
 					field: "attReqTitle", //"reason",
 					title: "신청내역"
-				},{
+				}/*,{
 					field: "remark", //"reason",
 					title: "사유"
-				}
+				}*/
 				],
 				change: function(e){
 					//codeGridClick(e);
