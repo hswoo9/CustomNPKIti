@@ -1116,6 +1116,7 @@
 			params.title = '보상휴가신청서';
 			params.contentsStr = makeContentsStr(params.approKey, itemArr);
 
+			// console.log("contents", params.contentsStr);
 			//params.loginid = "admin"
 			win = outProcessLogOn(params);
 		}
@@ -1197,11 +1198,11 @@
 					.replace('{remark}', $('#remark').val())
 					.replace('{orgnztNm}', '${empInfo.orgnztNm}')
 					.replace('{orgnztNm2}', '${empInfo.orgnztNm}')
-					.replace('{all}', $('#agree_span_hour').val())
-					.replace('{use2}', $('#use_span_hour').val())
+					.replace('{all}', $('#agree_span_hour').val())		// 총 보상휴가일수
+					.replace('{use2}', $('#use_span_hour').val())		// 사용일수
 					.replace('{use3}', $('#agree_span_hour').val())
-					.replace('{use4}',  Math.round(((use_time_sum-0)/480) * 10000) / 10000)
-					.replace('{rest}', $('#rest_span_hour').val())
+					.replace('{use4}',  (use_time_sum-0)/480)			// 보상휴가차감 = 보상휴가 신청 일수
+					.replace('{rest}', $('#rest_span_hour').val())		// 잔여보상휴가
 					.replace('{year}', "${nowDateToServer}".substring(0,4))
 					.replace('{month}', "${nowDateToServer}".substring(4,6))
 					.replace('{day}', "${nowDateToServer}".substring(6,8))
@@ -1658,57 +1659,93 @@
 						if("${sum.overwk_agree_min_sum}" == null || "${sum.overwk_agree_min_sum}" == ""){
 							overwk_agree = 0;
 						}
+						// console.log("overWkAgree (시간외근무 인정시간): ", overwk_agree);
 						
 						var holiwk_agree = "${sum.holiwk_agree_min_sum}";
 						
 						if("${sum.holiwk_agree_min_sum}" == "" || "${sum.holiwk_agree_min_sum}" == null){
 							holiwk_agree = 0;
 						}
+						// console.log("holiWkAgree (휴일근무 인정시간): ", holiwk_agree);
 						
 						var agree_hour = parseInt(overwk_agree) + parseInt(holiwk_agree); //숫자로 만들어서 시간구하기.
 
 						var agree_span = parseInt(((overwk_agree-0) + (holiwk_agree-0))/60) + "시간" + 
 										 parseInt(((overwk_agree-0) + (holiwk_agree-0))%60) + "분";
 						$("#agree_span").html(agree_span);
-						$("#agree_span_hour").val(Math.round((agree_hour/480) * 10000) / 10000);
+
+						var agree_hour_temp = isFiniteDecimal(agree_hour, 480);
+						$("#agree_span_hour").val(agree_hour_temp == "2" ? Math.round((agree_hour/480) * 100000) / 100000 : agree_hour/480);
 						
 						var overwk_use = "${sum.overwk_use_min_sum}";
 						
 						if("${sum.overwk_use_min_sum}" == null || "${sum.overwk_use_min_sum}" == ""){
 							overwk_use = 0;
 						}
+						// console.log("overWkUse (시간외근무 사용시간): ", overwk_use);
 						
 						var holiwk_use = "${sum.holiwk_use_min_sum}";
 						
 						if("${sum.holiwk_use_min_sum}" == null || "${sum.holiwk_use_min_sum}" == ""){
 							holiwk_use = 0;
 						}
+						// console.log("holiWkUse (휴일근무 사용시간): ", holiwk_use);
 						
 						var use_hour = parseInt(overwk_use) + parseInt(holiwk_use);
 						var use_span = parseInt(((overwk_use-0) + (holiwk_use-0))/60) + "시간" + 
 									   parseInt(((overwk_use-0) + (holiwk_use-0))%60) + "분";
 						$("#use_span").html(use_span);
-						$("#use_span_hour").val(Math.round((use_hour/480) * 10000) / 10000);
+
+						var use_hour_temp = isFiniteDecimal(use_hour, 480);
+						$("#use_span_hour").val(use_hour_temp == "2" ? Math.round((use_hour/480) * 100000) / 100000 : use_hour/480);
 						
 						var overwk_rest = "${sum.overwk_rest_min_sum}";
 						
 						if("${sum.overwk_rest_min_sum}" == null || "${sum.overwk_rest_min_sum}" == ""){
 							overwk_rest = 0;
 						}
-						
+						// console.log("overWkRest (시간외근무 잔여시간): ", overwk_rest);
+
 						var holiwk_rest = "${sum.holiwk_rest_min_sum}";
 						
 						if("${sum.holiwk_rest_min_sum}" == null || "${sum.holiwk_rest_min_sum}" == ""){
 							holiwk_rest = 0;
 						}
+						// console.log("holiWkRest (휴일근무 잔여시간): ", holiwk_rest);
 						
 						var rest_hour = parseInt(overwk_rest) + parseInt(holiwk_rest);
 
 						var rest_span = parseInt(((overwk_rest-0) + (holiwk_rest-0))/60) + "시간" + 
 										parseInt(((overwk_rest-0) + (holiwk_rest-0))%60) + "분";
 						$("#rest_span").html(rest_span);
-						$("#rest_span_hour").val(Math.round((rest_hour/480) * 10000) / 10000);
-						
+
+						var rest_hour_temp = isFiniteDecimal(rest_hour, 480);
+						$("#rest_span_hour").val(rest_hour_temp == "2" ? Math.round((rest_hour/480) * 100000) / 100000 : rest_hour/480);
+
+						// 유한소수, 무한소수 판별
+						function isFiniteDecimal(a, b) {
+							// 두 수의 최대공약수를 구합니다.
+							function gcd(x, y) {
+								while (y !== 0) {
+									let temp = y;
+									y = x % y;
+									x = temp;
+								}
+								return x;
+							}
+
+							const divisor = gcd(a, b);
+
+							// b를 최대공약수로 나눠 기약분수로 만듭니다.
+							b /= divisor;
+
+							// b가 2와 5로 나눠지는지 확인합니다.
+							while (b % 2 === 0) b /= 2;
+							while (b % 5 === 0) b /= 5;
+
+							// 최종적으로 b가 1이면 유한소수입니다.
+							return b === 1 ? 1 : 2;
+						}
 						
 					});
 					</script>
