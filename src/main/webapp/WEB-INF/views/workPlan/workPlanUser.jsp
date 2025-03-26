@@ -1311,7 +1311,8 @@ function dataGrid(data, val, planType){
 				
 			}else{
 				if(work_type_code === '633'){//반일제
-					$('#default_work_type').data('kendoDropDownList').value("15");
+					/*$('#default_work_type').data('kendoDropDownList').value("15");*/
+					$('#default_work_type').data('kendoDropDownList').value(result.status.WORK_TYPE);
 				}else{
 					/*$('#default_work_type').data('kendoDropDownList').value("2");*/
 					$('#default_work_type').data('kendoDropDownList').value(result.status.WORK_TYPE);
