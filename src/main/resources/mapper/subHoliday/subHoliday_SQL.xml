@@ -1247,6 +1247,11 @@
 			  , NOW()
 			)
 	</insert>
+	<update id="subHolidayReqGroupKeyUpdate" parameterType="map">
+		update cust_klti.dj_replace_holiday_apply
+		set replace_apply_group_key = #{replace_day_off_use_id}
+		where replace_day_off_use_id = #{replace_day_off_use_id}
+	</update>
 	<select id="sp_subHoliday_req" parameterType="map">
 		CALL SP_SUBHOLIDAY_REQ(
 				#{use_emp_seq}
@@ -1569,9 +1574,9 @@
 		(SELECT STR_TO_DATE(rha.apply_start_date, '%Y%m%d') FROM dj_replace_holiday_apply rha WHERE rha.replace_day_off_use_id = MAX(rhad.replace_day_off_use_id) ) AS holi_start,
 		IFNULL((select rha.use_min FROM dj_replace_holiday_apply rha WHERE rha.replace_day_off_use_id = MAX(rhad.replace_day_off_use_id)) ,0) AS real_use_min,
 		IFNULL((select rha.approval_status FROM dj_replace_holiday_apply rha WHERE rha.replace_day_off_use_id = MAX(rhad.replace_day_off_use_id)), 0) AS approval_status,
-		GROUP_CONCAT(distinct STR_TO_DATE(rha.apply_start_date, '%Y%m%d')) as holi_group,
-		GROUP_CONCAT(distinct rhad.use_min) as use_min_group,
-		GROUP_CONCAT(distinct rha.approval_status) as appr_stat_group
+		GROUP_CONCAT(STR_TO_DATE(rha.apply_start_date, '%Y%m%d')) as holi_group,
+		GROUP_CONCAT(rhad.use_min) as use_min_group,
+		GROUP_CONCAT(rha.approval_status) as appr_stat_group
 	FROM
 	(
 		SELECT owr.ot_work_result_id
@@ -1640,7 +1645,7 @@
         LEFT OUTER JOIN dj_replace_holiday_apply_detail rhad
             ON A.ot_work_result_id = rhad.ot_work_result_id
         LEFT OUTER JOIN dj_replace_holiday_apply rha
-			ON (rhad.replace_day_off_use_id = rha.replace_day_off_use_id OR rhad.replace_day_off_use_id = rha.replace_apply_group_key) and rha.active = 'Y'
+			ON rhad.replace_day_off_use_id = rha.replace_day_off_use_id and rha.active = 'Y'
 		WHERE		                                    
 		STR_TO_DATE(A.apply_start_date, '%Y') LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
 		group by ot_work_result_id
@@ -3166,5 +3171,15 @@ FROM
 			#{replace_day_off_use_id}
 			, #{use_emp_seq}
 			)
+	</select>
+
+	<select id="subHolidayGroupList" parameterType="map" resultType="map">
+		/*subHolidayGroupList*/
+		SELECT
+		    *
+		FROM
+			DJ_REPLACE_HOLIDAY_APPLY
+		WHERE
+		    REPLACE_APPLY_GROUP_KEY = #{replace_apply_group_key}
 	</select>
 </mapper>

@@ -1305,7 +1305,6 @@
 						template: function (e) {
 							let txt = "";
 							if(e.holi_group != null) {
-								console.log("e", e.holi_group);
 								let holiArr = e.holi_group.split(",");
 								let useMinArr = e.use_min_group.split(",");
 								for(let i = 0; i < holiArr.length; i++){

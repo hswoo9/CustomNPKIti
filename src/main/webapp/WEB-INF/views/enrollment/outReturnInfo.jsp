@@ -613,7 +613,7 @@ select {
 		var nowHour = nowDate.getHours();
 		var nowMinute = nowDate.getMinutes();
 
-		returnDate.setMinutes(returnDate.getMinutes() + 10);
+		returnDate.setMinutes(returnDate.getMinutes() + 1);
 
 		var flag = false;
 
