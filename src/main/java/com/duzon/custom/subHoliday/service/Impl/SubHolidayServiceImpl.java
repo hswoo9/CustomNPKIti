@@ -329,6 +329,8 @@ public class SubHolidayServiceImpl implements SubHolidayService{
 			n++;
 		}
 
+		n = Integer.parseInt(replaceDayOffUseId);
+
 		return n;
 	}
 	@Override

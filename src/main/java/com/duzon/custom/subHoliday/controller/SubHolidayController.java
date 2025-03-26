@@ -543,7 +543,7 @@ public class SubHolidayController {
 		int n = subHolidayService.subHolidayReqInsert(map);
 		if(n>0) {
 			resultMap.put("code", "success");
-			resultMap.put("replace_day_off_use_id", map.get("replace_day_off_use_id"));
+			resultMap.put("replace_day_off_use_id", n);
 		}else {
 			resultMap.put("code", "fail");
 		}
