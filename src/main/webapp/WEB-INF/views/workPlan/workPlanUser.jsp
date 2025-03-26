@@ -458,6 +458,8 @@ $(function(){
 			html = document.querySelector("#flexTypeTemplate").innerHTML;
 			$("#flexTemplate").append(html);
 			if(record.code === '3M'){
+				$("#workTypeSelect").hide();
+				$("#workTypeLable").hide();
 				$("#flexLable").html("진행 확인");
 				var sD = $('#searchDt').val().replace(/-/gi , '');
 				var sYear = parseInt(sD.substring(0, 4));//앞에서 4번째 자리까지 자르기
@@ -487,6 +489,8 @@ $(function(){
 							$("#flexInput").html(msg);
 						});
 			}else if(record.code === '2W'){
+				$("#workTypeSelect").hide();
+				$("#workTypeLable").hide();
 				var firstDate = $("#searchDt").val() + '-01';
 				var dateObject = new Date(firstDate);
 				var lastDate = new Date(dateObject.getYear(), dateObject.getMonth()+1, 0);
@@ -1307,7 +1311,8 @@ function dataGrid(data, val, planType){
 				
 			}else{
 				if(work_type_code === '633'){//반일제
-					$('#default_work_type').data('kendoDropDownList').value("15");
+					/*$('#default_work_type').data('kendoDropDownList').value("15");*/
+					$('#default_work_type').data('kendoDropDownList').value(result.status.WORK_TYPE);
 				}else{
 					/*$('#default_work_type').data('kendoDropDownList').value("2");*/
 					$('#default_work_type').data('kendoDropDownList').value(result.status.WORK_TYPE);
