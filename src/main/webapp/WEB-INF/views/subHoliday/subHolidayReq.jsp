@@ -1126,10 +1126,10 @@
 
 			var html = "";
 			html += '<TR id="applyTr">';
-			html += '	<TD rowspan="' + $("#applyTypeTemplate dl").length + '" valign="middle" style="width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			html += '	<TD rowspan="' + itemArr.length + '" valign="middle" style="width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			html += '		<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">${empInfo.orgnztNm}</SPAN></P>';
 			html += '	</TD>';
-			html += '	<TD rowspan="' + $("#applyTypeTemplate dl").length + '" colspan="2" valign="middle" style="width:51px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			html += '	<TD rowspan="' + itemArr.length + '" colspan="2" valign="middle" style="width:51px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			html += '		<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">' + $('#apply_emp_name').val() + '</SPAN></P>';
 			html += '	</TD>';
 
