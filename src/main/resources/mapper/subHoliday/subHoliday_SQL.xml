@@ -1414,14 +1414,14 @@
 		SET approval_status = #{approval_status}
 		  , update_emp_seq = #{update_emp_seq}
 		  , update_date = NOW()
-		WHERE replace_day_off_use_id = #{target_id}
+		WHERE replace_apply_group_key = #{target_id}
 	</update>
 	<update id="replace_holiday_cancle" parameterType="map">
 		UPDATE dj_replace_holiday_apply
 		SET active = 'N'
 		  , update_emp_seq = #{update_emp_seq}
 		  , update_date = NOW()
-		WHERE replace_day_off_use_id = #{target_id}
+		WHERE replace_apply_group_key = #{target_id}
 	</update>
 	<select id="getWeekendHolidayCnt" resultType="int" parameterType="map">
 		SELECT COUNT(*)
