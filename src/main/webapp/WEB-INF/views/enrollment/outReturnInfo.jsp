@@ -362,7 +362,7 @@ select {
 								if (dataItem.VCATN_RET_TIME != "" && dataItem.VCATN_RET_TIME != null){
 									return "";
 								} else {
-									return "<div class=\"controll_btn p0\" style=\"text-align: center;\"><button type=\"button\" id=\"btnReturn\" onclick=\"fnSetReturn(" + dataItem.ORI_ID + ",'" + dataItem.ORI_OUT_TIME + "','" + dataItem.ORI_RETURN_TIME + "', '" + dataItem.ORI_TARGET_DATE + "')\">복귀</button></div>";
+									return "<div class=\"controll_btn p0\" style=\"text-align: center;\"><button type=\"button\" id=\"btnReturn\" onclick=\"fnSetReturn(" + dataItem.ORI_ID + ",'" + dataItem.ORI_OUT_TIME + "','" + dataItem.ORI_RETURN_TIME + "', '" + dataItem.ORI_TARGET_DATE + "', '" + dataItem.VCATN_OUT_TIME + "')\">복귀</button></div>";
 								}
                             }
                         },{
@@ -601,8 +601,8 @@ select {
 
 
 
-    // 외출복귀 function (k: key, a: 외출신청시간, b: 복귀신청시간, day: 날짜)
-    function fnSetReturn(k, a, b, day){
+    // 외출복귀 function (k: key, a: 외출신청시간, b: 복귀신청시간, day: 날짜, outTime: 실제외출시간)
+    function fnSetReturn(k, a, b, day, outTime){
 
         var outDate = new Date(day + " " + a);
         var returnDate = new Date(day + " " + b);
@@ -612,6 +612,11 @@ select {
 		var nowMinute = nowDate.getMinutes();
 
 		returnDate.setMinutes(returnDate.getMinutes() + 1);
+
+		if(outTime == "undefined" || outTime == null){
+			alert("외출 시간 등록 후 복귀 시간 등록이 가능합니다.");
+			return;
+		}
 
 		var flag = false;
 
