@@ -552,51 +552,49 @@ select {
 
 		var flag = false;
 
-		if(b == '12:00'){
-			if(nowHour == 13) {
-				if (nowMinute < 5) {
-					flag = true;
-				}
-			}else if(nowHour < 13){
-				flag = true;
-			}
-		}
+		// if(b == '12:00'){
+		// 	if(nowHour == 13) {
+		// 		if (nowMinute < 5) {
+		// 			flag = true;
+		// 		}
+		// 	}else if(nowHour < 13){
+		// 		flag = true;
+		// 	}
+		// }
 
 		if(confirm("외출시간을 등록하시겠습니까?")){
-			if(flag != true){if(flag == true){
-				alert("외출 시간이 등록되었습니다.");
-				var data = {
-					key : k
-				}
-				// 실 외출시간 update
-				$.ajax({
-					url : _g_contextPath_ + "/enrollment/setOutTime",
-					data : data,
-					dateType :"json",
-					type : "post",
-					success : function (rs){
-
-						gridReload();
+			if(flag != true){
+				if(flag == true){
+					var data = {
+						key : k
 					}
-				});
-			} else {
-				alert("외출 시간이 등록되었습니다.");
-				var data = {
-					key : k,
-					status : "정상"
-				}
-				// 실 외출시간 update
-				$.ajax({
-					url : _g_contextPath_ + "/enrollment/setOutTime",
-					data : data,
-					dateType :"json",
-					type : "post",
-					success : function (rs){
-
-						gridReload();
+					// 실 외출시간 update
+					$.ajax({
+						url : _g_contextPath_ + "/enrollment/setOutTime",
+						data : data,
+						dateType :"json",
+						type : "post",
+						success : function (rs){
+							alert("외출 시간이 등록되었습니다.");
+							gridReload();
+						}
+					});
+				} else {
+					var data = {
+						key : k
 					}
-				});
-			}
+					// 실 외출시간 update
+					$.ajax({
+						url : _g_contextPath_ + "/enrollment/setOutTime",
+						data : data,
+						dateType :"json",
+						type : "post",
+						success : function (rs){
+							alert("외출 시간이 등록되었습니다.");
+							gridReload();
+						}
+					});
+				}
 			}
 		}
 	}
