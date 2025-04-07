@@ -236,6 +236,12 @@
 			$('#timeGrid').data('kendoGrid').dataSource.read();
 		}
 
+		var timeSummary = {
+			agree: 0,
+			use: 0,
+			rest: 0
+		};
+
 		function timeGrid(){
 			var grid = $("#timeGrid").kendoGrid({
 				dataSource: new kendo.data.DataSource({
@@ -263,7 +269,11 @@
 					},
 					schema: {
 						data: function(response){
-							return [response.data];
+							var d = response.data;
+							timeSummary.agree = d.agree_min_sum;
+							timeSummary.use = d.use_min_sum;
+							timeSummary.rest = d.rest_min_sum;
+							return [d];
 						}
 					}
 				}),
@@ -480,7 +490,7 @@
 				{
 					field: "apply_dept_name",
 					title: "부서",
-					width: 100
+					width: 100,
 				},{
 					field: "apply_emp_name",
 					title: "신청자",
@@ -526,17 +536,29 @@
 					field: "agree_min",
 					title: "인정시간",
 					width: 80,
-					template: "#= parseInt(agree_min/60) # 시간 #= agree_min%60 #분"
+					template: "#= parseInt(agree_min/60) # 시간 #= agree_min%60 #분",
+					footerTemplate: function() {
+						var min = timeSummary.agree || 0;
+						return "<strong>" + parseInt(min / 60) + "시간 " + (min % 60) + "분</strong>";
+					}
 				},{
 					field: "use_min",
 					title: "사용시간",
 					width: 80,
-					template: "#= parseInt(use_min/60) # 시간 #= use_min%60 #분"
+					template: "#= parseInt(use_min/60) # 시간 #= use_min%60 #분",
+					footerTemplate: function() {
+						var min = timeSummary.use || 0;
+						return "<strong>" + parseInt(min / 60) + "시간 " + (min % 60) + "분</strong>";
+					}
 				},{
 					field: "rest_min",
 					title: "잔여시간",
 					width: 80,
-					template: "#= parseInt(rest_min/60) # 시간 #= rest_min%60 #분"
+					template: "#= parseInt(rest_min/60) # 시간 #= rest_min%60 #분",
+					footerTemplate: function() {
+						var min = timeSummary.rest || 0;
+						return "<strong>" + parseInt(min / 60) + "시간 " + (min % 60) + "분</strong>";
+					}
 				},{
 					field: "holi_start",
 					title: "사용(예정)일",
