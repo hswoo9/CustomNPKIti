@@ -6,6 +6,19 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt_rt"%>
+<%
+	String clientIp = request.getHeader("X-Forwarded-For");
+
+	if (clientIp == null || clientIp.length() == 0 || "unknown".equalsIgnoreCase(clientIp)) {
+		clientIp = request.getHeader("Proxy-Client-IP");
+	}
+	if (clientIp == null || clientIp.length() == 0 || "unknown".equalsIgnoreCase(clientIp)) {
+		clientIp = request.getHeader("WL-Proxy-Client-IP");
+	}
+	if (clientIp == null || clientIp.length() == 0 || "unknown".equalsIgnoreCase(clientIp)) {
+		clientIp = request.getRemoteAddr();
+	}
+%>
 <script type="text/javascript" src='<c:url value="/js/ac/ac/acUtil.js"></c:url>'></script>
 
 
@@ -175,6 +188,7 @@ select {
 <!-- //pop_wrap -->
 
 <script type="text/javascript">
+	console.log("클라이언트 IP: '<%= clientIp %>'");
 
 	console.log('${loginVO}');
 
@@ -603,8 +617,15 @@ select {
 
     // 외출복귀 function (k: key, a: 외출신청시간, b: 복귀신청시간, day: 날짜, outTime: 실제외출시간)
     function fnSetReturn(k, a, b, day, outTime){
+		var clientIp = "<%= clientIp %>";
+		var allowedIps = ["211.178.175.51", "127.0.0.1", "1.233.95.140"];
 
-        var outDate = new Date(day + " " + a);
+		if (!allowedIps.includes(clientIp)) {
+			alert("해당 위치에서는 복귀가 불가능합니다.");
+			return;
+		}
+
+		var outDate = new Date(day + " " + a);
         var returnDate = new Date(day + " " + b);
 		var nowDate = new Date();
 
