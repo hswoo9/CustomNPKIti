@@ -9,7 +9,8 @@ table tr td {text-align: center;}
 
 .popup {
   position: absolute;
-  left: 220px;
+	left: 89%;
+  /*left: 220px;*/
   display: inline-block;
   cursor: pointer;
   -webkit-user-select: none;
@@ -243,27 +244,42 @@ table tr td {text-align: center;}
 				<span class="popuptext" id="myPopup">※ 바로 옆 일괄변경버튼을 <br>누르셔야 전체 날짜에 <br>대해 적용이 됩니다.</span>
 			</div>
 			<div class="btn_div mt10 cl">
-				<div class="left_div" onclick="myFunction()">
-					<p class="tit_p mt5 mb0" style="display: inline;">근무유형 변경&nbsp; </p>
+				<div class="left_div" <%--onclick="myFunction()"--%>>
+					<%--<p class="tit_p mt5 mb0" style="display: inline;">근무유형 변경&nbsp; </p>
 					<select name="" id="work_type" class="" style="width: 160px"></select>
 					<span class="controll_btn p0">
 						<button type="button" id="" onclick="workTypeModify();">일괄변경</button>
+					</span>--%>
+						<p class="tit_p mt5 mb0" style="display: inline;">기본 근무유형&nbsp; </p>
+						<img src="<c:url value='/Images/ico/ico_check01.png'/>" alt="checkIcon"/>
+						<select name="" id="default_work_type" class="" style="width: 160px;"></select>
+						<span class="controll_btn p0">
+						<button type="button" id="defaultBtn" onclick="defaultMod();">기본근무유형 변경</button>
+						<button type="button" id="" onclick="setData();">새로고침</button>
 					</span>
 					
 				</div>
 				
-				<div class="right_div">
+				<div class="right_div" style="display: flex;" <%--onclick="myFunction()"--%>>
 					
-					<p class="tit_p mt5 mb0" style="display: inline;">기본 근무유형&nbsp; </p>
+					<%--<p class="tit_p mt5 mb0" style="display: inline;">기본 근무유형&nbsp; </p>
 					<img src="<c:url value='/Images/ico/ico_check01.png'/>" alt="checkIcon"/>
 					<select name="" id="default_work_type" class="" style="width: 160px;"></select>
 					<span class="controll_btn p0">
 						<button type="button" id="defaultBtn" onclick="defaultMod();">기본근무유형 변경</button>
 						<button type="button" id="" onclick="setData();">새로고침</button>
+					</span>--%>
+						<p class="tit_p mt5 mb0" style="display: inline;">근무유형 변경&nbsp; </p>
+						<div onmouseover="showPopup()" onmouseout="hidePopup()">
+						<select name="" id="work_type" class="" style="width: 160px" ></select>
+						</div>
+						<span class="controll_btn p0" style="margin-left: 5px">
+						<button type="button" id="" onclick="workTypeModify();">일괄변경</button>
 					</span>
+
 				</div>
 			</div>
-            	<strong> <span style="color: rgb(0, 0, 255); float: right;"> ※ '기본 근무유형'은 앞으로 다가올 월의 근무 유형을 해당 값으로 자동 설정되게 하는 기능입니다. </span></strong><br />
+            	<strong> <span style="color: rgb(0, 0, 255); float: left;"> ※ '기본 근무유형'은 앞으로 다가올 월의 근무 유형을 해당 값으로 자동 설정되게 하는 기능입니다. </span></strong><br />
             		
 			<table id="addTable">
 				<colgroup>
@@ -810,6 +826,16 @@ $(function(){
 	
 });
 
+function showPopup() {
+	var popup = document.getElementById('myPopup');
+	popup.classList.add('show');
+}
+
+function hidePopup() {
+	var popup = document.getElementById('myPopup');
+	popup.classList.remove('show');
+}
+
 function myFunction() {
 	var popup = document.getElementById('myPopup');
 	popup.classList.toggle('show');
@@ -1036,6 +1062,8 @@ function workTypeCodeList(e){
 	return workTypeCodeList;
 }
 
+var originalWorkTypeId = null; // 전역에서 선언
+
 function dataGrid(data, val, planType){
 	var nDay = moment(new Date()).format('YYYY-MM-DD');
 	var txt = ['일', '월', '화', '수', '목', '금', '토'];
@@ -1064,6 +1092,9 @@ function dataGrid(data, val, planType){
 		type : 'POST',
 		success: function(result){
 			console.log(result)
+			if (result && result.status && result.status.WORK_TYPE) {
+				originalWorkTypeId = result.status.WORK_TYPE;
+			}
 			var planSts = '';
 			var checkHtml = '';
 			var btnHtml = '';
@@ -2456,6 +2487,12 @@ function setUserData(seq, name, dept){
 }
 
 function defaultMod() {
+
+	var currentWorkTypeId = $('#default_work_type').val();
+
+	var originalWorkTypeText = list2.find(item => String(item.work_type_id) === String(originalWorkTypeId))?.work_type;
+	var currentWorkTypeText = list2.find(item => String(item.work_type_id) === String(currentWorkTypeId))?.work_type;
+
 	var data = {
 		default_type : $('#default_work_type').val(),
 		empSeq		: $('#empSeq').val(),
@@ -2469,7 +2506,12 @@ function defaultMod() {
 		type : 'POST',
 		success : function(result){
 			setData();
-			alert('기본근무유형이 변경되었습니다.')
+			/*alert('기본근무유형이 변경되었습니다.')*/
+			if(String(originalWorkTypeId) === String(currentWorkTypeId)){
+				alert("변경사항이 없습니다.");
+			}else{
+				alert('기본근무유형이 '+originalWorkTypeText+' 에서 '+currentWorkTypeText+' 으로 변경되었습니다.');
+			}
 		}
 	})
 }
