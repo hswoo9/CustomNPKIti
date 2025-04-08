@@ -724,6 +724,43 @@ $(document).ready(function() {
 		}
 		
 	}
+
+	function calculateWeightedWorkMinutes(start, end) {
+		const baseTime = "22:00";
+
+		const toMinutes = (timeStr) => {
+			const [h, m] = timeStr.split(':').map(Number);
+			return h * 60 + m;
+		};
+
+		const startMin = toMinutes(start);
+		let endMin = toMinutes(end);
+		const baseMin = toMinutes(baseTime);
+
+		if (endMin <= startMin) {
+			endMin += 1440;
+		}
+
+		let adjustedBaseMin = baseMin;
+		if (baseMin <= startMin) {
+			adjustedBaseMin = baseMin + 1440;
+		}
+
+		let weightedMinutes = 0;
+
+		if (endMin <= adjustedBaseMin) {
+			weightedMinutes = (endMin - startMin) * 1.5;
+		} else if (startMin >= adjustedBaseMin) {
+			weightedMinutes = (endMin - startMin) * 2;
+		} else {
+			const before22 = (adjustedBaseMin - startMin) * 1.5;
+			const after22 = (endMin - adjustedBaseMin) * 2;
+			weightedMinutes = before22 + after22;
+		}
+
+		return parseInt(weightedMinutes);
+	}
+
 	var temp_occur_min = '0';
 	$(document).off('change').on('change', '.time_picker', function(e){
 		e.stopPropagation(); // js, jQuery event bubbling stop
@@ -744,7 +781,7 @@ $(document).ready(function() {
 				success: function(result){
 					console.log('근무시간: ' + result.work_min + ' 휴게시간: ' + result.rest_min);
 					//var work_min = parseInt((result.work_min*1.5)-(result.work_min*1.5)%30);
-					var work_min = parseInt((result.work_min * 1.5));
+					var work_min = calculateWeightedWorkMinutes(start_time, end_time);
 					var agreed_min_old = $("[name='agree_min_old']").val();
 					$("#occur_min_show").val(parseInt(result.total_work_min/60) + "시간" + parseInt(result.total_work_min%60) + "분(휴게시간: " + result.rest_min + "분)");
 					$("#agree_min_show").val(parseInt(work_min/60) + "시간" + parseInt(work_min%60) + "분");
