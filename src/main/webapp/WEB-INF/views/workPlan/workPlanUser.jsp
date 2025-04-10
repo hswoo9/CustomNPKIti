@@ -810,7 +810,7 @@ $(function(){
 			var record;
 			rows.each(function(){
 				record = grid.dataItem($(this));
-				console.log(record);
+				console.log("record : ",record);
 			}); 
 		}
 		$(document).on('click', ".header_select", function(){
@@ -2505,13 +2505,13 @@ function defaultMod() {
 		data : data,
 		type : 'POST',
 		success : function(result){
-			setData();
-			/*alert('기본근무유형이 변경되었습니다.')*/
 			if(String(originalWorkTypeId) === String(currentWorkTypeId)){
 				alert("변경사항이 없습니다.");
 			}else{
 				alert('기본근무유형이 '+originalWorkTypeText+' 에서 '+currentWorkTypeText+' 으로 변경되었습니다.');
 			}
+			setData();
+			/*alert('기본근무유형이 변경되었습니다.')*/
 		}
 	})
 }
