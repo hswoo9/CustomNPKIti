@@ -254,7 +254,7 @@ table tr td {text-align: center;}
 						<img src="<c:url value='/Images/ico/ico_check01.png'/>" alt="checkIcon"/>
 						<select name="" id="default_work_type" class="" style="width: 160px;"></select>
 						<span class="controll_btn p0">
-						<button type="button" id="defaultBtn" onclick="defaultMod();">기본근무유형 변경</button>
+						<button type="button" id="defaultBtn" onclick="defaultMod();">근무유형 변경</button>
 						<button type="button" id="" onclick="setData();">새로고침</button>
 					</span>
 					
@@ -274,7 +274,7 @@ table tr td {text-align: center;}
 						<select name="" id="work_type" class="" style="width: 160px" ></select>
 						</div>
 						<span class="controll_btn p0" style="margin-left: 5px">
-						<button type="button" id="" onclick="workTypeModify();">일괄변경</button>
+						<button type="button" id="" onclick="workTypeModify();">선택값 일괄변경</button>
 					</span>
 
 				</div>
@@ -1130,13 +1130,13 @@ function dataGrid(data, val, planType){
 				color = 'blue';
 				stsBackColor = 'aliceblue';
 				if(result.status.flex_code_id != 0){
-					btnHtml = '<input type="button" onclick="modBtn();" onmouseover="myFunction2();" class="btnClass" style="float: right" value="변경신청">';
+					btnHtml = '<input type="button" onclick="modBtn();" onmouseover="myFunction2();" class="btnClass" style="float: right" value="선택항목 변경신청">';
 					btnHtml2 = '<input type="button" onclick="modCancelBtn();" style="float: right" value="변경신청 취소">';
 				}else{
 					//일반신청의 경우 변경신청 못하도록
 					//btnHtml = '<input type="button" onclick="modBtn();" class="btnClass" style="float: right" value="탄력근무의경우에만 변경신청 가능" disabled>'; //wook
 					//btnHtml2 = ''; //wook
-					btnHtml = '<input type="button" onclick="modBtn();" onmouseover="myFunction2();" class="btnClass" style="float: right" value="변경신청">';
+					btnHtml = '<input type="button" onclick="modBtn();" onmouseover="myFunction2();" class="btnClass" style="float: right" value="선택항목 변경신청">';
 					btnHtml2 = '<input type="button" onclick="modCancelBtn();" style="float: right" value="변경신청 취소">';
 				}
 				//$('.approvalDiv').hide(); //wook
