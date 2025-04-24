@@ -1324,11 +1324,15 @@
 				AND use_emp_seq = #{use_emp_seq}
 				</if>
 		) a
-			WHERE
+			<!--WHERE
         		a.apply_start_date LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
 			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
 				AND a.str_to_start_date BETWEEN #{startDt} AND #{endDt}
-			</if>
+			</if>-->
+		<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			WHERE a.str_to_start_date(owa.apply_start_date, '%Y%m%d') BETWEEN #{startDt} AND #{endDt}
+		</if>
+
 		ORDER BY a.apply_start_date DESC
 		<if test="skip != null and skip != ''">
 			<include refid="mysqlPaging"/>
@@ -1388,11 +1392,14 @@
 					AND use_emp_seq = #{use_emp_seq}
 					</if>
 			) a
-			WHERE
+			<!--WHERE
         		a.apply_start_date LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
 			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
 				AND a.str_to_start_date BETWEEN #{startDt} AND #{endDt}
-			</if>
+			</if>-->
+		<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
+			WHERE a.str_to_start_date(owa.apply_start_date, '%Y%m%d') BETWEEN #{startDt} AND #{endDt}
+		</if>
 		) CNT
 	</select>
 	<update id="subHolidayReqDeactivate" parameterType="map">
@@ -1646,8 +1653,8 @@
             ON A.ot_work_result_id = rhad.ot_work_result_id
         LEFT OUTER JOIN dj_replace_holiday_apply rha
 			ON rhad.replace_day_off_use_id = rha.replace_day_off_use_id and rha.active = 'Y'
-		WHERE		                                    
-		STR_TO_DATE(A.apply_start_date, '%Y') LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
+		/*WHERE
+		STR_TO_DATE(A.apply_start_date, '%Y') LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')*/
 		group by ot_work_result_id
 		order by A.rest_min desc, apply_start_date desc
 		<if test="skip != null and skip != ''">
@@ -1822,7 +1829,7 @@
 			 , SUM(owr.rest_min) AS rest_min_sum
 		FROM v_emp_info ei
 			LEFT JOIN dj_ot_work_apply owa
-		    ON ei.emp_seq = owa.apply_emp_seq AND apply_start_date LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
+		    ON ei.emp_seq = owa.apply_emp_seq /*AND apply_start_date LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')*/
 		    AND owa.active = 'Y'
 			LEFT JOIN dj_ot_work_result owr
 			ON owr.ot_work_apply_id = owa.ot_work_apply_id
@@ -1931,7 +1938,8 @@
 			 , SUM(owr.rest_min) AS rest_min_sum
 		FROM v_emp_info ei
 			LEFT JOIN dj_ot_work_apply owa
-		    ON ei.emp_seq = owa.apply_emp_seq AND apply_start_date LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')
+		    ON ei.emp_seq = owa.apply_emp_seq
+		           /*AND apply_start_date LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')*/
 		    AND owa.active = 'Y'
 			LEFT JOIN dj_ot_work_result owr
 			ON owr.ot_work_apply_id = owa.ot_work_apply_id

@@ -270,9 +270,10 @@
 					schema: {
 						data: function(response){
 							var d = response.data;
-							timeSummary.agree = d.agree_min_sum;
-							timeSummary.use = d.use_min_sum;
-							timeSummary.rest = d.rest_min_sum;
+							//timeSummary.agree = d.agree_min_sum;
+							timeSummary.agree = d?.agree_min_sum ?? 0;
+							timeSummary.use = d?.use_min_sum ?? 0;
+							timeSummary.rest = d?.rest_min_sum ?? 0;
 							return [d];
 						}
 					}
