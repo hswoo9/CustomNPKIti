@@ -743,6 +743,22 @@
 		     , wt.attend_time
 		     , wt.leave_time
 		     <if test="reward_code != null and reward_code != ''">
+			 ,CASE
+				 WHEN a.occurMin IS NULL THEN '00:00'
+				 ELSE CONCAT(RIGHT(concat('000',TRUNCATE(a.occurMin/60 ,0)),2),':',LEFT(CONCAT(TRUNCATE(a.occurMin%60 ,0),'000'),2))
+			 END AS occurTime
+			 ,CASE
+				 WHEN a.breakMin IS NULL THEN '00:00'
+				 ELSE CONCAT(RIGHT(CONCAT('000',TRUNCATE(a.breakMin/60 ,0)),2),':',LEFT(CONCAT(TRUNCATE(a.breakMin%60 ,0),'000'),2))
+			 END AS breakTime
+			 ,CASE
+				 WHEN a.agreeMin IS NULL THEN '00:00'
+				 ELSE CONCAT(RIGHT(CONCAT('000',TRUNCATE(a.agreeMin/60 ,0)),2),':',LEFT(CONCAT(TRUNCATE(a.agreeMin%60 ,0),'000'),2))
+			 END AS agreeTime
+			 ,CASE
+				 WHEN a.occurNightMin IS NULL THEN '00:00'
+				 ELSE CONCAT(right(concat('000',TRUNCATE(a.occurNightMin/60 ,0)),2),':',left(concat(TRUNCATE(a.occurNightMin%60 ,0),'000'),2))
+				 END AS occurNightTime
 		     ,CASE
 		       WHEN a.occurMin IS NULL THEN '0시간 0분'
 		       ELSE CONCAT(TRUNCATE(a.occurMin/60 ,0),'시간 ',TRUNCATE(a.occurMin%60 ,0),'분')
@@ -755,9 +771,14 @@
 		       WHEN a.agreeMin IS NULL THEN '0시간 0분'
 		       ELSE CONCAT(TRUNCATE(a.agreeMin/60 ,0),'시간 ',TRUNCATE(a.agreeMin%60 ,0),'분')
 		     END AS agreeHour
+			 ,CASE
+				 WHEN a.occurNightMin IS NULL THEN '0시간 0분'
+				 ELSE CONCAT(TRUNCATE(a.occurNightMin/60 ,0),'시간 ',TRUNCATE(a.occurNightMin%60 ,0),'분')
+			 END AS occurNightHour
 		     , a.occurMin
 		     , a.breakMin
 		     , a.agreeMin
+			 , a.occurNightMin
 		     </if>
 		FROM
 		(
@@ -776,6 +797,7 @@
 				 , IFNULL(SUM(BB.occur_min), 0) AS occurMin
 				 , IFNULL(SUM(BB.break_min), 0) AS breakMin
 				 , IFNULL(SUM(BB.agree_min), 0) AS agreeMin
+				 , IFNULL(SUM(BB.occur_night_min), 0) AS occurNightMin
 				 </if>
 			FROM 
 				dj_ot_work_apply AA

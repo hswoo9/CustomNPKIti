@@ -456,7 +456,7 @@
 							return status_kr;
 						});
 					}
-					if(this.columns[16].template){
+					if(this.columns[17].template){
 						template1 = kendo.template(function(row){
 							if(row.work_place === 'outdoor'){
 			        			return "외근";
@@ -467,7 +467,7 @@
 			        		}
 						});
 					}
-					if(this.columns[17].template){
+					if(this.columns[18].template){
 						template2 = kendo.template(function(row){
 							console.log('row', row);
 							if(row.work_place == 'outdoor'){
@@ -487,12 +487,12 @@
 						if(sheet.rows[i].type == 'data'){
 							var dataItem = {
 									approval_status: row.cells[0].value,
-									work_place: row.cells[16].value,
-									after_action_report_id: row.cells[17].value
+									work_place: row.cells[17].value,
+									after_action_report_id: row.cells[18].value
 							};
 							row.cells[0].value = template0(dataItem);
-							row.cells[16].value = template1(dataItem);
-							row.cells[17].value = template2(dataItem);
+							row.cells[17].value = template1(dataItem);
+							row.cells[18].value = template2(dataItem);
 						}
 					}
 				},
@@ -574,15 +574,30 @@
 		        	field: "work_end_time",
 		        	title: "실제퇴근시간"
 		        },{
-		        	field: "occurHour",
-		        	title: "발생시간"
+		        	field: "occurTime",
+		        	title: "발생시간",
+		        	template: function(row){
+			        	return row.occurHour;
+		        	}
 		        },{
-		        	field: "breakHour",
-		        	title: "휴게시간"
+		        	field: "breakTime",
+		        	title: "휴게시간",
+					template: function(row){
+						return row.breakHour;
+					}
 		        },{
-		        	field: "agreeHour",
-		        	title: "인정시간"
+		        	field: "agreeTime",
+		        	title: "인정시간",
+					template: function(row){
+						return row.agreeHour;
+					}
 		        },{
+					field: "occurNightTime",
+					title: "야간근무시간",
+					template: function(row){
+						return row.occurNightHour;
+					}
+				},{
 		        	field: "work_place",
 		        	title: "근무지",
 		        	template: function(row){
