@@ -338,6 +338,7 @@
 			$("#workTime").val('');
 			$("[name='work_start_time']").val('');
 			$("[name='work_end_time']").val('');
+			$("[name='work_min']").val('');
 			setTimeout(function(){
 				$("#errorMsg").slideUp();
 				setTimeout(function(){
@@ -366,6 +367,7 @@
 							$("[name='work_type_id']").val(data.work_type_id);
 							$("[name='work_start_time']").val(data.attend_time);
 							$("[name='work_end_time']").val(data.leave_time);
+							$("[name='work_min']").val(data.work_min);
 						}else if(data.status === '3'){
 							$.workTimeErrorMsg("유연근무 변경 절차가 진행중입니다. 관련 절차를 완료한 이후 다시 신청해주세요.");	
 							startTimePicker.enable(false);
@@ -380,6 +382,7 @@
 							$("[name='work_type_id']").val(workTypeId);
 							$("[name='work_start_time']").val(data.attend_time);
 							$("[name='work_end_time']").val(data.leave_time);
+							$("[name='work_min']").val(data.work_min);
 							if(workTypeId === 13 || workTypeId === 14 || workTypeId === 15 || workTypeId === 20 || workTypeId === 58 || workTypeId === 66){
 								$('#isHalf').val('none');
 							}else if(workTypeId === 22){
@@ -435,6 +438,7 @@
 			var endTimePicker = $("#end_time_picker").data("kendoTimePicker");
 			var workStartTime = $("[name='work_start_time']").val();
 			var workEndTime = $("[name='work_end_time']").val();
+			var workMin = parseInt($("[name='work_min']").val(), 10);
 			var workStart = workStartTime.split(":");
 			var workStartHour = parseInt(workStart[0]);
 			var workStartMin = workStart[1];
@@ -457,15 +461,30 @@
 			}
 			
 			var isHalf = $('#isHalf').val();
-			var startMin = (workEndHour + 1) + ":" + workEndMin;
-			//console.log('isHalf', isHalf);
-			if(isHalf === 'true'){
-				startMin = (workEndHour + 1) + ":00";
-				/*}else if( isHalf === 'false') {
-                    startMin = (workEndHour) + ':00';*/
-			}else if( isHalf === 'none'){
-				startMin = (workEndHour) + ':00';
+
+			if(workMin <= 480){
+				var startMin = (workEndHour + 1) + ":" + workEndMin;
+				//console.log('isHalf', isHalf);
+				if(isHalf === 'true'){
+					startMin = (workEndHour + 1) + ":00";
+					/*}else if( isHalf === 'false') {
+                        startMin = (workEndHour) + ':00';*/
+				}else if( isHalf === 'none'){
+					startMin = (workEndHour) + ':00';
+				}
+			}else{
+				var startMin = workEndHour + ":" + workEndMin;
+
+				if(isHalf === 'true'){
+					startMin = workEndHour + ":00";
+					/*}else if( isHalf === 'false') {
+                        startMin = (workEndHour) + ':00';*/
+				}else if( isHalf === 'none'){
+					startMin = (workEndHour) + ':00';
+				}
 			}
+
+
 			
 			if(this.value === 'AM'){
 				startTimePicker.setOptions({
@@ -1106,9 +1125,11 @@ function otApplyCancel(e) {
 					<dd>
 						<input type="text" value=""
 						id="workTime" style="width: 128px;" disabled="disabled">
+						<input type="hidden" name="work_min" value="">
 						<input type="hidden" name="work_type_id" value="">
 						<input type="hidden" name="work_start_time" value="">
 						<input type="hidden" name="work_end_time" value="">
+						<input type="hidden" name="work_min" value="">
 					</dd>
 					<div class="col-6">
 						<dt style="width:80px;">
