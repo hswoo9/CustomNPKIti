@@ -432,6 +432,7 @@
 		     , wpd.work_type_id
 		     , wpd.attend_time
 		     , wpd.leave_time
+			 , wt.work_min
 		FROM
 			dj_work_plan_detail wpd INNER JOIN dj_work_type wt
 				ON wpd.work_type_id = wt.work_type_id
