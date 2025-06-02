@@ -1894,6 +1894,7 @@
 		) A
 	</select>
 	<select id="upExcelDown" fetchSize="1000" resultType="java.util.LinkedHashMap" parameterType="map">
+		/*upExcelDown*/
 		SELECT ei.dept_name AS 부서
 			 , ei.emp_name AS 신청자
 			 , ei.position AS 직급
@@ -1914,7 +1915,7 @@
 		                                    )
 		<where>
 			<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
-			AND (STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31'))
+			AND (STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN #{startDt} AND #{endDt})
 			</if>
 			<if test="apply_dept_name != null and apply_dept_name != '' and apply_dept_name != '전체'">
 			AND ei.dept_name = #{apply_dept_name}
@@ -2712,6 +2713,7 @@
 	SELECT COUNT(*) FROM dj_out_process WHERE appro_key = #{appro_key}
 	</select>
 	<select id="downExcelDown" fetchSize="1000" resultType="java.util.LinkedHashMap" parameterType="map">
+	/*downExcelDown*/
 	SELECT A.*, IFNULL(STR_TO_DATE(rha.apply_start_date, '%Y%m%d'),'-') AS '사용(예정)일' FROM
 	(
 		SELECT owa.apply_dept_name as '부서'
@@ -2754,7 +2756,7 @@
 		                                    WHERE group_code = 'OT_REWARD_TYPE' and code = 'H'
 		                                    )
 		<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
-		WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31')
+		WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN #{startDt} AND #{endDt}
 		</if>
 		ORDER BY '소멸예정일' ASC) A
         LEFT OUTER JOIN dj_replace_holiday_apply_detail rhad
@@ -2763,6 +2765,7 @@
 			ON rhad.replace_day_off_use_id = rha.replace_day_off_use_id
 	</select>
 	<select id="allExcelDown" fetchSize="1000" resultType="java.util.LinkedHashMap" parameterType="map">
+	/*allExcelDown*/
 	SELECT A.*, IFNULL(STR_TO_DATE(rha.apply_start_date, '%Y%m%d'),'-') AS '사용(예정)일' FROM
 	(
 		SELECT owa.apply_dept_name as '부서'
@@ -2804,7 +2807,7 @@
 		                                    WHERE group_code = 'OT_REWARD_TYPE' and code = 'H'
 		                                    )
 		<if test="startDt != null and startDt != '' and endDt != null and endDt != ''">
-		WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN CONCAT(#{startDt}, '-01') AND CONCAT(#{endDt}, '-31')
+		WHERE STR_TO_DATE(owa.apply_start_date, '%Y%m%d') BETWEEN #{startDt} AND #{endDt}
 		</if>
 		ORDER BY '소멸예정일' ASC) A
         LEFT OUTER JOIN dj_replace_holiday_apply_detail rhad
