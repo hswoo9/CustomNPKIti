@@ -461,22 +461,23 @@
 			}
 			
 			var isHalf = $('#isHalf').val();
+			var startMin = "";
+			console.log(workMin)
+			if(workMin < 480){
+				startMin = workEndHour + ":" + workEndMin;
 
-			if(workMin <= 480){
-				var startMin = (workEndHour + 1) + ":" + workEndMin;
-				//console.log('isHalf', isHalf);
 				if(isHalf === 'true'){
-					startMin = (workEndHour + 1) + ":00";
+					startMin = workEndHour + ":00";
 					/*}else if( isHalf === 'false') {
                         startMin = (workEndHour) + ':00';*/
 				}else if( isHalf === 'none'){
 					startMin = (workEndHour) + ':00';
 				}
 			}else{
-				var startMin = workEndHour + ":" + workEndMin;
-
+				startMin = (workEndHour + 1) + ":" + workEndMin;
+				//console.log('isHalf', isHalf);
 				if(isHalf === 'true'){
-					startMin = workEndHour + ":00";
+					startMin = (workEndHour + 1) + ":00";
 					/*}else if( isHalf === 'false') {
                         startMin = (workEndHour) + ':00';*/
 				}else if( isHalf === 'none'){
@@ -1129,7 +1130,6 @@ function otApplyCancel(e) {
 						<input type="hidden" name="work_type_id" value="">
 						<input type="hidden" name="work_start_time" value="">
 						<input type="hidden" name="work_end_time" value="">
-						<input type="hidden" name="work_min" value="">
 					</dd>
 					<div class="col-6">
 						<dt style="width:80px;">
