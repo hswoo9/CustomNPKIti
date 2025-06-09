@@ -1679,7 +1679,7 @@
 		/*WHERE
 		STR_TO_DATE(A.apply_start_date, '%Y') LIKE CONCAT ('%',date_format(NOW(),'%Y'),'%')*/
 		group by ot_work_result_id
-		order by A.rest_min desc, apply_start_date desc
+		order by apply_start_date desc, A.rest_min desc
 		<if test="skip != null and skip != ''">
 			<include refid="mysqlPaging"/>
 		</if>
