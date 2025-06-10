@@ -437,64 +437,177 @@
 					allPages: true
 				},
 				excelExport: function(e) {
-					var sheet = e.workbook.sheets[0];
-					var template0;
-					var template1;
-					var template2;
-					if(this.columns[0].template){
-						template0 = kendo.template(function(row){
-							var status = row.approval_status;
+
+					var header = [
+						{background: '#ff0', color: '#000', value: '부서'},
+						{background: '#ff0', color: '#000', value: '성명'},
+						{background: '#ff0', color: '#000', value: '신청일자'},
+						{background: '#ff0', color: '#000', value: '요일'},
+						{background: '#ff0', color: '#000', value: '평일휴일'},
+						{background: '#ff0', color: '#000', value: '근무지'},
+						{background: '#ff0', color: '#000', value: '근무유형'},
+						{background: '#ff0', color: '#000', value: '신청시작시간'},
+						{background: '#ff0', color: '#000', value: '신청종료시간'},
+						{background: '#ff0', color: '#000', value: '실제출근시간'},
+						{background: '#ff0', color: '#000', value: '실제퇴근시간'},
+						{background: '#ff0', color: '#000', value: '진행단계'},
+						{background: '#ff0', color: '#000', value: '신청시간'},
+						{background: '#ff0', color: '#000', value: '발생시간'},
+						{background: '#ff0', color: '#000', value: '휴게시간'},
+						{background: '#ff0', color: '#000', value: '인정시간'},
+						{background: '#ff0', color: '#000', value: '야간근무시간'},
+						{background: '#ff0', color: '#000', value: '보상선택'},
+					]
+
+					var headerRow = {
+						type : "header",
+						cells : header,
+						hAlign : "center",
+						vAlign : "center"
+					}
+
+					var rowsData = new Array();
+					rowsData.push(headerRow);
+
+					var dl = e.data;
+
+					if(dl.length > 0){
+						for(var i = 0 ; i < dl.length ; i++){
+							var array = new Array();
+
+							var cells1 = {
+								value : dl[i].apply_dept_name
+							}
+							array.push(cells1);
+
+							var cells2 = {
+								value : dl[i].apply_emp_name
+							}
+							array.push(cells2);
+
+							var cells3 = {
+								value : dl[i].apply_start_date.substring(0,4) + "-" + dl[i].apply_start_date.substring(4,6) + "-" + dl[i].apply_start_date.substring(6,8)
+							}
+							array.push(cells3);
+
+							var cells4 = {
+								value : dl[i].weekday
+							}
+							array.push(cells4);
+
+							var cells5 = {
+								value : dl[i].ot_type_code_kr
+							}
+							array.push(cells5);
+
+							var workPlace = "";
+							if(dl[i].work_place === "indoor"){
+								workPlace = "내근";
+							} else if(dl[i].work_place === "outdoor"){
+								workPlace = "외근";
+							}
+
+							var cells6 = {
+								value : workPlace
+							}
+							array.push(cells6);
+
+							var cells7 = {
+								value : ""
+							}
+							array.push(cells7);
+
+							var cells8 = {
+								value : dl[i].apply_start_time
+							}
+							array.push(cells8);
+
+							var cells9 = {
+								value : dl[i].apply_end_time
+							}
+							array.push(cells9);
+
+							var cells10 = {
+								value : dl[i].work_start_time
+							}
+							array.push(cells10);
+
+							var cells11 = {
+								value : dl[i].work_end_time
+							}
+							array.push(cells11);
+
+							var status = dl[i].approval_status;
 							var status_kr = '';
 							switch(status){
-							case '0': status_kr = '변경신청'; break;
-							case '1': status_kr = '신청'; break;
-							case '2': status_kr = '승인'; break;
-					 		//case '3': status_kr = '승인취소'; break;
-							case '4': status_kr = '반려'; break;
-							case '5': status_kr = '승인대기'; break;
+								case '0': status_kr = '변경신청'; break;
+								case '1': status_kr = '신청'; break;
+								case '2': status_kr = '승인'; break;
+									//case '3': status_kr = '승인취소'; break;
+								case '4': status_kr = '반려'; break;
+								case '5': status_kr = '승인대기'; break;
 							}
-							return status_kr;
-						});
-					}
-					if(this.columns[17].template){
-						template1 = kendo.template(function(row){
-							if(row.work_place === 'outdoor'){
-			        			return "외근";
-			        		}else if(row.work_place === 'indoor'){
-			        			return "내근";
-			        		}else{
-			        			return "";
-			        		}
-						});
-					}
-					if(this.columns[18].template){
-						template2 = kendo.template(function(row){
-							console.log('row', row);
-							if(row.work_place == 'outdoor'){
-								//console.log('afterActionReportId', row.after_action_report_id);
-				        		if(row.after_action_report_id === undefined){
-				        			return '보고서미등록';
-				        		}else{
-				        			return '보고서등록'; 
-				        		}
-			        		}else{
-			        			return '';
-			        		}
-						});
-					}
-					for(var i = 1;i < sheet.rows.length; i++){
-						var row = sheet.rows[i];
-						if(sheet.rows[i].type == 'data'){
-							var dataItem = {
-									approval_status: row.cells[0].value,
-									work_place: row.cells[17].value,
-									after_action_report_id: row.cells[18].value
-							};
-							row.cells[0].value = template0(dataItem);
-							row.cells[17].value = template1(dataItem);
-							row.cells[18].value = template2(dataItem);
+
+							var cells12 = {
+								value : status_kr
+							}
+							array.push(cells12);
+
+							var applyTime = ("000" + kendo.parseInt(dl[i].apply_min/60,'n0')).slice(-2) + ":" + (kendo.parseInt(dl[i].apply_min%60,'n0') + "000").slice(0,2);
+							var cells13 = {
+								value : applyTime
+							}
+							array.push(cells13);
+
+							var cells14 = {
+								value : dl[i].occurTime
+							}
+							array.push(cells14);
+
+							var cells15 = {
+								value : dl[i].breakTime
+							}
+							array.push(cells15);
+
+							var cells16 = {
+								value : dl[i].agreeTime
+							}
+							array.push(cells16);
+
+							var cells17 = {
+								value : dl[i].occurNightTime
+							}
+							array.push(cells17);
+
+							var rewardType = "";
+							if(dl[i].reward_type === "1"){
+								rewardType = "수당";
+							} else if(dl[i].reward_type === "2"){
+								rewardType = "보상휴가";
+							}
+
+							var cells18 = {
+								value : rewardType
+							}
+							array.push(cells18);
+
+							var data = {
+								type : "data",
+								cells : array,
+								hAlign : "center",
+								vAlign : "center"
+							}
+							rowsData.push(data);
 						}
 					}
+
+					e.workbook.sheets[0].rows = rowsData;
+					e.workbook.sheets[0].rows.forEach(function(row) {
+						row.cells.forEach(function(cell) {
+							if (!cell.hAlign) cell.hAlign = "center";
+							if (!cell.vAlign) cell.vAlign = "center";
+						});
+					});
 				},
 				columns: [
 				{
