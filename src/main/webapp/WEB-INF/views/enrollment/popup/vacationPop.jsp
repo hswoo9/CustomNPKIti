@@ -1835,22 +1835,22 @@ input.k-checkbox+label {margin-left:-4px !important;}
 			bodyHtml += '<TD colspan="2" valign="middle" style="width:58px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml +=	'<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.empName+'</SPAN></P>';
 			bodyHtml += '</TD>';
-			bodyHtml += '<TD valign="middle" style="width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			bodyHtml += '<TD valign="middle" style="width:76px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">외출</SPAN></P>';
 			bodyHtml +=	'</TD>';
-			bodyHtml +=	'<TD valign="middle" style="width:90px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			bodyHtml +=	'<TD valign="middle" style="width:95px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].reqStartDate + " " + e.dataList[i].startTime + ":" + e.dataList[i].startMin +'</SPAN></P>';
 			bodyHtml += '</TD>';
-			bodyHtml += '<TD colspan="2" valign="middle" style="width:90px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			bodyHtml += '<TD colspan="2" valign="middle" style="width:95px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 3.1pt 1.4pt 3.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].reqEndDate + " " + e.dataList[i].endTime +":" + e.dataList[i].endMin +'</SPAN></P>';
 			bodyHtml += '</TD>';
 			bodyHtml += '<TD colspan="2" valign="middle" style="width:76px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].attReqDayCnt+'</SPAN></P>';
 			bodyHtml += '</TD>';
-			bodyHtml += '<TD valign="middle" style="width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			bodyHtml += '<TD valign="middle" style="width:70px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].attTime+'</SPAN></P>';
 			bodyHtml += '</TD>';
-			bodyHtml += '<TD valign="middle" style="width:93px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			bodyHtml += '<TD valign="middle" style="width:83px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].reqRemark+'</SPAN></P>';
 			bodyHtml += '</TD>';
 			bodyHtml += '</TR>';
@@ -2661,28 +2661,28 @@ input.k-checkbox+label {margin-left:-4px !important;}
 			</TD>
 		</TR>
 		<TR>
-			<TD valign="middle" style='width:80px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
+			<TD valign="middle" style='width:73px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
 				<P CLASS=HStyle0 STYLE='text-align:center;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:160%'>부서</SPAN></P>
 			</TD>
-			<TD colspan="2" valign="middle" style='width:51px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
+			<TD colspan="2" valign="middle" style='width:58px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
 				<P CLASS=HStyle0 STYLE='text-align:center;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:160%'>이름</SPAN></P>
 			</TD>
-			<TD valign="middle" style='width:80px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
+			<TD valign="middle" style='width:76px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
 				<P CLASS=HStyle0 STYLE='text-align:center;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:160%'>근태구분</SPAN></P>
 			</TD>
-			<TD valign="middle" style='width:84px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
+			<TD valign="middle" style='width:95px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
 				<P CLASS=HStyle0 STYLE='text-align:center;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:160%'>시작일자</SPAN></P>
 			</TD>
-			<TD colspan="2" valign="middle" style='width:83px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
+			<TD colspan="2" valign="middle" style='width:95px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
 				<P CLASS=HStyle0 STYLE='text-align:center;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:160%'>종료일자</SPAN></P>
 			</TD>
 			<TD colspan="2" valign="middle" style='width:76px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
 				<P CLASS=HStyle0 STYLE='text-align:center;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:160%'>신청일수</SPAN></P>
 			</TD>
-			<TD valign="middle" style='width:80px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
+			<TD valign="middle" style='width:70px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
 				<P CLASS=HStyle0 STYLE='text-align:center;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:160%'>신청시간</SPAN></P>
 			</TD>
-			<TD valign="middle" style='width:106px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
+			<TD valign="middle" style='width:83px;height:24px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt'>
 				<P CLASS=HStyle0 STYLE='text-align:center;'><SPAN STYLE='font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:160%'>비고</SPAN></P>
 			</TD>
 		</TR>
