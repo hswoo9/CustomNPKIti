@@ -1816,8 +1816,10 @@ input.k-checkbox+label {margin-left:-4px !important;}
 	function makeContentStr(e){
 
 		var headHtml = document.querySelector('#EDIcontentsHead').innerHTML;
-		headHtml =  headHtml.replace('{orgnztNm}', '${empInfo.orgnztNm}');
-		headHtml =	headHtml.replace('{apply_position}', '${empInfo.classNm}');
+		/*headHtml =  headHtml.replace('{orgnztNm}', '${empInfo.orgnztNm}');
+		headHtml =	headHtml.replace('{apply_position}', '${empInfo.classNm}');*/
+		headHtml =  headHtml.replace('{orgnztNm}', e.orgnztNm);
+		headHtml =	headHtml.replace('{apply_position}', e.duty);
 		headHtml =  headHtml.replace('{apply_emp_name}', e.empName);
 
 
@@ -1827,19 +1829,19 @@ input.k-checkbox+label {margin-left:-4px !important;}
 		for(var i=0; i < e.dataList.length ; i++){
 
 			bodyHtml += '<TR>'
-			bodyHtml += '<TD valign="middle" style="width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
-			bodyHtml +=	'<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">${empInfo.orgnztNm}</SPAN></P>';
+			bodyHtml += '<TD valign="middle" style="width:73px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			bodyHtml +=	'<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.orgnztNm+'</SPAN></P>';
 			bodyHtml += '</TD>'
-			bodyHtml += '<TD colspan="2" valign="middle" style="width:51px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			bodyHtml += '<TD colspan="2" valign="middle" style="width:58px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml +=	'<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.empName+'</SPAN></P>';
 			bodyHtml += '</TD>';
 			bodyHtml += '<TD valign="middle" style="width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">외출</SPAN></P>';
 			bodyHtml +=	'</TD>';
-			bodyHtml +=	'<TD valign="middle" style="width:84px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			bodyHtml +=	'<TD valign="middle" style="width:90px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].reqStartDate + " " + e.dataList[i].startTime + ":" + e.dataList[i].startMin +'</SPAN></P>';
 			bodyHtml += '</TD>';
-			bodyHtml += '<TD colspan="2" valign="middle" style="width:83px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			bodyHtml += '<TD colspan="2" valign="middle" style="width:90px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].reqEndDate + " " + e.dataList[i].endTime +":" + e.dataList[i].endMin +'</SPAN></P>';
 			bodyHtml += '</TD>';
 			bodyHtml += '<TD colspan="2" valign="middle" style="width:76px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
@@ -1848,7 +1850,7 @@ input.k-checkbox+label {margin-left:-4px !important;}
 			bodyHtml += '<TD valign="middle" style="width:80px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].attTime+'</SPAN></P>';
 			bodyHtml += '</TD>';
-			bodyHtml += '<TD valign="middle" style="width:106px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
+			bodyHtml += '<TD valign="middle" style="width:93px;height:35px;border-left:solid #000000 0.4pt;border-right:solid #000000 0.4pt;border-top:solid #000000 0.4pt;border-bottom:solid #000000 0.4pt;padding:1.4pt 5.1pt 1.4pt 5.1pt">';
 			bodyHtml += '<P CLASS=HStyle0 STYLE="text-align:center;line-height:130%;"><SPAN STYLE="font-size:8.5pt;font-family:"돋움";letter-spacing:-8%;line-height:130%">'+e.dataList[i].reqRemark+'</SPAN></P>';
 			bodyHtml += '</TD>';
 			bodyHtml += '</TR>';
